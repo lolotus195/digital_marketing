@@ -3,7 +3,7 @@
 # Instructor: Sanjog Misra
 # Lookalike Models with k-NN
 
-rm(list=ls())
+# rm(list=ls())
 
 # Load Data
 load(file="cust.rdat")

@@ -36,29 +36,26 @@ gg_color_hue <- function(n) {
 
 # Set up data -----------------------------------------------------------------
 
+load(file='cust.rdat')
 load(file='cust2.rdat')
+load(file='target.rdat')
 load(file='target2.rdat')
 
 # Cost of matching a customer
-cost <- 3.25
-
-# Find "valuable" customers
-# Of those who spend more than 0, the median spend is 29.94
-# So let "valuable customer" = "customer who spends at least 29.94"
-summary(cust2$spend)
-summary(cust2$spend[cust2$spend>0])
+cost <- 0.5
+cost2 <- 3.25
 
 # K-means clustering ----------------------------------------------------------
 
-ProfitKMeans <- function(cutoff, plot=F) {
+ProfitKMeans <- function(dat.cust, dat.targ, cost, cutoff, plot=F) {
   # Create seed data set
   # Should not have machine ID or spend
-  val.cust <- cust2[cust2$spend > cutoff,
-                    !names(cust2) %in% c('machine_id', 'spend')]
+  val.cust <- dat.cust[dat.cust$spend > cutoff,
+                       !names(dat.cust) %in% c('machine_id', 'spend')]
   cust.mm <- model.matrix(~.+0, data=val.cust) # +0 keeps first factor, no intercept
   
   # Make sure target data matches seed data
-  targ.mm <- model.matrix(~.+0, data=target2)
+  targ.mm <- model.matrix(~.+0, data=dat.targ)
   targ.mm <- targ.mm[, intersect(colnames(cust.mm), colnames(targ.mm))]
   
   max.centers <- 20
@@ -80,14 +77,14 @@ ProfitKMeans <- function(cutoff, plot=F) {
     
     profit.kmeans[1:num.centers, num.centers] <- sapply(1:num.centers, function(c) {
       matches <- which(km.targ$cluster %in% match.order[1:c])
-      sum(target2$spend[matches] - cost*length(matches))
+      sum(dat.targ$spend[matches] - cost*length(matches))
     })
   }
   
-  pdat <- melt(profit.kmeans, varnames=c('k','n.matches'), value.name='profit')
-  pdat <- pdat[!is.na(pdat$profit),]
-  
   if(plot) {
+    pdat <- melt(profit.kmeans, varnames=c('k','n.matches'), value.name='profit')
+    pdat <- pdat[!is.na(pdat$profit),]
+    
     idx.max <- which.max(pdat$profit)
     g <- ggplot(pdat) + geom_tile(aes(x=n.matches, y=k, fill=profit)) + 
       scale_fill_gradient(low=gg_color_hue(3)[1], high=gg_color_hue(3)[2]) +
@@ -104,21 +101,28 @@ ProfitKMeans <- function(cutoff, plot=F) {
     plot(g)
   }
   
-  return(max(pdat$profit))
+  return(max(profit.kmeans, na.rm=T))
 }
 
-# Deciles of non-zero spend amount
-cutoff.20 <- quantile(cust2$spend[cust2$spend>0], seq(0.1, 1, 0.05))
+# Deciles of non-zero spend amount (same for both data sets)
+cutoff <- quantile(cust$spend[cust$spend>0], seq(0.1, 0.95, 0.05))
+# cutoff <- quantile(cust$spend[cust$spend>0], seq(0.1, 0.8, 0.2))
 
 # k-means clustering using the decile cutoffs to define a "valuable" customer
-profit.20 <- sapply(cutoff.20[1:18], function(c) {
+profit <- sapply(cutoff, function(c) {
   cat(c,',',sep='')
-  ProfitKMeans(c, plot=F)
+  list(ProfitKMeans(cust, target, cost, c, plot=F),
+       ProfitKMeans(cust2, target2, cost2, c, plot=F))
 })
+profit1 <- unlist(profit[1,])
+profit2 <- unlist(profit[2,])
 
 # Plot the "best" result
-ProfitKMeans(cutoff.20[which.max(profit.20)], plot=T)
+ProfitKMeans(cust, target, cost, cutoff[which.max(profit1)], plot=T)
+ProfitKMeans(cust2, target2, cost2, cutoff[which.max(profit2)], plot=T)
 
-# Conclusion: no matter what cutoff you use to define value, or how many 
-# clusters you use, or how many clusters you match on, this is an unprofitable 
-# strategy
+# Conclusion: 
+# 1) no matter what cutoff you use to define value, or how many  clusters you 
+#    use, or how many clusters you match on, this is an unprofitable strategy
+# 2) the 2nd index is not valuable enough to justify its cost; the first data
+#    set is still the more valuable one

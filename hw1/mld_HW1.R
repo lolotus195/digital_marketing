@@ -141,9 +141,10 @@ res.combined <- rbind(
 # Extract the measures we care about for the facet-wrap.
 res.melt <- melt(res.combined, id.vars = c("k", "series"), 
                  measure.vars = c("profit", 
-                                  # "frac.customers.captured", 
+                                  "frac.customers.captured",
                                   "frac.revenue.captured",
-                                  "frac.matches"))
+                                  "frac.matches"
+                                  ))
 measure_to_label_map = c(
   "profit"="Profit [$]",
   "frac.customers.captured"="Fraction of Customers Captured",
@@ -152,7 +153,7 @@ measure_to_label_map = c(
 
 g <- ggplot(res.melt, aes(k, value, color=series)) + 
   geom_line() + geom_point() + scale_color_discrete("Series") +
-  facet_wrap("variable", scales="free_y", ncol=1, 
+  facet_wrap("variable", scales="free_y", ncol=2, 
              labeller = labeller("variable"=measure_to_label_map)) +
   theme_bw() + labs(x="# of Nearest Neighbors Included", y="")
 GGPlotSave(g, "Profits")

@@ -30,7 +30,7 @@ load(file="cust2.rdat")
 load(file="target2.rdat")
 library(FNN)
 
-# What's in them?
+## What's in them?
 head(cust2)
 head(target2)
 

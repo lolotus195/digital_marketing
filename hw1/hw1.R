@@ -157,6 +157,7 @@ ProfitKNN <- function(dat.cust, dat.targ, k, cost, cutoff, gamlr=T) {
     fit <- gamlr(x=cust.mm, y=dat.cust$spend[dat.cust$spend>cutoff])
     B <- drop(coef(fit))[-1]
     B <- B[B!=0]
+    print(names(B))
     cust.mm <- cust.mm[,colnames(cust.mm) %in% names(B)]
     targ.mm <- targ.mm[,colnames(targ.mm) %in% names(B)]
   }

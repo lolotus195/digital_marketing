@@ -1,15 +1,21 @@
-\documentclass{article}
+\input{../../utils/header.tex}
 
 \begin{document}
 
-\title{Homework \#1\\Digital and Algorithmic Marketing (37304-01)}
-\author{Brian Chingono, Will Clark, Matthew Delio, Yoni Sarason, Jonathan Stevens\\University of Chicago Booth School of Business}
+\title{Homework \#1\\
+Digital and Algorithmic Marketing (37304-01)}
+\author{Brian Chingono, Will Clark, Matthew DeLio, Yoni Sarason, Jonathan Stevens\\
+University of Chicago Booth School of Business}
 
 \maketitle
 
 \section{} % Question 1
 
 \subsection{K-Means Matching}
+
+Yes. We would use the new DMP. A regression of spend against the explanatory variables shows that the new ecom\_index variable is statistically significant. Moreover, the retail\_index variable is no longer statistically significant after we control for ecom\_index. Therefore, the new DMP provides a variable that allows us to obtain better matches than our original method.
+
+As shown in the chart below, we can obtain a higher maximum profit under the new DMP than under our original method. Under the new DMP, profit is maximized at \$4,413.61 whereas the maximum profit under the old method was \$3,559.14. In both cases, profit is maximized when k-nearest neighbors are set to 3.
 
 \subsection{K-Nearest-Neighbors Matching}
 

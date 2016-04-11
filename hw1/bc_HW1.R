@@ -2,6 +2,7 @@
 # Session 2, April 06, 2016
 # Instructor: Sanjog Misra
 # Group Homework #1
+rm(list=ls())
 
 # A new DMP claims that hey have a better set of variables
 # to match your customers on. 
@@ -24,8 +25,6 @@ cost = 3.25
 
 ## Part 1 ##
 ## Load data
-getwd()
-setwd("C:/Users/Chingono/Documents/Algo Marketing/HW1")
 load(file="cust2.rdat")
 load(file="target2.rdat")
 library(FNN)
@@ -87,8 +86,8 @@ perc.captured # 75.4% captured
 
 ## Compare versus original
 # Load Data
-load(file="cust_original.rdat")
-load(file="target_original.rdat")
+load(file="cust.rdat")
+load(file="target.rdat")
 
 # What's in them?
 head(cust)

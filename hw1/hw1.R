@@ -190,6 +190,13 @@ PlotKNNProfit(profit2)
 max(profit1)
 max(profit2)
 
+DispProfitMax <- function(pi, cutoff) {
+  m <- which(pi == max(pi), arr.ind = TRUE)
+  print(paste('k = ', m[1], '; cutoff = $', cutoff[m[2]], sep=''))
+}
+DispProfitMax(profit1, cutoff)
+DispProfitMax(profit2, cutoff)
+
 # Conclusion: This time, the second data set actually pays for itself (as long
 # as we are using some kind of filter on variables to include)
 

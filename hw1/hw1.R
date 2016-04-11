@@ -28,6 +28,9 @@ set.seed(0xDedBeef)
 
 require(ggplot2)
 require(reshape2)
+require(parallel)
+require(FNN)
+require(gamlr)
 
 gg_color_hue <- function(n) {
   hues = seq(15, 375, length=n+1)
@@ -42,7 +45,7 @@ load(file='target.rdat')
 load(file='target2.rdat')
 
 # Cost of matching a customer
-cost <- 0.5
+cost1 <- 0.5
 cost2 <- 3.25
 
 # K-means clustering ----------------------------------------------------------
@@ -77,7 +80,7 @@ ProfitKMeans <- function(dat.cust, dat.targ, cost, cutoff, plot=F) {
     
     profit.kmeans[1:num.centers, num.centers] <- sapply(1:num.centers, function(c) {
       matches <- which(km.targ$cluster %in% match.order[1:c])
-      sum(dat.targ$spend[matches] - cost*length(matches))
+      sum(dat.targ$spend[matches] - cost)
     })
   }
   
@@ -87,7 +90,7 @@ ProfitKMeans <- function(dat.cust, dat.targ, cost, cutoff, plot=F) {
     
     idx.max <- which.max(pdat$profit)
     g <- ggplot(pdat) + geom_tile(aes(x=n.matches, y=k, fill=profit)) + 
-      scale_fill_gradient(low=gg_color_hue(3)[1], high=gg_color_hue(3)[2]) +
+      scale_fill_gradient2(low=gg_color_hue(3)[1], high=gg_color_hue(3)[2]) +
       scale_y_continuous(trans='reverse') + 
       annotate('rect', xmin=pdat$n.matches[idx.max]-0.5, xmax=pdat$n.matches[idx.max]+0.5, 
                ymin=pdat$k[idx.max]-0.5, ymax=pdat$k[idx.max]+0.5,
@@ -108,17 +111,21 @@ ProfitKMeans <- function(dat.cust, dat.targ, cost, cutoff, plot=F) {
 cutoff <- quantile(cust$spend[cust$spend>0], seq(0.1, 0.95, 0.05))
 # cutoff <- quantile(cust$spend[cust$spend>0], seq(0.1, 0.8, 0.2))
 
+# Set up parallel code
+cl <- makeCluster(detectCores(), type='FORK')
+clusterExport(cl, 'ProfitKMeans')
+
 # k-means clustering using the decile cutoffs to define a "valuable" customer
-profit <- sapply(cutoff, function(c) {
+profit <- parSapply(cl, cutoff, function(c) {
   cat(c,',',sep='')
-  list(ProfitKMeans(cust, target, cost, c, plot=F),
+  list(ProfitKMeans(cust, target, cost1, c, plot=F),
        ProfitKMeans(cust2, target2, cost2, c, plot=F))
 })
 profit1 <- unlist(profit[1,])
 profit2 <- unlist(profit[2,])
 
 # Plot the "best" result
-ProfitKMeans(cust, target, cost, cutoff[which.max(profit1)], plot=T)
+ProfitKMeans(cust, target, cost1, cutoff[which.max(profit1)], plot=T)
 ProfitKMeans(cust2, target2, cost2, cutoff[which.max(profit2)], plot=T)
 
 # Conclusion: 
@@ -126,3 +133,66 @@ ProfitKMeans(cust2, target2, cost2, cutoff[which.max(profit2)], plot=T)
 #    use, or how many clusters you match on, this is an unprofitable strategy
 # 2) the 2nd index is not valuable enough to justify its cost; the first data
 #    set is still the more valuable one
+
+# K-nearest neighbors ---------------------------------------------------------
+
+PlotKNNProfit <- function(pi) {
+  pdat <- melt(pi, value.name = 'profit')
+  g <- ggplot(pdat) + geom_tile(aes(x=Var1, y=Var2, fill=profit)) + 
+    scale_fill_gradient2(low=gg_color_hue(3)[1], high=gg_color_hue(3)[2]) + 
+    # geom_text(aes(x=Var1, y=Var2, label=sprintf('%.f', profit))) + 
+    labs(x='k', y='cutoff')
+  plot(g)
+}
+
+ProfitKNN <- function(dat.cust, dat.targ, k, cost, cutoff, gamlr=T) {
+  val.cust <- dat.cust[dat.cust$spend > cutoff,
+                       !names(dat.cust) %in% c('machine_id', 'spend')]
+  cust.mm <- model.matrix(~.+0, data=val.cust) # +0 keeps first factor, no intercept
+  
+  targ.mm <- model.matrix(~.+0, data=dat.targ)
+  targ.mm <- targ.mm[, intersect(colnames(cust.mm), colnames(targ.mm))]
+  
+  if(gamlr) {
+    fit <- gamlr(x=cust.mm, y=dat.cust$spend[dat.cust$spend>cutoff])
+    B <- drop(coef(fit))[-1]
+    B <- B[B!=0]
+    cust.mm <- cust.mm[,colnames(cust.mm) %in% names(B)]
+    targ.mm <- targ.mm[,colnames(targ.mm) %in% names(B)]
+  }
+  
+  matches <- get.knnx(targ.mm, cust.mm, k=k, algorithm='brute')
+  matches <- unique(as.vector(matches$nn.index))
+  
+  profit <- sum(dat.targ$spend[matches] - cost)
+}
+
+# search over optimal cutoffs and k
+max.k <- 20
+cutoff <- quantile(cust$spend[cust$spend>0], seq(0.1, 0.95, 0.05))
+profit1 <- matrix(NA, nrow=max.k, ncol=length(cutoff))
+profit2 <- matrix(NA, nrow=max.k, ncol=length(cutoff))
+
+for (r in 1:max.k) {
+  for (c in 1:length(cutoff)) {
+    if (r%%2==0 & c%%2==0) 
+      print(paste('row =', r, 'col = ', c))
+    profit1[r,c] <- ProfitKNN(dat.cust=cust, dat.targ=target, k=r, cost=cost1, 
+                              cutoff=cutoff[c], gamlr=T)
+    profit2[r,c] <- ProfitKNN(dat.cust=cust2, dat.targ=target2, k=r, cost=cost2, 
+                             cutoff=cutoff[c], gamlr=T)
+  }
+}
+
+PlotKNNProfit(profit1)
+PlotKNNProfit(profit2)
+
+max(profit1)
+max(profit2)
+
+# Conclusion: This time, the second data set actually pays for itself (as long
+# as we are using some kind of filter on variables to include)
+
+# Houskeeping -----------------------------------------------------------------
+
+stopCluster(cl)

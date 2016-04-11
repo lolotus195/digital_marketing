@@ -152,9 +152,9 @@ res.melt <- melt(res.combined, id.vars = c("k", "series"),
                                   "frac.matches"))
 measure_to_label_map = c(
   "profit"="Profit [$]",
-  "frac.customers.captured"="Fraction of Customers Captured",
-  "frac.revenue.captured"="Fraction of Revenue Captured",
-  "frac.matches"="Fraction of Customers Matched") # I don't like this title.
+  "frac.customers.captured"="Frac. of Customers Captured",
+  "frac.revenue.captured"="Frac. of Revenue Captured",
+  "frac.matches"="Frac. of Customers Matched") # I don't like this title.
 
 g <- ggplot(res.melt, aes(k, value, color=series)) + 
   geom_line() + geom_point() + scale_color_discrete("Series") +

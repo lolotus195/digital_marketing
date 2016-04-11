@@ -129,6 +129,11 @@ res.orig.class <- CalcProfits(cust, target, cost_orig, c("retail_index",
 
 res.ecom.gamlr <- CalcProfits(cust2, target2, cost_new, cust2.signif[["coefs"]])
 
+res.ecom2.gamlr <- CalcProfits(cust2, target2, cost_new, 
+                               c("hoh_oldest_age2",
+                                 "hoh_oldest_age7",
+                                 "ecom_index"), 
+                               spend_thresh=127)
 
 ####
 # Plot Profits ----
@@ -136,15 +141,15 @@ res.ecom.gamlr <- CalcProfits(cust2, target2, cost_new, cust2.signif[["coefs"]])
 res.combined <- rbind(
   cbind(res.orig.gamlr, series="No ecom (Lasso)"),
   cbind(res.orig.class, series="No ecom (In-Class)"),
-  cbind(res.ecom.gamlr, series="With ecom (Lasso)"))
+  cbind(res.ecom.gamlr, series="With ecom (Lasso)"),
+  cbind(res.ecom2.gamlr, series="With ecom (cutoff=$127)"))
 
 # Extract the measures we care about for the facet-wrap.
 res.melt <- melt(res.combined, id.vars = c("k", "series"), 
-                 measure.vars = c("profit", 
+                 measure.vars = c("profit",
                                   "frac.customers.captured",
                                   "frac.revenue.captured",
-                                  "frac.matches"
-                                  ))
+                                  "frac.matches"))
 measure_to_label_map = c(
   "profit"="Profit [$]",
   "frac.customers.captured"="Fraction of Customers Captured",

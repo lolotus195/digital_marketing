@@ -11,7 +11,7 @@ load("target2.rdat")
 load("cust2.rdat")
 
 ####
-# Hist ----
+# CDF ----
 ####
 dat <- subset(cust, spend>0)
 
@@ -20,5 +20,11 @@ df <- data.frame(
   spend=sort(dat$spend),
   cdf=cdf.fcn(sort(dat$spend)))
 g <- ggplot(df, aes(x=spend, y=cdf)) + geom_line() + scale_x_log10() +
-  theme_bw() + labs(x="log(spend)", y="CDF")
-GGPlotSave(g, "cdf")
+  theme_bw() + labs(x="spend", y="CDF")
+GGPlotSave(g, "cust_spend_cdf")
+
+####
+# Hist ----
+####
+g <- qplot(spend, data=dat, bins=30) + scale_x_log10() + theme_bw()
+GGPlotSave(g, "cust_spend_hist")

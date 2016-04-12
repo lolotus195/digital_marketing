@@ -84,7 +84,9 @@ CombineCoefs <- function(lst) {
 all.coefs <- CombineCoefs(list(
   "No ecom\\_index (BIC)" = cust.signif, 
   "With ecom\\_index (BIC)" = cust2.signif, 
-  "With ecom\\_index (AIC)" = cust2.signif.AIC))
+  "With ecom\\_index (AIC)" = cust2.signif.AIC,
+  "Manual w/ecom\\_index" = list(coefs=c(
+    "hoh_oldest_age2", "hoh_oldest_age7", "ecom_index"))))
 all.coefs <- apply(all.coefs, 2, function(x) gsub("_", "\\\\_", x))
 ExportTable(all.coefs, "series_coefs", "Significant Coefficients by Series",
             NA.string = "")
@@ -190,10 +192,10 @@ res.manual.search <- CutoffSearch(cust2, target2, cost_new,
                                     "ecom_index"),
                                   unname(try.spend), names(try.spend))
 
-res.class.search <- CutoffSearch(cust, target, cost_orig,
-                                 c("retail_index", "household_income6", 
-                                   "household_size6"),
-                                 unname(try.spend), names(try.spend))
+# res.class.search <- CutoffSearch(cust, target, cost_orig,
+#                                  c("retail_index", "household_income6",
+#                                    "household_size6"),
+#                                  unname(try.spend), names(try.spend))
 
 # Search over gamlr's explanatory variables.
 res.gamlr.aic.search <- CutoffSearch(cust2, target2, cost_new, 

@@ -67,19 +67,24 @@ PrintSignifCoefs("cust2-AIC", cust2.signif.AIC)
 ####
 # Export Significant Coefficient ----
 ####
-CombineCoefs <- function(l1, l2, l3, cnames) {
-  n <- max(length(l1$coefs), length(l2$coefs), length(l3$coefs))
-  length(l1$coefs) <- n
-  length(l2$coefs) <- n
-  length(l3$coefs) <- n
-  res <- cbind(l1$coefs, l2$coefs, l3$coefs)
-  colnames(res) <- cnames
-  return(res)
+CombineCoefs <- function(lst) {
+  n <- 0
+  for (i in 1:length(lst)) {
+    n <- max(n, length(lst[[i]]$coefs))
+  }
+  m <- matrix(nrow=n, ncol=length(lst))
+  for (i in 1:length(lst)) {
+    coefs <- lst[[i]]$coefs
+    m[1:length(coefs),i] <- coefs
+  }
+  df <- as.data.frame(m)
+  colnames(df) <- names(lst)
+  return(df)
 }
-
-all.coefs <- CombineCoefs(cust.signif, cust2.signif, cust2.signif.AIC, 
-                          c("No ecom\\_index (BIC)", "With ecom\\_index (BIC)", 
-                            "With ecom\\_index (AIC)"))
+all.coefs <- CombineCoefs(list(
+  "No ecom\\_index (BIC)" = cust.signif, 
+  "With ecom\\_index (BIC)" = cust2.signif, 
+  "With ecom\\_index (AIC)" = cust2.signif.AIC))
 all.coefs <- apply(all.coefs, 2, function(x) gsub("_", "\\\\_", x))
 ExportTable(all.coefs, "series_coefs", "Significant Coefficients by Series",
             NA.string = "")
@@ -205,6 +210,7 @@ res.search <- rbind(
   cbind(series="AIC", res.gamlr.aic.search),
   cbind(series="BIC", res.gamlr.bic.search))
 
+
 ####
 # Export Best Choice Table ----
 ####
@@ -228,15 +234,15 @@ ExportTable(res.search.best, "series_max",
             include.rownames = F,
             align.cols = TableAlignMultilineCenteredCM(c(1, 1.5, 2.0, 1.5, rep(2, 4))))
 
+
 ####
 # Plot Series' Results ----
 ####
 res.search %>%
   group_by(series, thresh) %>%
-  summarize(max.profit=max(profit)) -> res.search.plot
-  
+  filter(profit==max(profit)) -> res.search.plot
 
-g <- ggplot(res.search.plot, aes(x=thresh, y=max.profit, color=series)) + 
+g <- ggplot(res.search.plot, aes(x=thresh, y=profit, color=series)) + 
   geom_line() + geom_point() + 
   scale_color_discrete("Series") +
   theme_bw() + labs(x="Spend Matching Threshold [$]", y="Max Profit")

@@ -65,6 +65,26 @@ PrintSignifCoefs("cust2-AIC", cust2.signif.AIC)
 
 
 ####
+# Export Significant Coefficient ----
+####
+CombineCoefs <- function(l1, l2, l3, cnames) {
+  n <- max(length(l1$coefs), length(l2$coefs), length(l3$coefs))
+  length(l1$coefs) <- n
+  length(l2$coefs) <- n
+  length(l3$coefs) <- n
+  res <- cbind(l1$coefs, l2$coefs, l3$coefs)
+  colnames(res) <- cnames
+  return(res)
+}
+
+all.coefs <- CombineCoefs(cust.signif, cust2.signif, cust2.signif.AIC, 
+                          c("No ecom\\_index (BIC)", "With ecom\\_index (BIC)", 
+                            "With ecom\\_index (AIC)"))
+ExportTable(all.coefs, "series_coefs", "Significant Coefficients by Series",
+            NA.string = "")
+
+
+####
 # KNN using significant coefs ----
 ####
 CalcProfits <- function(cust.data, target.data, 
@@ -263,6 +283,7 @@ g <- ggplot(res.melt, aes(k, value, color=series)) +
   theme_bw() + labs(x="# of Nearest Neighbors Included", y="") +
   theme(legend.position = "bottom")
 GGPlotSave(g, "profits")
+
 
 # They have given you a sample target dataset 
 # and a matched version of your customer dataset

@@ -174,9 +174,9 @@ res.gamlr.bic.search <- CutoffSearch(cust2, target2, cost_new,
                                      unname(try.spend), names(try.spend))
 
 res.search <- rbind(
-  cbind(series="Grid Search", res.manual.search),
-  cbind(series="Lasso AIC", res.gamlr.aic.search),
-  cbind(series="Lasso BIC", res.gamlr.bic.search))
+  cbind(series="Manual", res.manual.search),
+  cbind(series="AIC", res.gamlr.aic.search),
+  cbind(series="BIC", res.gamlr.bic.search))
 
 ####
 # Export Best Choice Table ----
@@ -236,10 +236,10 @@ res.combined <- rbind(
   cbind(res.ecom.search[-(1:3)], series="search_ecom"))
 
 series_to_legend_map <- c(
-  "lasso_no_ecom" = "No ecom_index\n(Lasso BIC, spend>=$10)",
+  "lasso_no_ecom" = "No ecom_index\n(BIC, spend>=$10)",
   "class_no_ecom" = "No ecom_index\n(In-Class, spend>=$10)",
-  "lasso_ecom" = "With ecom_index\n(Lasso BIC, spend>=$10)",
-  "search_ecom" = sprintf("With ecom_index\n(%s, spend>=%3.2f)",
+  "lasso_ecom" = "With ecom_index\n(BIC, spend>=$10)",
+  "search_ecom" = sprintf("With ecom_index\n(%s, spend>=$%3.2f)",
                           res.ecom.search$series[1], 
                           res.ecom.search$thresh[1])
 )

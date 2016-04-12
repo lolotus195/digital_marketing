@@ -28,7 +28,7 @@ GetFilename <- function(filename, plotOpts. = Global.PlotOpts) {
 
 CreateDefaultPlotOpts <- function(FileType = "pdf", WriteToFile = T) {
   assign("Global.PlotOpts", 
-         data.frame(Prefix = "writeup/", Width = 10, Height = 8, Units = "in",
+         data.frame(Prefix = "writeup/", Width = 8, Height = 6, Units = "in",
                     Res = 300, PointSize = 12, stringsAsFactors = FALSE,
                     FileType = FileType, WriteToFile=WriteToFile),
          envir = .GlobalEnv)

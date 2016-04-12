@@ -80,6 +80,7 @@ CombineCoefs <- function(l1, l2, l3, cnames) {
 all.coefs <- CombineCoefs(cust.signif, cust2.signif, cust2.signif.AIC, 
                           c("No ecom\\_index (BIC)", "With ecom\\_index (BIC)", 
                             "With ecom\\_index (AIC)"))
+all.coefs <- apply(all.coefs, 2, function(x) gsub("_", "\\\\_", x))
 ExportTable(all.coefs, "series_coefs", "Significant Coefficients by Series",
             NA.string = "")
 

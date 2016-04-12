@@ -11,6 +11,19 @@ University of Chicago Booth School of Business}
 
 \section{Data Exploration (JS)}
 
+Prior to approaching the decisions of whether we should go with the new DMP, and whether we should go after the entire target file audience, we first conducted some data exploration:  
+\begin{itemize}
+
+\item For all customers in our existing customer data set, median spending is 0 dollars and mean spending is 2.902 dollars. There are 5,000 customer observations in this data set.
+
+\item We determined that it would be more useful to look at the subset of customers in the existing dataset who actually had spending greater than 0 dollars.  Among those with positive spending, the median and mean spending was 29.94 dollars and 97.37 dollars, respectively.  \vref{fig:cust_spend_cdf} shows a Cumulative Distribution Function of spending for the subset of customers with spending greater than zero. \vref{fig:cust_spend_hist} shows a histogram of spending by customers with spending greater than zero.  
+
+\item The target dataset contains 19,686 observations and also has median and mean spending customer spending near zero for all observations.  However, among only the potential customers in the target data set that have nonzero spending, the median and mean levels of spending are 35.78 dollars and 59.82 dollars, respectively. 
+
+\item Given the cost of 3.25 dollars per match from the target data set, the expected profit from blanketing the entire target dataset is -3,263.17 dollars.  Thus it appears that applying a matching algorithm may be a useful tool in segmenting the market and achieving positive profits.  
+
+\end{itemize}
+
 % Note this CDF plot is for customers that did spend at least something
 \begin{figure}[!htb]
   \centering
@@ -29,7 +42,7 @@ University of Chicago Booth School of Business}
 \end{figure}
 
 
-\section{K-Means Matching (WC)}
+\section{K-Means Matching}
 
 We first built a matching algorithm using k-means clustering. We used the following algorithm:
 \begin{itemize}
@@ -64,6 +77,8 @@ In the second case, the optimal cutoff for customer value is the 95th percentile
 
 \section{K-Nearest-Neighbors Matching (MLD)}
 
+After trying K-Means, we then turn our attention to the K-Nearest Neighbors algorithm to
+
 \input{series_coefs}
 
 \input{series_max}
@@ -81,18 +96,27 @@ In the second case, the optimal cutoff for customer value is the 95th percentile
   \includegraphics[scale=.75]{profits.pdf}
   \label{fig:profits}
 \end{figure}
-
-
-\section{Targeting the Entire Data Set (BC)} % Question 2
-
-We would pursue the entire target file under two conditions. First, the cost per person would need to be sufficiently low such that our profit would not suffer from targeting everyone. Second, there would need to be a “network” benefit to our business from having a larger user base on our platform. An example would be if were operating LinkedIn and we wanted to get more premium subscribers (i.e. people who spend money on our site) and we also wanted to augment the general user base so that people on our site can develop a deeper professional network. Similarly, if we were operating an online dating service, we would not only be interested in getting the people who will buy a premium subscription. We would also want to augment the number of “regular” users so that our dating service has a deep pool of online connections between users.
-
-With respect to the cost of targeting, we would pursue the entire target file audience if the cost were less than or equal to \$0.10 per person.
-
-In order to arrive at this solution, we created a vector of the cost per match with a range of \$0 to \$5 in increments of 10 cents. We then calculated the profit from pursuing everyone on the target list at each cost per match. At a cost of \$0.10 per person, our expected profit from targeting the whole file would be \$4,611.23. This is higher than the profit that we were able to achieve in part 1 when we matched with the DMP that charges \$3.25 per person.
-
-
 \clearpage
+
+\section{Targeting the Entire Data Set} % Question 2
+We would pursue the entire target file under two conditions. First, the cost per person would need to be sufficiently low such that our status-quo profit from Part 1 would not suffer from targeting everyone. Second, there would need to be a “network” benefit to our business from having a larger user base on our platform. An example would be if were operating LinkedIn and we wanted to get more premium subscribers (i.e. people who spend money on our site) \textit{and} we also wanted to augment the general user base so that people on our site can develop a deeper professional network. Similarly, if we were operating an online dating service, we would not only be interested in getting the people who will buy a premium subscription. We would also want to augment the number of “regular” users so that our dating service has a deep pool of online connections between users.
+
+With respect to the cost of targeting, we would pursue the entire target file audience if the cost were less than or equal to \textbf{\$0.10} per person.
+
+In order to arrive at this solution, we created a vector of the cost per person with a range of \$0 to \$5 in increments of 10 cents. We then calculated the profit from pursuing everyone on the target list at each cost per person. At a cost of \$0.10 per person, our expected profit from targeting the whole file would be \$4,611.23. This is similar to the profit that we were able to achieve in Part 1 when we matched with the DMP that charges \$3.25 per person.
+
+As shown in \cref{fig:Profit_Grid} below, the profit from pursuing everyone in the target file decreases with the cost per person. Therefore, the cost would need to be sufficiently low (less than \$0.10 per person in our case) for the 'blanket' approach of targeting everyone to be attractive. 
+
+Of course, if targeted matching were available at \$0.10 or less per person, we could achieve even higher short-term profits through targeted marketing relative to a blanket approach. Therefore, the second condition for using a blanket approach is that we would need to have a network motivation (such as broadening the connections between users of our site) for this blanket approach to make sense from a business perspective. A broader network of users would be valuable in terms of long term profits because it could increase the advertising revenue on our site over the long run.
+
+\begin{figure}[!htb]
+  \centering
+  \caption{Profits from Targeting Entire File by Cost}
+  \includegraphics[scale=.75]{Profit_Grid.pdf}
+  \label{fig:Profit_Grid}
+\end{figure}
+\clearpage
+
 \section{Appendix}
 \input{cutoffs}
 

@@ -31,16 +31,24 @@ University of Chicago Booth School of Business}
 
 \section{K-Means Matching (WC)}
 
-Yes. We would use the new DMP. A regression of spend against the explanatory variables shows that the new ecom\_index variable is statistically significant. Moreover, the retail\_index variable is no longer statistically significant after we control for ecom\_index. Therefore, the new DMP provides a variable that allows us to obtain better matches than our original method.
-
-As shown in the chart below, we can obtain a higher maximum profit under the new DMP than under our original method. Under the new DMP, profit is maximized at \$4,413.61 whereas the maximum profit under the old method was \$3,559.14. In both cases, profit is maximized when k-nearest neighbors are set to 3. See \vref{fig:profits}.
+We first built a matching algorithm using k-means clustering. We used the following algorithm:
+\begin{itemize}
+\item Find every fifth quantile of non-zero customer spending (see whatever in the whatever). We will define a valuable customer as one who spends at or above the quantile level. For each quantile:
+\begin{itemize}
+\item Use a k-means algorithm to break the customers into $k$ clusters, where we search over a range of $k$ from 1 to 20. For each $k$ number of clusters:
+\begin{itemize}
+\item Define the "matching" group in the target set as the nearest $j$ clusters, where we vary $j$ from 1 to $k$. For example, suppose that we use $k=10$ clusters. Then we would define the "match" data set as the nearest cluster, then the nearest two clusters, then the nearest three clusters, etc.
+\end{itemize}
+\end{itemize}
+\item For each combination of the quantile cutoff, $k$ clusters, and $j$ matches, calculate the profitability of targeting the resulting match data set. The optimal set of parameters is that which maximizes profitability.
+\end{itemize}
+We use this algorithm to find the most profitable targeting strategy in the original data set and the data set that includes the ecom\_index. \textbf{In both cases, the algorithm fails to produce a profitable strategy.}
 
 \section{K-Nearest-Neighbors Matching (MLD)}
 
 \input{series_coefs}
 
 \input{series_max}
-
 
 \begin{figure}[!htb]
   \centering
@@ -49,13 +57,13 @@ As shown in the chart below, we can obtain a higher maximum profit under the new
   \label{fig:threshold_max_profit}
 \end{figure}
 
-
 \begin{figure}[!htb]
   \centering
   \caption{Profits using K-Nearest Neighbors}
   \includegraphics[scale=.75]{profits.pdf}
   \label{fig:profits}
 \end{figure}
+
 
 \section{Targeting the Entire Data Set (BC)} % Question 2
 

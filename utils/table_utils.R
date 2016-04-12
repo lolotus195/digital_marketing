@@ -1,12 +1,18 @@
 library(xtable)
 
+TableAlignMultilineCenteredCM <- function(widths) {
+  sprintf(">{\\centering\\let\\newline\\\\\\arraybackslash\\hspace{0pt}}m{%3.2fcm}", widths)
+}
+
 ExportTable <- function(table, file, caption, colnames=NULL, 
                         align=NULL, digits=NULL, display=NULL,
                         include.rownames=T, floating=TRUE,
-                        NA.string="NaN") {
+                        NA.string="NaN", align.cols=NULL) {
   if (!is.null(colnames)) { colnames(table) = colnames }
-  print(xtable(table, label=paste('tab:', file, sep=''), caption=caption,
-               align=align, digits=digits, display=display),
+  xtb <- xtable(table, label=paste('tab:', file, sep=''), caption=caption,
+                align=align, digits=digits, display=display)
+  if (!is.null(align.cols)) { align(xtb) <- align.cols }
+  print(xtb,
         caption.placement="top",
         sanitize.text.function=function(x){x},
         file=GetFilename(paste(file, '.tex', sep='')),

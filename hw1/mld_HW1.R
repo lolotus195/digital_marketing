@@ -185,22 +185,21 @@ require(dplyr)
 res.search %>%
   group_by(series) %>%
   filter(profit == max(profit)) %>%
-  select(series, thresh, label, k, profit, 
+  select(series, thresh, k, profit, 
          frac.customers.captured,
          frac.revenue.captured, frac.matches) %>%
-  mutate(label=sub("%", "\\\\%", label),
-         frac.customers.captured = frac.customers.captured * 100,
+  mutate(frac.customers.captured = frac.customers.captured * 100,
          frac.revenue.captured = frac.revenue.captured * 100,
          frac.matches = frac.matches * 100) -> res.search.best
 
 ExportTable(res.search.best, "series_max",
-            "Best matching threshold by explanatory variables",
-            colnames = c("Series", "Matching Threshold [\\$]",
-                         "Threshold \\%", "Best NN Choice", "Profit [\\$]",
-                         "\\% Cust Captured", "\\% Revenue Captured",
-                         "\\% Cust Matched"),
-            include.rownames = F)
-
+            "Best Matching Threshold by Series (with ecom\\_index)",
+            colnames = c("Series", "Threshold [\\$]",
+                         "Best k", "Profit [\\$]",
+                         "\\% Cust. Captured", "\\% Revenue Captured",
+                         "\\% Cust. Matched"),
+            include.rownames = F,
+            align.cols = TableAlignMultilineCenteredCM(c(1, 1.5, 2.0, 1.5, rep(2, 4))))
 
 ####
 # Plot Series' Results ----

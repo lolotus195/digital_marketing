@@ -24,6 +24,9 @@
 
 rm(list=ls())
 
+source("../utils/source_me.R", chdir = T)
+CreateDefaultPlotOpts()
+
 set.seed(0xDedBeef)
 
 require(ggplot2)
@@ -108,8 +111,16 @@ ProfitKMeans <- function(dat.cust, dat.targ, cost, cutoff, plot=F) {
 }
 
 # Deciles of non-zero spend amount (same for both data sets)
-cutoff <- quantile(cust$spend[cust$spend>0], seq(0.1, 0.95, 0.05))
+cutoff <- quantile(cust$spend[cust$spend>0], seq(0.05, 0.95, 0.05))
 # cutoff <- quantile(cust$spend[cust$spend>0], seq(0.1, 0.8, 0.2))
+
+# For the writeup, tabulate the non-zero spend quantiles
+tab.cutoff <- cbind(seq(5,50,5),
+                    cutoff[1:10],
+                    c(seq(55, 95, 5), NA),
+                    c(cutoff[11:19], NA))
+colnames(tab.cutoff) <- rep(c('Percentile', 'Spend'), 2)
+ExportTable(tab.cutoff, file='cutoffs', caption='Non-Zero Spend Quantiles')
 
 # Set up parallel code
 cl <- makeCluster(detectCores(), type='FORK')

@@ -7,7 +7,7 @@ TableAlignMultilineCenteredCM <- function(widths) {
 ExportTable <- function(table, file, caption, colnames=NULL, 
                         align=NULL, digits=NULL, display=NULL,
                         include.rownames=T, floating=TRUE,
-                        NA.string="NaN", align.cols=NULL) {
+                        NA.string="", align.cols=NULL) {
   if (!is.null(colnames)) { colnames(table) = colnames }
   xtb <- xtable(table, label=paste('tab:', file, sep=''), caption=caption,
                 align=align, digits=digits, display=display)

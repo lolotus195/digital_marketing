@@ -42,7 +42,14 @@ We first built a matching algorithm using k-means clustering. We used the follow
 \end{itemize}
 \item For each combination of the quantile cutoff, $k$ clusters, and $j$ matches, calculate the profitability of targeting the resulting match data set. The optimal set of parameters is that which maximizes profitability.
 \end{itemize}
-We use this algorithm to find the most profitable targeting strategy in the original data set and the data set that includes the ecom\_index. \textbf{In both cases, the algorithm fails to produce a profitable strategy.}
+We use this algorithm to find the most profitable targeting strategy in the original data set and the data set that includes the ecom\_index. 
+
+\begin{figure}[!htb]
+  \centering
+  \caption{Profitability of K-Means Matching, Data Set 1}
+  \includegraphics[scale=.5]{kmeans_profit1.pdf}
+  \label{fig:threshold_max_profit}
+\end{figure}
 
 \section{K-Nearest-Neighbors Matching (MLD)}
 

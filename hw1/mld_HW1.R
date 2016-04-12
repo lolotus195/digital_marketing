@@ -185,6 +185,11 @@ res.manual.search <- CutoffSearch(cust2, target2, cost_new,
                                     "ecom_index"),
                                   unname(try.spend), names(try.spend))
 
+res.class.search <- CutoffSearch(cust, target, cost_orig,
+                                 c("retail_index", "household_income6", 
+                                   "household_size6"),
+                                 unname(try.spend), names(try.spend))
+
 # Search over gamlr's explanatory variables.
 res.gamlr.aic.search <- CutoffSearch(cust2, target2, cost_new, 
                                      cust2.signif.AIC[["coefs"]],
@@ -195,6 +200,7 @@ res.gamlr.bic.search <- CutoffSearch(cust2, target2, cost_new,
                                      unname(try.spend), names(try.spend))
 
 res.search <- rbind(
+  cbind(series="No Ecom", res.class.search),
   cbind(series="Manual", res.manual.search),
   cbind(series="AIC", res.gamlr.aic.search),
   cbind(series="BIC", res.gamlr.bic.search))

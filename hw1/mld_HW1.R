@@ -200,7 +200,7 @@ res.gamlr.bic.search <- CutoffSearch(cust2, target2, cost_new,
                                      unname(try.spend), names(try.spend))
 
 res.search <- rbind(
-  cbind(series="No Ecom", res.class.search),
+  # cbind(series="No Ecom", res.class.search),
   cbind(series="Manual", res.manual.search),
   cbind(series="AIC", res.gamlr.aic.search),
   cbind(series="BIC", res.gamlr.bic.search))
@@ -222,7 +222,7 @@ res.search %>%
 ExportTable(res.search.best, "series_max",
             "Best Matching Threshold by Series (with ecom\\_index)",
             colnames = c("Series", "Threshold [\\$]",
-                         "Best k", "Profit [\\$]",
+                         "Best k-NNs", "Profit [\\$]",
                          "\\% Cust. Captured", "\\% Revenue Captured",
                          "\\% Cust. Matched"),
             include.rownames = F,

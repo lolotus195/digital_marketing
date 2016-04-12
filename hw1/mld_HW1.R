@@ -265,7 +265,7 @@ res.search.plot.melt <- melt(res.search.plot,
                              id.vars = c("series", "thresh"), 
                              measure.vars=c("profit", "k"))
 measure_to_label_map <- c(
-  "profit" = "Profit vs. Matching Threshold",
+  "profit" = "Profit [$] vs. Matching Threshold",
   "k" = "Best k for kNN vs. Matching Threshold"
 )
 g <- ggplot(res.search.plot.melt, aes(x=thresh, y=value, color=series)) +

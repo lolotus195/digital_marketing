@@ -54,6 +54,10 @@ cust.signif <- GetSignificantCoefs(cust, "BIC")
 GGPlotSave(cust.signif$icPlot, "cust_signif")
 PrintSignifCoefs("cust", cust.signif)
 
+cust.signif.AIC <- GetSignificantCoefs(cust, "AIC")
+GGPlotSave(cust.signif.AIC$icPlot, "cust_signif")
+PrintSignifCoefs("cust-AIC", cust.signif.AIC)
+
 # New Customer/Target List
 cust2.signif <- GetSignificantCoefs(cust2, "BIC")
 GGPlotSave(cust2.signif$icPlot, "cust2_signif")
@@ -194,6 +198,10 @@ res.manual.search <- CutoffSearch(cust2, target2, cost_new,
                                     "ecom_index"),
                                   unname(try.spend), names(try.spend))
 
+res.orig.search <- CutoffSearch(cust, target, cost_orig,
+                                cust.signif.AIC[["coefs"]],
+                                unname(try.spend), names(try.spend))
+
 # res.class.search <- CutoffSearch(cust, target, cost_orig,
 #                                  c("retail_index", "household_income6",
 #                                    "household_size6"),
@@ -208,16 +216,17 @@ res.gamlr.bic.search <- CutoffSearch(cust2, target2, cost_new,
                                      cust2.signif[["coefs"]], 
                                      unname(try.spend), names(try.spend))
 
-res.search <- rbind(
-  # cbind(series="No Ecom", res.class.search),
-  cbind(series="Manual", res.manual.search),
-  cbind(series="AIC", res.gamlr.aic.search),
-  cbind(series="BIC", res.gamlr.bic.search))
-
 
 ####
 # Export Best Choice Table ----
 ####
+res.search <- rbind(
+  # cbind(series="No Ecom", res.class.search),
+  cbind(series="Orig. (AIC)", res.orig.search),
+  cbind(series="Manual", res.manual.search),
+  cbind(series="AIC", res.gamlr.aic.search),
+  cbind(series="BIC", res.gamlr.bic.search))
+
 require(dplyr)
 res.search %>%
   group_by(series) %>%
@@ -230,13 +239,13 @@ res.search %>%
          frac.matches = frac.matches * 100) -> res.search.best
 
 ExportTable(res.search.best, "series_max",
-            "Best Matching Threshold by Series (with ecom\\_index)",
+            "Best Matching Threshold by Series",
             colnames = c("Series", "Threshold [\\$]",
                          "Best k-NNs", "Profit [\\$]",
                          "\\% Cust. Captured", "\\% Revenue Captured",
                          "\\% Cust. Matched"),
             include.rownames = F,
-            align.cols = TableAlignMultilineCenteredCM(c(1, 1.5, 2.0, 1.5, rep(2, 4))))
+            align.cols = TableAlignMultilineCenteredCM(c(0, 2.5, 2.0, 1.5, rep(2, 4))))
 
 
 ####

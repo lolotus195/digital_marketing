@@ -86,9 +86,14 @@ To begin our exploration of the K-Nearest-Neighbors matching, we look to discove
 \subsection{Customer Spend Cutoff}
 The next step in our K-Nearest-Neighbors algorithm is to select a spending cutoff that maximize profits.  The spending cutoff defines which existing customer profiles (from the \textit{cust2} data-set) will be used to match customers from the target data set.  As we saw from \vref{fig:cust_spend_cdf,fig:cust_spend_hist}, customer spending varies widely across the population.  Therefore, setting the threshold higher results in fewer existing customers to use for matching.  Intuitively speaking setting the cutoff high may be desirable if high-spend customers tend to cluster together.  However, if high-spend customers tend to be more like unicorns, then it may be desirable to set the threshold lower hoping that lower-spend customers cluster together and, as a group, contribute greatly to profitability.
 
-To perform this exercise, we use the kNN algorithm in the \textit{FNN} packages to find target customers close to our existing customers (defined by the matching cutoff).  To do this, we vary both the number of nearest neighbors and the cutoff using the 2.5\% percentile steps in customer spend (see \vref{tab:cutoffs} for reference).  At each point in the search we calculate the profit, the \% of all potential customers captured, the \% of total possible revenue captured, and the \% of the matched targets that are actually customers.  Finally, this was performed for each of the series
+To perform this exercise, we use the kNN algorithm in the \textit{FNN} packages to find target customers close to our existing customers (defined by the matching cutoff).  To do this, we vary both the number of nearest neighbors and the cutoff using the 2.5\% percentile steps in customer spend (see \vref{tab:cutoffs} for reference).  At each point in the search we calculate the profit, the \% of all potential customers captured, the \% of total possible revenue captured, and the \% of the matched targets that are actually customers.  Finally, this was performed for each series:
+\begin{itemize}
+\item \textit{Orig. (AIC)} - is missing \textit{ecom\_index} and uses AIC to select covariates;
+\item \textit{Manual} - has \textit{ecom\_index} and uses a manual coefficient selection;
+\item \textit{AIC} - has \textit{ecom\_index} and uses AIC to select covariates;
+\item \textit{BIC} - has \textit{ecom\_index} and uses BIC to select covariates.
+\end{itemize}
 
-\input{series_max}
 
 \begin{figure}[!htb]
   \centering
@@ -96,6 +101,8 @@ To perform this exercise, we use the kNN algorithm in the \textit{FNN} packages 
   \includegraphics[scale=.5]{threshold_max_profit.pdf}
   \label{fig:threshold_max_profit}
 \end{figure}
+
+\input{series_max}
 
 \begin{figure}[!htb]
   \centering

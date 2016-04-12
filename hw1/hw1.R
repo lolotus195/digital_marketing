@@ -24,6 +24,9 @@
 
 rm(list=ls())
 
+source("../utils/source_me.R", chdir = T)
+CreateDefaultPlotOpts()
+
 set.seed(0xDedBeef)
 
 require(ggplot2)
@@ -50,7 +53,7 @@ cost2 <- 3.25
 
 # K-means clustering ----------------------------------------------------------
 
-ProfitKMeans <- function(dat.cust, dat.targ, cost, cutoff, plot=F) {
+ProfitKMeans <- function(dat.cust, dat.targ, cost, cutoff, plot=F, fname='') {
   # Create seed data set
   # Should not have machine ID or spend
   val.cust <- dat.cust[dat.cust$spend > cutoff,
@@ -102,14 +105,25 @@ ProfitKMeans <- function(dat.cust, dat.targ, cost, cutoff, plot=F) {
       labs(x='k (# of clusters)', y='# of clusters matched') +
       theme_minimal()
     plot(g)
+    if (fname != '') # there is actually a filename, so we should save
+      GGPlotSave(g, fname)
   }
   
   return(max(profit.kmeans, na.rm=T))
 }
 
 # Deciles of non-zero spend amount (same for both data sets)
-cutoff <- quantile(cust$spend[cust$spend>0], seq(0.1, 0.95, 0.05))
+cutoff <- quantile(cust$spend[cust$spend>0], seq(0.05, 0.95, 0.05))
 # cutoff <- quantile(cust$spend[cust$spend>0], seq(0.1, 0.8, 0.2))
+
+# For the writeup, tabulate the non-zero spend quantiles
+tab.cutoff <- cbind(seq(5,50,5),
+                    cutoff[1:10],
+                    c(seq(55, 95, 5), NA),
+                    c(cutoff[11:19], NA))
+colnames(tab.cutoff) <- rep(c('Percentile', 'Spend'), 2)
+ExportTable(tab.cutoff, file='cutoffs', caption='Non-Zero Spend Quantiles',
+            include.rownames = F, digits=c(0,0,2,0,2))
 
 # Set up parallel code
 cl <- makeCluster(detectCores(), type='FORK')
@@ -125,8 +139,10 @@ profit1 <- unlist(profit[1,])
 profit2 <- unlist(profit[2,])
 
 # Plot the "best" result
-ProfitKMeans(cust, target, cost1, cutoff[which.max(profit1)], plot=T)
-ProfitKMeans(cust2, target2, cost2, cutoff[which.max(profit2)], plot=T)
+ProfitKMeans(cust, target, cost1, cutoff[which.max(profit1)], 
+             plot=T, fname='kmeans_profit1')
+ProfitKMeans(cust2, target2, cost2, cutoff[which.max(profit2)], 
+             plot=T, fname='kmeans_profit2')
 
 # Conclusion: 
 # 1) no matter what cutoff you use to define value, or how many  clusters you 
@@ -157,6 +173,7 @@ ProfitKNN <- function(dat.cust, dat.targ, k, cost, cutoff, gamlr=T) {
     fit <- gamlr(x=cust.mm, y=dat.cust$spend[dat.cust$spend>cutoff])
     B <- drop(coef(fit))[-1]
     B <- B[B!=0]
+    print(names(B))
     cust.mm <- cust.mm[,colnames(cust.mm) %in% names(B)]
     targ.mm <- targ.mm[,colnames(targ.mm) %in% names(B)]
   }

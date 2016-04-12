@@ -31,16 +31,42 @@ University of Chicago Booth School of Business}
 
 \section{K-Means Matching (WC)}
 
-Yes. We would use the new DMP. A regression of spend against the explanatory variables shows that the new ecom\_index variable is statistically significant. Moreover, the retail\_index variable is no longer statistically significant after we control for ecom\_index. Therefore, the new DMP provides a variable that allows us to obtain better matches than our original method.
+We first built a matching algorithm using k-means clustering. We used the following algorithm:
+\begin{itemize}
+\item Find every fifth quantile of non-zero customer spending (see \cref{tab:cutoffs} in the Appendix). We will define a valuable customer as one who spends at or above the quantile level. For each quantile:
+\begin{itemize}
+\item Use a k-means algorithm to break the customers into $k$ clusters, where we search over a range of $k$ from 1 to 20. For each $k$ number of clusters:
+\begin{itemize}
+\item Define the "matching" group in the target set as the nearest $j$ clusters, where we vary $j$ from 1 to $k$. For example, suppose that we use $k=10$ clusters. Then we would define the "match" data set as the nearest cluster, then the nearest two clusters, then the nearest three clusters, etc.
+\end{itemize}
+\end{itemize}
+\item For each combination of the quantile cutoff, $k$ clusters, and $j$ matches, calculate the profitability of targeting the resulting match data set. The optimal set of parameters is that which maximizes profitability.
+\end{itemize}
+We use this algorithm to find the most profitable targeting strategy in the original data set and the data set that includes the ecom\_index. We show the results in \cref{fig:kmeans_profit1} and \cref{fig:kmeans_profit2}, respectively.
 
-As shown in the chart below, we can obtain a higher maximum profit under the new DMP than under our original method. Under the new DMP, profit is maximized at \$4,413.61 whereas the maximum profit under the old method was \$3,559.14. In both cases, profit is maximized when k-nearest neighbors are set to 3. See \vref{fig:profits}.
+In the first case, the optimal cutoff for defining a valuable customer is one who spends more than \$127.15, which is the 90th percentile of non-zero spending. If we break the target data into 20 clusters and match on only the nearest cluster, we can make a profit of only \$283.
+
+In the second case, the optimal cutoff for customer value is the 95th percentile, or \$192.63. In this case, we use $k=18$ clusters and again match on only the nearest cluster. In this case, however, we actually lose \$3,378. The added data set provides only a minimally better match, but the cost is so high that we are not able to utilize it profitably. We turn to a k-nearest-neighbors algorithm to see if the new data set can still be used profitably.
+
+\begin{figure}[!htb]
+  \centering
+  \caption{Profitability of K-Means Matching, Data Set 1}
+  \includegraphics[scale=.5]{kmeans_profit1.pdf}
+  \label{fig:kmeans_profit1}
+\end{figure}
+
+\begin{figure}[!htb]
+  \centering
+  \caption{Profitability of K-Means Matching, Data Set 2}
+  \includegraphics[scale=.5]{kmeans_profit2.pdf}
+  \label{fig:kmeans_profit2}
+\end{figure}
 
 \section{K-Nearest-Neighbors Matching (MLD)}
 
 \input{series_coefs}
 
 \input{series_max}
-
 
 \begin{figure}[!htb]
   \centering
@@ -49,7 +75,6 @@ As shown in the chart below, we can obtain a higher maximum profit under the new
   \label{fig:threshold_max_profit}
 \end{figure}
 
-
 \begin{figure}[!htb]
   \centering
   \caption{Profits using K-Nearest Neighbors}
@@ -57,7 +82,19 @@ As shown in the chart below, we can obtain a higher maximum profit under the new
   \label{fig:profits}
 \end{figure}
 
+
 \section{Targeting the Entire Data Set (BC)} % Question 2
+
+We would pursue the entire target file under two conditions. First, the cost per person would need to be sufficiently low such that our profit would not suffer from targeting everyone. Second, there would need to be a “network” benefit to our business from having a larger user base on our platform. An example would be if were operating LinkedIn and we wanted to get more premium subscribers (i.e. people who spend money on our site) and we also wanted to augment the general user base so that people on our site can develop a deeper professional network. Similarly, if we were operating an online dating service, we would not only be interested in getting the people who will buy a premium subscription. We would also want to augment the number of “regular” users so that our dating service has a deep pool of online connections between users.
+
+With respect to the cost of targeting, we would pursue the entire target file audience if the cost were less than or equal to \$0.10 per person.
+
+In order to arrive at this solution, we created a vector of the cost per match with a range of \$0 to \$5 in increments of 10 cents. We then calculated the profit from pursuing everyone on the target list at each cost per match. At a cost of \$0.10 per person, our expected profit from targeting the whole file would be \$4,611.23. This is higher than the profit that we were able to achieve in part 1 when we matched with the DMP that charges \$3.25 per person.
+
+
+\clearpage
+\section{Appendix}
+\input{cutoffs}
 
 \end{document}
 

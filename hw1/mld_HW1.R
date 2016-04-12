@@ -57,7 +57,11 @@ PrintSignifCoefs("cust", cust.signif)
 # New Customer/Target List
 cust2.signif <- GetSignificantCoefs(cust2, "BIC")
 GGPlotSave(cust2.signif$icPlot, "cust2_signif")
-PrintSignifCoefs("cust2", cust2.signif)
+PrintSignifCoefs("cust2-BIC", cust2.signif)
+
+cust2.signif.AIC <- GetSignificantCoefs(cust2, "AIC")
+GGPlotSave(cust2.signif.AIC$icPlot, "cust2_signif_AIC")
+PrintSignifCoefs("cust2-AIC", cust2.signif.AIC)
 
 
 ####
@@ -65,7 +69,7 @@ PrintSignifCoefs("cust2", cust2.signif)
 ####
 CalcProfits <- function(cust.data, target.data, 
                         unit_cost, signif.coefs,
-                        spend_thresh=10, max_nn=20) {
+                        spend_thresh=10, max_nn=25, verb=TRUE) {
   # First get the indices of the real customers.
   cst.real <- cust.data[cust.data$spend > spend_thresh,]
   
@@ -76,7 +80,7 @@ CalcProfits <- function(cust.data, target.data,
   require(plyr)
   require(FNN)
   results <- ldply(1:max_nn, function(k) {
-    cat(sprintf("%d,", k))
+    if (verb==TRUE) cat(sprintf("%d,", k))
     
     # Get the k nearest target customers that are neighbors with current ones.
     query <- get.knnx(tgt.mm, cst.mm, k=k, algorithm="brute")
@@ -106,7 +110,7 @@ CalcProfits <- function(cust.data, target.data,
                       frac.revenue.captured,
                       frac.matches))
   })
-  cat("done.\n")
+  if (verb == TRUE) cat("done.\n")
   
   return(results)  
 }
@@ -129,20 +133,116 @@ res.orig.class <- CalcProfits(cust, target, cost_orig, c("retail_index",
 
 res.ecom.gamlr <- CalcProfits(cust2, target2, cost_new, cust2.signif[["coefs"]])
 
-res.ecom2.gamlr <- CalcProfits(cust2, target2, cost_new, 
-                               c("hoh_oldest_age2",
-                                 "hoh_oldest_age7",
-                                 "ecom_index"), 
-                               spend_thresh=127)
+
+####
+# Customer Matching Threshold Search ----
+####
+# Cutoff Search function, applies successive cutoff values to 
+# calc.profit.cb cutoff values.
+CutoffSearch <- function(cust.data, target.data, 
+                         unit_cost, signif.coefs, try.spend, try.label) {
+  res <- ldply(1:length(try.spend), function(idx) {
+    x <- try.spend[idx]
+    lab <- try.label[idx]
+    
+    cat(sprintf("%3.2f,", x))
+    cbind(thresh=x, label=lab,
+          CalcProfits(cust.data, target.data, 
+                      unit_cost, signif.coefs, x, verb=F))
+  })
+  cat("done\n")
+  return(res)
+}
+
+# Use the quantiles to define the threshold search space.
+try.spend <- quantile(cust2$spend[cust2$spend>0], 
+                      probs=seq(0.025, 0.975, 0.025))
+
+# Search over Will's explanatory variables.
+res.manual.search <- CutoffSearch(cust2, target2, cost_new,
+                                  c("hoh_oldest_age2", "hoh_oldest_age7", 
+                                    "ecom_index"),
+                                  unname(try.spend), names(try.spend))
+
+# Search over gamlr's explanatory variables.
+res.gamlr.aic.search <- CutoffSearch(cust2, target2, cost_new, 
+                                     cust2.signif.AIC[["coefs"]],
+                                     unname(try.spend), names(try.spend))
+
+res.gamlr.bic.search <- CutoffSearch(cust2, target2, cost_new, 
+                                     cust2.signif[["coefs"]], 
+                                     unname(try.spend), names(try.spend))
+
+res.search <- rbind(
+  cbind(series="Grid Search", res.manual.search),
+  cbind(series="Lasso AIC", res.gamlr.aic.search),
+  cbind(series="Lasso BIC", res.gamlr.bic.search))
+
+####
+# Export Best Choice Table ----
+####
+require(dplyr)
+res.search %>%
+  group_by(series) %>%
+  filter(profit == max(profit)) %>%
+  select(series, thresh, label, k, profit, 
+         frac.customers.captured,
+         frac.revenue.captured, frac.matches) %>%
+  mutate(label=sub("%", "\\\\%", label),
+         frac.customers.captured = frac.customers.captured * 100,
+         frac.revenue.captured = frac.revenue.captured * 100,
+         frac.matches = frac.matches * 100) -> res.search.best
+
+ExportTable(res.search.best, "series_max",
+            "Best matching threshold by explanatory variables",
+            colnames = c("Series", "Matching Threshold [\\$]",
+                         "Threshold \\%", "Best NN Choice", "Profit [\\$]",
+                         "\\% Cust Captured", "\\% Revenue Captured",
+                         "\\% Cust Matched"),
+            include.rownames = F)
+
+
+####
+# Plot Series' Results ----
+####
+res.search %>%
+  group_by(series, thresh) %>%
+  summarize(max.profit=max(profit)) -> res.search.plot
+  
+
+g <- ggplot(res.search.plot, aes(x=thresh, y=max.profit, color=series)) + 
+  geom_line() + geom_point() + 
+  scale_color_discrete("Series") +
+  theme_bw() + labs(x="Spend Matching Threshold [$]", y="Max Profit")
+GGPlotSave(g, "threshold_max_profit")
+
+
+####
+# Save best result for plotting ----
+####
+res.search %>% filter(profit==max(profit)) -> res.best.info
+if (nrow(res.best.info) != 1) stop("non-unique or missing best profit")
+
+res.search %>% filter(series==res.best.info$series,
+                      thresh==res.best.info$thresh) -> res.ecom.search
 
 ####
 # Plot Profits ----
 ####
 res.combined <- rbind(
-  cbind(res.orig.gamlr, series="No ecom (Lasso)"),
-  cbind(res.orig.class, series="No ecom (In-Class)"),
-  cbind(res.ecom.gamlr, series="With ecom (Lasso)"),
-  cbind(res.ecom2.gamlr, series="With ecom (cutoff=$127)"))
+  cbind(res.orig.gamlr, series="lasso_no_ecom"),
+  cbind(res.orig.class, series="class_no_ecom"),
+  cbind(res.ecom.gamlr, series="lasso_ecom"),
+  cbind(res.ecom.search[-(1:3)], series="search_ecom"))
+
+series_to_legend_map <- c(
+  "lasso_no_ecom" = "No ecom_index\n(Lasso BIC, spend>=$10)",
+  "class_no_ecom" = "No ecom_index\n(In-Class, spend>=$10)",
+  "lasso_ecom" = "With ecom_index\n(Lasso BIC, spend>=$10)",
+  "search_ecom" = sprintf("With ecom_index\n(%s, spend>=%3.2f)",
+                          res.ecom.search$series[1], 
+                          res.ecom.search$thresh[1])
+)
 
 # Extract the measures we care about for the facet-wrap.
 res.melt <- melt(res.combined, id.vars = c("k", "series"), 
@@ -157,12 +257,13 @@ measure_to_label_map = c(
   "frac.matches"="Frac. of Customers Matched") # I don't like this title.
 
 g <- ggplot(res.melt, aes(k, value, color=series)) + 
-  geom_line() + geom_point() + scale_color_discrete("Series") +
+  geom_line() + geom_point() + 
+  scale_color_discrete("Series", labels=series_to_legend_map) +
   facet_wrap("variable", scales="free_y", ncol=2, 
              labeller = labeller("variable"=measure_to_label_map)) +
-  theme_bw() + labs(x="# of Nearest Neighbors Included", y="")
-GGPlotSave(g, "Profits")
-
+  theme_bw() + labs(x="# of Nearest Neighbors Included", y="") +
+  theme(legend.position = "bottom")
+GGPlotSave(g, "profits")
 
 # They have given you a sample target dataset 
 # and a matched version of your customer dataset

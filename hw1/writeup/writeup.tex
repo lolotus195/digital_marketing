@@ -75,11 +75,18 @@ In the second case, the optimal cutoff for customer value is the 95th percentile
   \label{fig:kmeans_profit2}
 \end{figure}
 
-\section{K-Nearest-Neighbors Matching (MLD)}
 
-The  K-Nearest Neighbors algorithm to 
+\section{K-Nearest-Neighbors Matching}
+
+\subsection{Significant Variables}
+To begin our exploration of the K-Nearest-Neighbors matching, we look to discover variables that significantly predict a customer's spend.  Our tool of choice here is the gamma lasso regression provided by the \textit{gamlr} package in R.  Using it, we regress \textit{spend} on all other variables (removing only \textit{machine\_id}) for both the original customer list (without \textit{ecom\_index}) and the new customer list containing \textit{ecom\_index}.  Then, we look at the variables chosen by the using the AIC and BIC decision criteria (see \vref{tab:series_coefs}).  Note that the BIC replaces \textit{retail\_index} with \textit{ecom\_index} when available.  Moreover, the AIC chooses both variables when available.  We also curated our own covariates which we label as \textit{manual}.
 
 \input{series_coefs}
+
+\subsection{Customer Spend Cutoff}
+The next step in our K-Nearest-Neighbors algorithm is to select a spending cutoff that maximize profits.  The spending cutoff defines which existing customer profiles (from the \textit{cust2} data-set) will be used to match customers from the target data set.  As we saw from \vref{fig:cust_spend_cdf,fig:cust_spend_hist}, customer spending varies widely across the population.  Therefore, setting the threshold higher results in fewer existing customers to use for matching.  Intuitively speaking setting the cutoff high may be desirable if high-spend customers tend to cluster together.  However, if high-spend customers tend to be more like unicorns, then it may be desirable to set the threshold lower hoping that lower-spend customers cluster together and, as a group, contribute greatly to profitability.
+
+To perform this exercise, we use the kNN algorithm in the \textit{FNN} packages to find target customers close to our existing customers (defined by the matching cutoff).  To do this, we vary both the number of nearest neighbors and the cutoff using the 2.5\% percentile steps in customer spend (see \vref{tab:cutoffs} for reference).  At each point in the search we calculate the profit, the \% of all potential customers captured, the \% of total possible revenue captured, and the \% of the matched targets that are actually customers.  Finally, this was performed for each of the series
 
 \input{series_max}
 
@@ -112,7 +119,7 @@ Of course, if targeted matching were available at \$0.10 or less per person, we 
 \begin{figure}[!htb]
   \centering
   \caption{Profits from Targeting Entire File by Cost}
-  \includegraphics[scale=.75]{Profit_Grid.pdf}
+  \includegraphics[scale=.5]{Profit_Grid.pdf}
   \label{fig:Profit_Grid}
 \end{figure}
 

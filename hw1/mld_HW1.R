@@ -83,13 +83,15 @@ CombineCoefs <- function(lst) {
 }
 all.coefs <- CombineCoefs(list(
   "No ecom\\_index (BIC)" = cust.signif, 
-  "With ecom\\_index (BIC)" = cust2.signif, 
-  "With ecom\\_index (AIC)" = cust2.signif.AIC,
-  "Manual w/ecom\\_index" = list(coefs=c(
-    "hoh_oldest_age2", "hoh_oldest_age7", "ecom_index"))))
+  "With ecom\\_index (Manual)" = list(coefs=c(
+    "hoh_oldest_age2", "hoh_oldest_age7", "ecom_index")),
+  "With ecom\\_index (BIC)" = cust2.signif,
+  "With ecom\\_index (AIC)" = cust2.signif.AIC))
 all.coefs <- apply(all.coefs, 2, function(x) gsub("_", "\\\\_", x))
 ExportTable(all.coefs, "series_coefs", "Significant Coefficients by Series",
-            NA.string = "")
+            NA.string="",
+            align.cols=TableAlignMultilineCenteredCM(c(0.5, rep(3.5, 4))),
+            include.rownames = F)
 
 
 ####

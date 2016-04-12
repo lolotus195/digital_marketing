@@ -261,6 +261,21 @@ g <- ggplot(res.search.plot, aes(x=thresh, y=profit, color=series)) +
   theme_bw() + labs(x="Spend Matching Threshold [$]", y="Max Profit")
 GGPlotSave(g, "threshold_max_profit")
 
+res.search.plot.melt <- melt(res.search.plot, 
+                             id.vars = c("series", "thresh"), 
+                             measure.vars=c("profit", "k"))
+measure_to_label_map <- c(
+  "profit" = "Profit vs. Matching Threshold",
+  "k" = "Best k for kNN vs. Matching Threshold"
+)
+g <- ggplot(res.search.plot.melt, aes(x=thresh, y=value, color=series)) +
+  geom_line() + geom_point() +
+  scale_color_discrete("Series") +
+  facet_wrap("variable", scales = "free_y", ncol = 1,
+             labeller = labeller("variable"=measure_to_label_map)) +
+  theme_bw() + labs(x="Spend Matching Threshold [$]", y="")
+GGPlotSave(g, "threshold_max_profit2")
+
 
 ####
 # Save best result for plotting ----

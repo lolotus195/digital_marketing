@@ -3,6 +3,8 @@
 # Instructor: Sanjog Misra
 # Group Homework #1
 rm(list=ls())
+source("../utils/source_me.R", chdir = T)
+CreateDefaultPlotOpts()
 
 # A new DMP claims that hey have a better set of variables
 # to match your customers on. 
@@ -142,16 +144,25 @@ legend("bottomright", c("profit_new", "profit_original"), lty=c(1,1), col=c("blu
 #  Part 2
 ## Profit from blanketing everyone
 ## Cost Grid
-cost_grid <- seq(0, 5, .1)
-profit_grid <- rep(0,50)
+cost_grid <- seq(0, 3.5, .1)
+profit_grid <- rep(NA, length(cost_grid))
 
 # Loop
-for(c in 1:50){
+for(c in 1:length(cost_grid)){
   cost_c <- cost_grid[c] 
   profit_grid[c] = sum(target[,"spend"])-cost_c*length(target[,"spend"])
-  }
+}
 
 # Plot
+df <- data.frame(cost=cost_grid, profit=profit_grid)
+g <- ggplot(df, aes(x=cost, y=profit)) +
+  geom_line() + geom_point() +
+  geom_hline(aes(yintercept = 0), linetype=2, color="red") +
+  theme_bw() +
+  labs(x="Unit Targeting Cost [$]", y="Profit From Blanket Targeting [$]")
+GGPlotSave(g, "Profit_Grid2")
+
+
 plot(profit_grid,type='b',pch=19)
 abline(h=2,lty=2)
 

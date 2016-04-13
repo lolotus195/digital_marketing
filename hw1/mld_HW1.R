@@ -320,7 +320,7 @@ g <- ggplot(best.melt, aes(k, value, color=series)) +
   scale_color_discrete("Series", labels=series_to_legend_map) +
   facet_wrap("variable", scales="free_y", ncol=2, 
              labeller = labeller("variable"=measure_to_label_map)) +
-  theme_bw() + labs(x="# of Nearest Neighbors Included", y="") +
+  theme_bw() + labs(x="# of k Nearest Neighbors Included", y="") +
   theme(legend.position = "bottom")
 GGPlotSave(g, "profits2")
 
@@ -360,7 +360,7 @@ g <- ggplot(res.melt, aes(k, value, color=series)) +
   scale_color_discrete("Series", labels=series_to_legend_map) +
   facet_wrap("variable", scales="free_y", ncol=2, 
              labeller = labeller("variable"=measure_to_label_map)) +
-  theme_bw() + labs(x="# of Nearest Neighbors Included", y="") +
+  theme_bw() + labs(x="# of k Nearest Neighbors Included", y="") +
   theme(legend.position = "bottom")
 GGPlotSave(g, "profits")
 

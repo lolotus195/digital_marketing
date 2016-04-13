@@ -96,8 +96,6 @@ To perform this exercise, we use the kNN algorithm in the \textit{FNN} packages 
 
 From \vref{fig:threshold_max_profit,tab:series_max} we see that most profitable strategy is to use the AIC selected covariates with the \textit{ecom\_index} setting both the threshold to a rather low value of \$8.72 and selecting the 3 closest neighbors to these values.  With this value we capture $\sim83\%$ of all customers and $\sim85\%$ of potential revenue with $\sim51\%$ of all targeted people spending money.  With this strategy, we yield a healthy profit of \textbf{\$5,028.85}.
 
-It turns out that having the \textit{ecom\_index} covariate helps us out quite a bit in our targeting.  Even with the 6.5x difference in the targeting price we are able to capture much more of the profit, customers, and revenue: \textbf{\$5,028.85} vs. \textbf{\$3,565.78}.  Therefore we would be willing to go with the new DMP.
-
 \begin{figure}[!htb]
   \centering
   \caption{Max Profits by Series and Threshold}
@@ -107,6 +105,14 @@ It turns out that having the \textit{ecom\_index} covariate helps us out quite a
 
 \input{series_max}
 
+It turns out that having the \textit{ecom\_index} covariate helps us out quite a bit in our targeting.  Even with the 6.5x difference in the targeting price we are able to capture much more of the profit, customers, and revenue: \textbf{\$5,028.85} vs. \textbf{\$3,565.78}.  See \vref{fig:profits} for more measures by series as well as profitability.  Therefore, in light of all of these benefits, we would be willing to go with the new DMP.
+
+\begin{figure}[!htb]
+  \centering
+  \caption{Match Measures by Series}
+  \includegraphics[scale=.75]{profits.pdf}
+  \label{fig:profits}
+\end{figure}
 
 \section{Targeting the Entire Data Set} % Question 2
 We would pursue the entire target file under two conditions. First, the cost per person would need to be sufficiently low such that our status-quo profit from Part 1 would not suffer from targeting everyone. Second, there would need to be a “network” benefit to our business from having a larger user base on our platform. An example would be if were operating LinkedIn and we wanted to get more premium subscribers (i.e. people who spend money on our site) \textit{and} we also wanted to augment the general user base so that people on our site can develop a deeper professional network. Similarly, if we were operating an online dating service, we would not only be interested in getting the people who will buy a premium subscription. We would also want to augment the number of “regular” users so that our dating service has a deep pool of online connections between users.

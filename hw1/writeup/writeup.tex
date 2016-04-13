@@ -10,7 +10,7 @@ University of Chicago Booth School of Business}
 
 \maketitle
 
-\section{Data Exploration (JS)}
+\section{Data Exploration}
 
 Prior to approaching the decisions of whether we should go with the new DMP, and whether we should go after the entire target file audience, we first conducted some data exploration:  
 \begin{itemize}
@@ -90,12 +90,12 @@ The next step in our K-Nearest-Neighbors algorithm is to select a spending cutof
 To perform this exercise, we use the kNN algorithm in the \textit{FNN} package to find target customers close to our existing customers (defined by the matching cutoff).  Using it, we vary both the number of nearest neighbors and the cutoff using the 2.5\% percentile steps in customer spend (see \vref{tab:cutoffs} for reference).  At each point in the search we calculate the profit, the fraction of all potential customers captured, the fraction of total possible revenue captured, and, finally, the fraction of the matched targets that are actually customers.  This sequence was performed for each of the following series':
 \begin{itemize}
 \item \textit{Orig. (AIC)} - is missing \textit{ecom\_index} and uses AIC to select covariates;
-\item \textit{Manual} - has \textit{ecom\_index} and uses a manual coefficient selection;
+\item \textit{Manual} - has \textit{ecom\_index} and uses a manual covariate selection;
 \item \textit{AIC} - has \textit{ecom\_index} and uses AIC to select covariates;
 \item \textit{BIC} - has \textit{ecom\_index} and uses BIC to select covariates.
 \end{itemize}
 
-From \vref{fig:threshold_max_profit,tab:series_max} we see that most profitable strategy is to use the AIC selected covariates with the \textit{ecom\_index} setting both the threshold to a rather low value of \$8.72 and selecting the 3 closest neighbors to these values.  With this value we capture $\sim83\%$ of all customers and $\sim85\%$ of potential revenue with $\sim51\%$ of all targeted people spending money.  This strategy yields a healthy profit of \textbf{\$5,028.85}.
+From \vref{fig:threshold_max_profit,tab:series_max} we see that most profitable strategy is to use the AIC selected covariates with the \textit{ecom\_index} setting both the threshold to a rather low value of \$8.72 and selecting the 3 closest neighbors to these values.  With this value we capture $\sim83\%$ of all customers and $\sim85\%$ of potential revenue with $\sim51\%$ of all targeted people spending money.  This strategy yields a healthy profit of \textbf{\$5,028.85}.  However it is very sensitive to the choice of \textit{k} being optimal.  Using the manually or BIC chosen coefficients yields a less sensitive approach that still yields a good fraction of customers and revenue along with a profit of \textbf{\$4,800.48} and \textbf{\$4,541.70} respectively.
 
 \begin{figure}[!htb]
   \centering
@@ -108,7 +108,7 @@ From \vref{fig:threshold_max_profit,tab:series_max} we see that most profitable 
 
 
 \subsection{Conclusions}
-Ultimately, having the \textit{ecom\_index} covariate helps us quite a bit with our targeting.  Even with the 6.5x difference in the targeting price we are able to obtain higher profits: \textbf{\$5,028.85} vs. \textbf{\$3,565.78}.  When we begin to look at the other measures like fraction of revenue and customers captured as well as the fraction of customers matched it's quite clear that the value of the \textit{ecom\_index} is quite striking (see \vref{fig:profits} for more measures by series in addition to profitability).  Therefore, in light of all of these benefits, \textbf{we would be willing to switch to the new DMP even at the higher cost.}
+Ultimately, having the \textit{ecom\_index} covariate helps us quite a bit with our targeting.  Even with the 6.5x difference in the targeting price we are able to obtain higher profits -- up to \textbf{\$5,028.85} vs. \textbf{\$3,565.78}.  When we begin to look at the other measures like fraction of revenue and customers captured as well as the fraction of customers matched it's quite clear that the value of the \textit{ecom\_index} is quite striking (see \vref{fig:profits} for more measures by series in addition to profitability).  Therefore, in light of all of these benefits, \textbf{we would be willing to switch to the new DMP even at the higher cost.}
 
 \begin{figure}[!htb]
   \centering

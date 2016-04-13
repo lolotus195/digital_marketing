@@ -286,6 +286,45 @@ if (nrow(res.best.info) != 1) stop("non-unique or missing best profit")
 res.search %>% filter(series==res.best.info$series,
                       thresh==res.best.info$thresh) -> res.ecom.search
 
+
+####
+# Alternate Profits Plot ----
+####
+best.profits <- ldply(1:nrow(res.search.best), function(idx) {
+  best <- res.search.best[idx,]
+  res.search %>%
+    filter(series == best[['series']] &
+             thresh == best[['thresh']])
+})
+
+series_to_legend_map <- c(
+  "Orig. (AIC)" = sprintf("No ecom_index\n(AIC, spend>=$%3.2f)", res.search.best$thresh[1]),
+  "Manual" = sprintf("With ecom_index\n(Mnl, spend>=$%3.2f)", res.search.best$thresh[2]),
+  "AIC" = sprintf("With ecom_index\n(AIC, spend>=$%3.2f)", res.search.best$thresh[3]),
+  "BIC" = sprintf("With ecom_index\n(BIC, spend>=$%3.2f)", res.search.best$thresh[4])
+)
+
+measure_to_label_map = c(
+  "profit"="Profit [$]",
+  "frac.customers.captured"="Frac. of Customers Captured",
+  "frac.revenue.captured"="Frac. of Revenue Captured",
+  "frac.matches"="Frac. of Customers Matched") # I don't like this title.
+
+best.melt <- melt(best.profits, id.vars = c("k", "series"), 
+                 measure.vars = c("profit",
+                                  "frac.customers.captured",
+                                  "frac.revenue.captured",
+                                  "frac.matches"))
+g <- ggplot(best.melt, aes(k, value, color=series)) + 
+  geom_line() + geom_point() + 
+  scale_color_discrete("Series", labels=series_to_legend_map) +
+  facet_wrap("variable", scales="free_y", ncol=2, 
+             labeller = labeller("variable"=measure_to_label_map)) +
+  theme_bw() + labs(x="# of Nearest Neighbors Included", y="") +
+  theme(legend.position = "bottom")
+GGPlotSave(g, "profits2")
+
+
 ####
 # Plot Profits ----
 ####

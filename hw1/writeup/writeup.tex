@@ -4,7 +4,8 @@
 
 \title{Homework \#1\\
 Digital and Algorithmic Marketing (37304-01)}
-\author{Brian Chingono, Will Clark, Matthew DeLio, Yoni Sarason, Jonathan Stevens\\
+\author{
+Brian Chingono, Will Clark, Matthew DeLio, Yoni Sarason, Jonathan Stevens \and (\textbf{Group \#8})\\
 University of Chicago Booth School of Business}
 
 \maketitle
@@ -79,14 +80,14 @@ In the second case, the optimal cutoff for customer value is the 95th percentile
 \section{K-Nearest-Neighbors Matching}
 
 \subsection{Significant Variables}
-To begin our exploration of the K-Nearest-Neighbors matching, we look to discover variables that significantly predict a customer's spend.  Our tool of choice here is the gamma lasso regression provided by the \textit{gamlr} package in R.  Using it, we regress \textit{spend} on all other variables (removing only \textit{machine\_id}) for both the original customer list (without \textit{ecom\_index}) and the new customer list containing \textit{ecom\_index}.  Then, we look at the variables chosen by the using the AIC and BIC decision criteria (see \vref{tab:series_coefs}).  Note that the BIC replaces \textit{retail\_index} with \textit{ecom\_index} when available.  Moreover, the AIC chooses both variables when available.  We also curated our own covariates which we label as \textit{manual}.
+To begin our exploration of the K-Nearest-Neighbors matching, we look to discover variables that significantly predict a customer's spend.  Our tool of choice here is the gamma lasso regression provided by the \textit{gamlr} package in R.  Using it, we regress \textit{spend} on all other variables (removing only \textit{machine\_id}) for both the original customer list (without \textit{ecom\_index}) and the new customer list containing \textit{ecom\_index}.  Then we look at the variables chosen by the using the AIC and BIC decision criteria (see \vref{tab:series_coefs}).  Note that the BIC substitutes \textit{retail\_index} with \textit{ecom\_index} when moving to the new data-set.  Moreover, the AIC chooses both variables when available.  We also curated our own covariates which we label as \textit{manual}.
 
 \input{series_coefs}
 
 \subsection{Customer Spend Cutoff}
-The next step in our K-Nearest-Neighbors algorithm is to select a spending cutoff that maximize profits.  The spending cutoff defines which existing customer profiles (from the \textit{cust2} data-set) will be used to match customers from the target data set.  As we saw from \vref{fig:cust_spend_cdf,fig:cust_spend_hist}, customer spending varies widely across the population.  Therefore, setting the threshold higher results in fewer existing customers to use for matching.  Intuitively speaking setting the cutoff high may be desirable if high-spend customers tend to cluster together.  However, if high-spend customers tend to be more like unicorns, then it may be desirable to set the threshold lower hoping that lower-spend customers cluster together and, as a group, contribute greatly to profitability.
+The next step in our K-Nearest-Neighbors algorithm is to select a spending cutoff that maximize profits.  The spending cutoff defines which of the existing customer profiles (from the \textit{cust2} data-set) will be used to match customers from the target data set.  As we saw from \vref{fig:cust_spend_cdf,fig:cust_spend_hist}, customer spending varies widely across the population.  Therefore, setting the threshold higher results in fewer existing customers to use for matching.  Intuitively speaking setting the cutoff high may be desirable if high-spend customers tend to cluster together.  However, if high-spend customers are hard to predict, then it may be more desirable to set the threshold lower hoping that lower-spend customers cluster together and, as a group, contribute greatly to profitability.
 
-To perform this exercise, we use the kNN algorithm in the \textit{FNN} packages to find target customers close to our existing customers (defined by the matching cutoff).  To do this, we vary both the number of nearest neighbors and the cutoff using the 2.5\% percentile steps in customer spend (see \vref{tab:cutoffs} for reference).  At each point in the search we calculate the profit, the \% of all potential customers captured, the \% of total possible revenue captured, and the \% of the matched targets that are actually customers.  Finally, this was performed for each series:
+To perform this exercise, we use the kNN algorithm in the \textit{FNN} package to find target customers close to our existing customers (defined by the matching cutoff).  Using it, we vary both the number of nearest neighbors and the cutoff using the 2.5\% percentile steps in customer spend (see \vref{tab:cutoffs} for reference).  At each point in the search we calculate the profit, the fraction of all potential customers captured, the fraction of total possible revenue captured, and, finally, the fraction of the matched targets that are actually customers.  This sequence was performed for each of the following series':
 \begin{itemize}
 \item \textit{Orig. (AIC)} - is missing \textit{ecom\_index} and uses AIC to select covariates;
 \item \textit{Manual} - has \textit{ecom\_index} and uses a manual coefficient selection;
@@ -94,19 +95,27 @@ To perform this exercise, we use the kNN algorithm in the \textit{FNN} packages 
 \item \textit{BIC} - has \textit{ecom\_index} and uses BIC to select covariates.
 \end{itemize}
 
-From \vref{fig:threshold_max_profit,tab:series_max} we see that most profitable strategy is to use the AIC selected covariates with the \textit{ecom\_index} setting both the threshold to a rather low value of \$8.72 and selecting the 3 closest neighbors to these values.  With this value we capture $\sim83\%$ of all customers and $\sim85\%$ of potential revenue with $\sim51\%$ of all targeted people spending money.  With this strategy, we yield a healthy profit of \textbf{\$5,028.85}.
-
-It turns out that having the \textit{ecom\_index} covariate helps us out quite a bit in our targeting.  Even with the 6.5x difference in the targeting price we are able to capture much more of the profit, customers, and revenue: \textbf{\$5,028.85} vs. \textbf{\$3,565.78}.  Therefore we would be willing to go with the new DMP.
+From \vref{fig:threshold_max_profit,tab:series_max} we see that most profitable strategy is to use the AIC selected covariates with the \textit{ecom\_index} setting both the threshold to a rather low value of \$8.72 and selecting the 3 closest neighbors to these values.  With this value we capture $\sim83\%$ of all customers and $\sim85\%$ of potential revenue with $\sim51\%$ of all targeted people spending money.  This strategy yields a healthy profit of \textbf{\$5,028.85}.
 
 \begin{figure}[!htb]
   \centering
-  \caption{Max Profits by Series and Threshold}
+  \caption{Max Profits vs. Threshold/K-Value by Series}
   \includegraphics[scale=.75]{threshold_max_profit2.pdf}
   \label{fig:threshold_max_profit}
 \end{figure}
 
 \input{series_max}
 
+
+\subsection{Conclusions}
+Ultimately, having the \textit{ecom\_index} covariate helps us quite a bit with our targeting.  Even with the 6.5x difference in the targeting price we are able to obtain higher profits: \textbf{\$5,028.85} vs. \textbf{\$3,565.78}.  When we begin to look at the other measures like fraction of revenue and customers captured as well as the fraction of customers matched it's quite clear that the value of the \textit{ecom\_index} is quite striking (see \vref{fig:profits} for more measures by series in addition to profitability).  Therefore, in light of all of these benefits, \textbf{we would be willing to switch to the new DMP even at the higher cost.}
+
+\begin{figure}[!htb]
+  \centering
+  \caption{Various Match Measures by Series}
+  \includegraphics[scale=.75]{profits2.pdf}
+  \label{fig:profits}
+\end{figure}
 
 \section{Targeting the Entire Data Set} % Question 2
 We would pursue the entire target file under two conditions. First, the cost per person would need to be sufficiently low such that our status-quo profit from Part 1 would not suffer from targeting everyone. Second, there would need to be a “network” benefit to our business from having a larger user base on our platform. An example would be if were operating LinkedIn and we wanted to get more premium subscribers (i.e. people who spend money on our site) \textit{and} we also wanted to augment the general user base so that people on our site can develop a deeper professional network. Similarly, if we were operating an online dating service, we would not only be interested in getting the people who will buy a premium subscription. We would also want to augment the number of “regular” users so that our dating service has a deep pool of online connections between users.

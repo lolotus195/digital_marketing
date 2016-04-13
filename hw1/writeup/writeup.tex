@@ -47,7 +47,7 @@ Prior to approaching the decisions of whether we should go with the new DMP, and
 
 We first built a matching algorithm using k-means clustering. We used the following algorithm:
 \begin{itemize}
-\item Find every fifth quantile of non-zero customer spending (see \cref{tab:cutoffs} in the Appendix). We will define a valuable customer as one who spends at or above the quantile level. For each quantile:
+\item Find every fifth quantile of non-zero customer spending (see \cref{tab:cutoffs} in \vref{sec:appendix}). We will define a valuable customer as one who spends at or above the quantile level. For each quantile:
 \begin{itemize}
 \item Use a k-means algorithm to break the customers into $k$ clusters, where we search over a range of $k$ from 1 to 20. For each $k$ number of clusters:
 \begin{itemize}
@@ -124,19 +124,20 @@ With respect to the cost of targeting, we would pursue the entire target file au
 
 In order to arrive at this solution, we created a vector of the cost per person with a range of \$0 to \$5 in increments of 10 cents. We then calculated the profit from pursuing everyone on the target list at each cost per person. At a cost of \$0.10 per person, our expected profit from targeting the whole file would be \$4,611.23. This is similar to the profit that we were able to achieve in Part 1 when we matched with the DMP that charges \$3.25 per person.
 
-As shown in \cref{fig:Profit_Grid} below, the profit from pursuing everyone in the target file decreases with the cost per person. Therefore, the cost would need to be sufficiently low (less than \$0.10 per person in our case) for the 'blanket' approach of targeting everyone to be attractive. 
+As shown in \vref{fig:Profit_Grid}, the profit from pursuing everyone in the target file decreases with the cost per person. Therefore, the cost would need to be sufficiently low (less than \$0.10 per person in our case) for the 'blanket' approach of targeting everyone to be attractive.
 
 Of course, if targeted matching were available at \$0.10 or less per person, we could achieve even higher short-term profits through targeted marketing relative to a blanket approach. Therefore, the second condition for using a blanket approach is that we would need to have a network motivation (such as broadening the connections between users of our site) for this blanket approach to make sense from a business perspective. A broader network of users would be valuable in terms of long term profits because it could increase the advertising revenue on our site over the long run.
 
 \begin{figure}[!htb]
   \centering
   \caption{Profits from Targeting Entire File by Cost}
-  \includegraphics[scale=.5]{Profit_Grid2.pdf}
+  \includegraphics[scale=.75]{Profit_Grid2.pdf}
   \label{fig:Profit_Grid}
 \end{figure}
 
+%%%%%%%%%%% BEGIN APPENDIX
 \clearpage
-\section{Appendix}
+\section{Appendix} \label{sec:appendix}
 \input{cutoffs}
 
 \end{document}

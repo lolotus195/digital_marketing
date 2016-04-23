@@ -12,7 +12,10 @@ University of Chicago Booth School of Business}
 
 \section{Gender-Based Preferences of Message Senders}
 
-\cref{fig:heatmap_female} and \cref{fig:heatmap_male} show, for a given sender rating, the difference between the conditional probability of sending a message (conditioned on the senders rating) and the marginal probability of sending a message across all receiver ratings.
+\cref{fig:heatmap_female} and \cref{fig:heatmap_male} show, for a given sender rating, the difference between the conditional probability of sending a message (conditioned on the senders rating) and the marginal probability of sending a message across all receiver ratings. 
+
+To take a concrete example from \cref{fig:heatmap_female}: suppose I am a female with a rating of 6. I am 2.2 percentage points more likely to target a man with a rating of 7 than the average woman is. Formally:
+\[ Pr(\text{message}|F=7,M=6) - Pr(\text{message}|M=6) = 2.2 \text{ percentage points}\]
 
 \begin{figure}[!htb]
   \centering
@@ -30,6 +33,25 @@ University of Chicago Booth School of Business}
   \end{subfigure}
 \end{figure}
 
+A few random observation:
+\begin{itemize}
+\item It pays to be an average-looking woman, but not an average-looking man. Conditional on their own ratings, men are slightly more likely to reach out to a woman who is rated  6, while women are slightly less likely to reach out to men who are rated 6. 
+\item The pattern reverses for those receivers who are rated slightly above average. Men are less likely to reach out to a woman who is rated a 7, while women are more likely to reach out to a man who is rated a 7.
+\item In general, men and women both tend to aim for partners who are rated similar to themselves. This is why we see positive numbers concentrated on the diagonal axis in \cref{fig:heatmap_female} and \cref{fig:heatmap_male}. As a rule, though, men are likely to aim a little higher (or lower!) than women. 
+\end{itemize}
+
+We can formalize this last point with a regression:
+\[ R_{i,j} = \alpha + \beta S_{i,j} + \varepsilon_{i,j} \]
+where $R_{i,j}$ is the rating of receiver $i$, $S_{i,j}$ is the rating of sender $i$, and $j=\text{female,male}$. Essentially we are trying to predict the rating of the receiver given the rating of the sender.
+
+The estimated intercept will tell us what is the unconditional expectation for the receivers' ratings. The estimated slope coefficient will tell us the degree to which men or women target those with similar ratings. The higher the coefficient, the more likely it is that senders target similarly rated receivers.
+
+[ - - - Should be table/tables of regression results here - - - ] 
+
+For both genders, the unconditional expectation of the receivers' rating is below average (given that the average is a 6). Somewhat surprisingly, women (on average) tend to send messages to men who are slightly \textit{better} looking than they are, while men (on average) send messages to women who are slightly \textit{worse} looking than they are. Given that the coefficient $\hat{\beta}$ is higher for women than for men, in the aggregate, women are more likely than men to target someone who is rated similarly.
+
+We can see this most clearly in \cref{fig:dotplot_female} and \cref{fig:dotplot_male}. The volume of messages for a given receiver/sender pair are plotted (bigger dots = more messages). Women tend to be a little more discriminating than men, as the bulk of the messages seem to be slightly more concentrated near the diagonal axis. The regression line for each gender is plotted, and we can see that the line for women is a little bit steeper (though not by much!) than the line for the men.
+
 \begin{figure}[!htb]
   \centering
   \caption{}
@@ -45,6 +67,7 @@ University of Chicago Booth School of Business}
     \label{fig:dotplot_male}
   \end{subfigure}
 \end{figure}
+
 
 %%%%%%%%%%% BEGIN APPENDIX
 \clearpage

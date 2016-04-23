@@ -100,3 +100,9 @@ GGPlotSave(g1, 'heatmap_female')
 GGPlotSave(g2, 'heatmap_male')
 GGPlotSave(g3, 'dotplot_female')
 GGPlotSave(g4, 'dotplot_male')
+
+tab.fit <- data.frame(alpha=rep(NA, 2), beta=rep(NA, 2), r2=rep(NA,2))
+tab.fit$alpha <- c(coef.female['(Intercept)'], coef.male['(Intercept)'])
+tab.fit$beta <- c(coef.female['SenderLooks'], coef.male['SenderLooks'])
+tab.fit$r2 <- c(1 - fit.female$deviance / fit.female$null.deviance,
+                1 - fit.male$deviance / fit.male$null.deviance)

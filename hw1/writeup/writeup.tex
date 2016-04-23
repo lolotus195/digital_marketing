@@ -47,7 +47,7 @@ Prior to approaching the decisions of whether we should go with the new DMP, and
 
 We first built a matching algorithm using k-means clustering. We used the following algorithm:
 \begin{itemize}
-\item Find every fifth quantile of non-zero customer spending (see \cref{tab:cutoffs} in \vref{sec:appendix}). We will define a valuable customer as one who spends at or above the quantile level. For each quantile:
+\item Find every fifth quantile of non-zero customer spending (see \cref{tab:cutoffs} in \vref{app:1}). We will define a valuable customer as one who spends at or above the quantile level. For each quantile:
 \begin{itemize}
 \item Use a k-means algorithm to break the customers into $k$ clusters, where we search over a range of $k$ from 1 to 20. For each $k$ number of clusters:
 \begin{itemize}
@@ -135,10 +135,15 @@ Of course, if targeted matching were available at \$0.10 or less per person, we 
   \label{fig:Profit_Grid}
 \end{figure}
 
-%%%%%%%%%%% BEGIN APPENDIX
+
 \clearpage
-\section{Appendix} \label{sec:appendix}
+\begin{appendices}
+
+\crefalias{section}{appsec}
+\section{} \label{app:1}
 \input{cutoffs}
+
+\end{appendices}
 
 \end{document}
 

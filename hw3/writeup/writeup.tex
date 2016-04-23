@@ -41,12 +41,12 @@ A few random observation:
 \end{itemize}
 
 We can formalize this last point with a regression:
-\[ R_{i,j} = \alpha + \beta S_{i,j} + \varepsilon_{i,j} \]
+\[ R_{i,j} = \alpha_j + \beta_j S_{i,j} + \varepsilon_{i,j} \]
 where $R_{i,j}$ is the rating of receiver $i$, $S_{i,j}$ is the rating of sender $i$, and $j=\text{female,male}$. Essentially we are trying to predict the rating of the receiver given the rating of the sender.
 
 The estimated intercept will tell us what is the unconditional expectation for the receivers' ratings. The estimated slope coefficient will tell us the degree to which men or women target those with similar ratings. The higher the coefficient, the more likely it is that senders target similarly rated receivers.
 
-[ - - - Should be table/tables of regression results here - - - ] 
+\input{receiver_on_sender}
 
 For both genders, the unconditional expectation of the receivers' rating is below average (given that the average is a 6). Somewhat surprisingly, women (on average) tend to send messages to men who are slightly \textit{better} looking than they are, while men (on average) send messages to women who are slightly \textit{worse} looking than they are. Given that the coefficient $\hat{\beta}$ is higher for women than for men, in the aggregate, women are more likely than men to target someone who is rated similarly.
 

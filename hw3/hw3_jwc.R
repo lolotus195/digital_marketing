@@ -106,3 +106,8 @@ tab.fit$alpha <- c(coef.female['(Intercept)'], coef.male['(Intercept)'])
 tab.fit$beta <- c(coef.female['SenderLooks'], coef.male['SenderLooks'])
 tab.fit$r2 <- c(1 - fit.female$deviance / fit.female$null.deviance,
                 1 - fit.male$deviance / fit.male$null.deviance)
+colnames(tab.fit) <- c('$\\alpha_j$', '$\\beta_j$', 'R-squared')
+rownames(tab.fit) <- c('Female senders', 'Male senders')
+ExportTable(tab.fit, file='receiver_on_sender', 
+            caption='Regressing Receiver Looks on Sender Looks',
+            digits=3, display=rep('g', 4))

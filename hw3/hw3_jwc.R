@@ -61,8 +61,8 @@ target.male <- apply(count.male, 1, function(r) {
   r / sum(r) - base.male })
 target.male <- t(target.male)
 
-g1 <- PlotTarget(target.male, 'Male')
-g2 <- PlotTarget(target.female, 'Female')
+g1 <- PlotTarget(target.female, 'Female')
+g2 <- PlotTarget(target.male, 'Male')
 
 # Or we could think about it more quantitatively
 

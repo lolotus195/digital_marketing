@@ -42,15 +42,15 @@ A few random observation:
 
 We can formalize this last point with a regression:
 \[ R_{i,j} = \alpha_j + \beta_j S_{i,j} + \varepsilon_{i,j} \]
-where $R_{i,j}$ is the rating of receiver $i$, $S_{i,j}$ is the rating of sender $i$, and $j=\text{female,male}$. Essentially we are trying to predict the rating of the receiver given the rating of the sender.
+where $R_{i,j}$ is the rating of receiver $i$, $S_{i,j}$ is the rating of sender $i$, and $j=\text{\{female,male\}}$. Essentially we are trying to predict the rating of the receiver given the rating of the sender.
 
-The estimated intercept will tell us what is the unconditional expectation for the receivers' ratings. The estimated slope coefficient will tell us the degree to which men or women target those with similar ratings. The higher the coefficient, the more likely it is that senders target similarly rated receivers.
+The estimated intercept will tell us what is the unconditional expectation for the receivers' ratings. The estimated slope coefficient will tell us the degree to which men or women target those with similar ratings. The higher the coefficient, the more likely it is that senders target similarly rated receivers (i.e. if $\hat{\beta}=1$ then people would only message those who are rated exactly the same as themselves).
 
 \input{receiver_on_sender}
 
-For both genders, the unconditional expectation of the receivers' rating is below average (given that the average is a 6). Somewhat surprisingly, women (on average) tend to send messages to men who are slightly \textit{better} looking than they are, while men (on average) send messages to women who are slightly \textit{worse} looking than they are. Given that the coefficient $\hat{\beta}$ is higher for women than for men, in the aggregate, women are more likely than men to target someone who is rated similarly.
+For both genders, the unconditional expectation of the receivers' rating is below average (given that the average is a 6). Somewhat surprisingly, women (on average) tend to send messages to men who are slightly \textit{better} looking than they are, while men (on average) send messages to women who are slightly \textit{worse} looking than they are.\footnote{The rating of the average female sender is 5.05 (lower than $\hat{\alpha}_{F}$); the rating of the average male sender is 5.32 (higher than $\hat{\alpha}_{M}$).} Given that the coefficient $\hat{\beta}$ is higher for women than for men, in the aggregate, women are more likely than men to target someone who is rated similarly. Note, however, that the R-squared values for both regressions are very low, so this simple model explains very little of the targeting preferences for either gender.
 
-We can see this most clearly in \cref{fig:dotplot_female} and \cref{fig:dotplot_male}. The volume of messages for a given receiver/sender pair are plotted (bigger dots = more messages). Women tend to be a little more discriminating than men, as the bulk of the messages seem to be slightly more concentrated near the diagonal axis. The regression line for each gender is plotted, and we can see that the line for women is a little bit steeper (though not by much!) than the line for the men.
+We can see this most clearly in \cref{fig:dotplot_female} and \cref{fig:dotplot_male}. The volume of messages for a given receiver/sender pair are plotted (bigger dots $\rightarrow$ more messages). Women tend to be a little more discriminating than men, as the bulk of the messages seem to be slightly more concentrated near the diagonal axis. The regression line for each gender is plotted, and we can see that the line for women is a little bit steeper (though not by much!) than the line for the men.
 
 \begin{figure}[!htb]
   \centering
@@ -69,9 +69,22 @@ We can see this most clearly in \cref{fig:dotplot_female} and \cref{fig:dotplot_
 \end{figure}
 
 
+\section{}
+
+
+\section{}
+
+
+\section{}
+
 %%%%%%%%%%% BEGIN APPENDIX
 \clearpage
-\section{Appendix} \label{sec:appendix}
+\begin{appendices}
+
+\crefalias{section}{appsec}
+\section{} \label{app:1}
+
+\end{appendices}
 
 \end{document}
 

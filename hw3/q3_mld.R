@@ -6,6 +6,8 @@ rm(list=ls())
 source("../utils/source_me.R", chdir = T)
 CreateDefaultPlotOpts()
 
+require(plyr)
+
 load("hw3.rdat")
 # Gender should be a factor variable!
 RelevelGender <- function(x) {
@@ -21,7 +23,7 @@ df$ReceiverGender <- RelevelGender(df$ReceiverGender)
 #     men and women at various looks percentiles. Comment on and 
 #     explain your findings. For example, you may want to explore 
 #     why pred.match(2,10) differs from pred.match(10,2).    
-mdl <- glm(y ~ ReceiverLooks * SenderGender, data=df)
+mdl <- glm(y ~ ReceiverLooks * SenderGender, data=df, family="binomial")
 
 summary(mdl)
 
@@ -38,8 +40,8 @@ PredictedMatch <- function(maleLooks, femaleLooks) {
 }
 
 match.scores <- matrix(nrow=11, ncol=11, dimnames = list(c(1:11), c(1:11)))
-for (maleLooks in as.numeric(colnames(pred.match.scores))) {
-  for (femaleLooks in as.numeric(rownames(pred.match.scores))) {
+for (maleLooks in as.numeric(colnames(match.scores))) {
+  for (femaleLooks in as.numeric(rownames(match.scores))) {
     match.scores[femaleLooks, maleLooks] <- PredictedMatch(maleLooks, femaleLooks)
   }
 }

@@ -117,8 +117,3 @@ ExportTable(tab.fit, file='receiver_on_sender',
             caption='Regressing Receiver Looks on Sender Looks',
             digits=3, display=rep('g', 4))
 
-####
-# Q2: Does the utility/preference function change depending on the  ----
-#     looks of the Sender? Are there differences in how these changes for men and women?
-# MLD: If I'm reading the question correctly, I think Will did this in Q1.
-####

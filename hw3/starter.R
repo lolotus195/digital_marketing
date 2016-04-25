@@ -99,7 +99,13 @@ pred.prob.m5=function(Xfemale){
 #     men and women at various looks percentiles. Comment on and 
 #     explain your findings. For example, you may want to explore 
 #     why pred.match(2,10) differs from pred.match(10,2).    
-    
+pred.match(2, 10)
+pred.match(10, 2)
+# > pred.match(2, 10)
+# [1] 0.1003579
+# > pred.match(10, 2)
+# [1] 0.0653594
+
 # Q4: (Optional: Warning Difficult and Time Consuming!) 
 #     How would you change the match function to account 
 #     for the findings in Q2. How do the results comapre to

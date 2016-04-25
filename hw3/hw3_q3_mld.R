@@ -47,7 +47,7 @@ for (maleLooks in as.numeric(colnames(pred.match.scores))) {
 match.scores.melt <- melt(match.scores, varnames = c("FemaleLooks", "MaleLooks"))
 g <- ggplot(match.scores.melt, aes(x=FemaleLooks, y=MaleLooks, fill=value)) + 
   geom_tile() +
-  scale_fill_continuous("Match Score") + 
+  scale_fill_gradient("Match Score") + 
   coord_equal(xlim = c(1, 11), ylim=c(1, 11)) +
   scale_y_continuous(breaks=1:11) + scale_x_continuous(breaks=1:11) +
   theme_bw() +

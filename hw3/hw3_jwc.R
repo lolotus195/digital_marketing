@@ -1,3 +1,6 @@
+####
+# Cleanup ----
+####
 rm(list=ls())
 
 require(plyr)
@@ -29,10 +32,12 @@ RelevelGender <- function(x) {
 df$SenderGender <- RelevelGender(df$SenderGender)
 df$ReceiverGender <- RelevelGender(df$ReceiverGender)
 
+
+####
 # Q1: What can you say about the preferences of sender men and women ----
 #     related to the looks of the receiver? Are there differences across 
 #     the genders?
-
+####
 count.male <- matrix(0, nrow = 11, ncol = 11) # who do men target
 count.female <- matrix(0, nrow = 11, ncol = 11) # who do women target
 for (r in 1:nrow(df)) {
@@ -111,3 +116,9 @@ rownames(tab.fit) <- c('Female senders', 'Male senders')
 ExportTable(tab.fit, file='receiver_on_sender', 
             caption='Regressing Receiver Looks on Sender Looks',
             digits=3, display=rep('g', 4))
+
+####
+# Q2: Does the utility/preference function change depending on the  ----
+#     looks of the Sender? Are there differences in how these changes for men and women?
+# MLD: If I'm reading the question correctly, I think Will did this in Q1.
+####

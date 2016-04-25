@@ -17,21 +17,7 @@ University of Chicago Booth School of Business}
 To take a concrete example from \cref{fig:heatmap_female}: suppose I am a female with a rating of 6. I am 2.2 percentage points more likely to target a man with a rating of 7 than the average woman is. Formally:
 \[ Pr(\text{message}|F=7,M=6) - Pr(\text{message}|M=6) = 2.2 \text{ percentage points}\]
 
-\begin{figure}[!htb]
-  \centering
-  \caption{}
-  \begin{subfigure}[b]{0.49\textwidth}
-    \caption{Relative Preferences of Female Senders}
-    \includegraphics[width=\textwidth]{heatmap_female.pdf}
-    \label{fig:heatmap_female}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.49\textwidth}
-    \caption{Relative Preferences of Male Senders}
-    \includegraphics[width=\textwidth]{heatmap_male.pdf}
-    \label{fig:heatmap_male}
-  \end{subfigure}
-\end{figure}
+\doublefig{}{heatmap_female}{Relative Preferences of Female Senders}{heatmap_male}{Relative Preferences of Male Senders}
 
 A few random observation:
 \begin{itemize}
@@ -52,27 +38,15 @@ For both genders, the unconditional expectation of the receivers' rating is belo
 
 We can see this most clearly in \cref{fig:dotplot_female} and \cref{fig:dotplot_male}. The volume of messages for a given receiver/sender pair are plotted (bigger dots $\rightarrow$ more messages). Women tend to be a little more discriminating than men, as the bulk of the messages seem to be slightly more concentrated near the diagonal axis. The regression line for each gender is plotted, and we can see that the line for women is a little bit steeper (though not by much!) than the line for the men.
 
-\begin{figure}[!htb]
-  \centering
-  \caption{}
-  \begin{subfigure}[b]{0.49\textwidth}
-    \caption{Aggregate Sending Behavior of Females}
-    \includegraphics[width=\textwidth]{dotplot_female.pdf}
-    \label{fig:dotplot_female}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.49\textwidth}
-    \caption{Aggregate Sending Behavior of Males}
-    \includegraphics[width=\textwidth]{dotplot_male.pdf}
-    \label{fig:dotplot_male}
-  \end{subfigure}
-\end{figure}
+
+\doublefig{}{dotplot_female}{Aggregate Sending Behavior of Females}{dotplot_male}{Aggregate Sending Behavior of Males}
 
 
 \section{}
 
 
 \section{}
+\singlefig{q3_score_heatmap}{Heatmap of Scores Using Receiver Looks}
 
 
 \section{}

@@ -79,9 +79,10 @@ pred.match(11,11)
 #
 #     Here is some code to help:
 #     This code estimates preferences for Sender Males with Looks rated less than 6
-      lres.m5 = glm(y~ReceiverLooks,data=df[df$SenderGender==2 & as.numeric(df$SenderLooks)<6,],family='binomial')
+lres.m5 = glm(y~ReceiverLooks,data=df[df$SenderGender==2 & as.numeric(df$SenderLooks)<6,],family='binomial')
+
 #     We can then create a prediction function
-      pred.prob.m5=function(Xfemale){
+pred.prob.m5=function(Xfemale){
       predict(lres.m5,newdata=data.frame(ReceiverLooks=factor(Xfemale,levels=1:11)),type='response')
 }
 #     And compare to the full sample

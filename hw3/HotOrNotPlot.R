@@ -13,7 +13,7 @@ PlotTarget <- function(target, sender.gender) {
   pdat$diff <- abs(pdat$diff)
   
   # for labeling axes
-  receiver.gender <- c('Male', 'Femae')[c('Male', 'Female')!=sender.gender]
+  receiver.gender <- c('Male', 'Female')[c('Male', 'Female')!=sender.gender]
   xlab <- paste('Receiver (', receiver.gender, ') Looks', sep = '')
   ylab <- paste('Sender (', sender.gender, ') Looks', sep = '')
   
@@ -35,7 +35,7 @@ PlotCount <- function(count, coef, line.color, sender.gender) {
                value.name = 'count')
   
   # for labeling axes
-  receiver.gender <- c('Male', 'Femae')[c('Male', 'Female')!=sender.gender]
+  receiver.gender <- c('Male', 'Female')[c('Male', 'Female')!=sender.gender]
   xlab <- paste('Receiver (', receiver.gender, ') Looks', sep = '')
   ylab <- paste('Sender (', sender.gender, ') Looks', sep = '')
   

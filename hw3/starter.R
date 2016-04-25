@@ -108,7 +108,7 @@ pred.match(10, 2)
 
 # Q4: (Optional: Warning Difficult and Time Consuming!) 
 #     How would you change the match function to account 
-#     for the findings in Q2. How do the results comapre to
+#     for the findings in Q2. How do the results compare to
 #     the original pred.match function results.
 
 

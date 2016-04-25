@@ -38,6 +38,9 @@ df$ReceiverGender <- RelevelGender(df$ReceiverGender)
 #     related to the looks of the receiver? Are there differences across 
 #     the genders?
 ####
+# Throw out all data where the sender didn't contact the receiver.
+df <- df[df$y == 1,]
+
 count.male <- matrix(0, nrow = 11, ncol = 11) # who do men target
 count.female <- matrix(0, nrow = 11, ncol = 11) # who do women target
 for (r in 1:nrow(df)) {

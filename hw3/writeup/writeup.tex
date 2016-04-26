@@ -46,17 +46,20 @@ We can see this most clearly in \vref{fig:dotplot_female,fig:dotplot_male}. The 
 
 
 \section{}
-We created an 11 x 11 matrix with the match scores that are associated with different combinations of male looks and female looks. \vref{fig:q3_score_heatmap} shows a heatmap of the results. The dark blue cells indicate low match scores and the light blue cells represent high match scores. 
+We created an 11 x 11 matrix with the match scores that are associated with different combinations of male looks and female looks. \vref{fig:q3_score_heatmap} shows a heatmap of the results. The red cells indicate low match scores and the blue cells represent high match scores. 
 
 Across the entire matrix, the average match score is 0.088. Overall, the following observations can be made from \cref{fig:q3_score_heatmap}:
 \begin{itemize}
-\item The most attractive women (categories 11 and 10) have above-average match scores, regardless of the appearance of their male counterpart. For example, the match scores of women in the "11" category range from 0.100 to 0.137. The match scores of women in the "10" category range from 0.095 to 0.131.
+\item The most attractive women (categories "11" and "10") have above-average match scores, regardless of the appearance of their male counterpart. For example, the match scores of women in the "11" category range from 0.10 to 0.14. The match scores of women in the "10" category range from 0.10 to 0.13.
 
-\item On the other hand, the least attractive women (categories 1 and 2) have below-average match scores, regardless of the appearance of their male counterpart. Specifically, the  match scores of women in the "1" category range from 0.055 to 0.075. The match scores of women in the "2" category range from 0.055 to 0.076.
+\item On the other hand, the least attractive women (categories "1" and "2") have below-average match scores, regardless of the appearance of their male counterpart. Specifically, the  match scores of women in the "1" category range from 0.05 to 0.07. The match scores of women in the "2" category range from 0.06 to 0.08.
 
-\item These two points support our theory that men are particularly sensitive to the physical attractiveness of women. If we only condition on receiver looks, then it appears than men typically want to send messages to attractive women, but they do not want to contact unattractive women.
+\item These two points support our theory that men are particularly sensitive to the physical attractiveness of women. If we only condition on receiver looks, it appears that men typically want to send messages to attractive women, but they do not want to contact unattractive women.
 
-\item The pattern seen in \cref{fig:q3_score_heatmap} seems to be driven by mens' sensitivity to womens' attractiveness. Across the range of male attractiveness ("1" to "11"), the match scores are below average when men are paired with unattractive women (categories "1" and "2"). However, the match scores are all above-average when men are paired with highly attractive women (categories "10" and "11").   
+\item The pattern seen in \cref{fig:q3_score_heatmap} seems to be driven by mens' sensitivity to womens' attractiveness. Across the range of male attractiveness ("1" to "11"), the match scores are below average when men are paired with unattractive women (categories "1" and "2"). However, the match scores are all above-average when men are paired with highly attractive women (categories "10" and "11").
+
+\item The match score function is \textit{pred.match("Male looks", "Female looks")}. Since men are more sensitive to womens' appearance, we would expect \textit{pred.match(2,10)} to be greater than \textit{pred.match(10,2)}. Indeed, as we can see from the matrix in \cref{fig:q3_score_heatmap}, \textit{pred.match(2,10)} = 0.10 and \textit{pred.match(10,2)} = 0.07. As expected, 0.10 $>$ 0.07.
+
 \end{itemize}
 
 \begin{figure}[!htb]

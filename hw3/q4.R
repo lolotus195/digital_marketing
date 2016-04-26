@@ -48,9 +48,11 @@ match.prd$yhat.f <- predict(mdl.contact, type="response", newdata=
                               mutate(SenderGender=factor("female", c("female", "male"))))
 match.prd$score <- sqrt(match.prd$yhat.m * match.prd$yhat.f)
 
+col.theme <- gg_color_hue(2)
 g <- ggplot(match.prd, aes(y=MaleLooks, x=FemaleLooks, fill=score)) + 
   geom_tile() + 
-  scale_fill_gradient("Match\nScore") +
+  scale_fill_gradient("Match\nScore", low=col.theme[1], high=col.theme[2]) + 
+  geom_text(aes(x=FemaleLooks, y=MaleLooks, label=sprintf("%3.2f", score))) +
   coord_equal() + theme_bw() + 
   theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
   labs(y="Male Looks", x="Female Looks")

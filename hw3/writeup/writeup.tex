@@ -12,7 +12,7 @@ University of Chicago Booth School of Business}
 
 \section{Gender-Based Preferences of Message Senders}
 
-\cref{fig:heatmap_female} and \cref{fig:heatmap_male} show, for a given sender rating, the difference between the conditional probability of sending a message (conditioned on the senders rating) and the marginal probability of sending a message across all receiver ratings. 
+\vref{fig:heatmap_female,fig:heatmap_male} show, for a given sender rating, the difference between the conditional probability of sending a message (conditioned on the senders rating) and the marginal probability of sending a message across all receiver ratings. 
 
 To take a concrete example from \cref{fig:heatmap_female}: suppose I am a female with a rating of 6. I am 2.2 percentage points more likely to target a man with a rating of 7 than the average woman is. Formally:
 \[ Pr(\text{message}|F=7,M=6) - Pr(\text{message}|M=6) = 2.2 \text{ percentage points}\]
@@ -36,7 +36,7 @@ The estimated intercept will tell us what is the unconditional expectation for t
 
 For both genders, the unconditional expectation of the receivers' rating is below average (given that the average is a 6). Somewhat surprisingly, women (on average) tend to send messages to men who are slightly \textit{better} looking than they are, while men (on average) send messages to women who are slightly \textit{worse} looking than they are.\footnote{The rating of the average female sender is 5.05 (lower than $\hat{\alpha}_{F}$); the rating of the average male sender is 5.32 (higher than $\hat{\alpha}_{M}$).} Given that the coefficient $\hat{\beta}$ is higher for women than for men, in the aggregate, women are more likely than men to target someone who is rated similarly. Note, however, that the R-squared values for both regressions are very low, so this simple model explains very little of the targeting preferences for either gender.
 
-We can see this most clearly in \cref{fig:dotplot_female} and \cref{fig:dotplot_male}. The volume of messages for a given receiver/sender pair are plotted (bigger dots $\rightarrow$ more messages). Women tend to be a little more discriminating than men, as the bulk of the messages seem to be slightly more concentrated near the diagonal axis. The regression line for each gender is plotted, and we can see that the line for women is a little bit steeper (though not by much!) than the line for the men.
+We can see this most clearly in \vref{fig:dotplot_female,fig:dotplot_male}. The volume of messages for a given receiver/sender pair are plotted (bigger dots $\rightarrow$ more messages). Women tend to be a little more discriminating than men, as the bulk of the messages seem to be slightly more concentrated near the diagonal axis. The regression line for each gender is plotted, and we can see that the line for women is a little bit steeper (though not by much!) than the line for the men.
 
 
 \doublefig{}{dotplot_female}{Aggregate Sending Behavior of Females}{dotplot_male}{Aggregate Sending Behavior of Males}
@@ -46,8 +46,18 @@ We can see this most clearly in \cref{fig:dotplot_female} and \cref{fig:dotplot_
 
 
 \section{}
-% BRIAN: Here's the reference to the heatmap below.
-\vref{fig:q3_score_heatmap}
+We created an 11 x 11 matrix with the match scores that are associated with different combinations of male looks and female looks. \vref{fig:q3_score_heatmap} shows a heatmap of the results. The dark blue cells indicate low match scores and the light blue cells represent high match scores. 
+
+Across the entire matrix, the average match score is 0.088. Overall, the following observations can be made from \cref{fig:q3_score_heatmap}:
+\begin{itemize}
+\item The most attractive women (categories 11 and 10) have above-average match scores, regardless of the appearance of their male counterpart. For example, the match scores of women in the "11" category range from 0.100 to 0.137. The match scores of women in the "10" category range from 0.095 to 0.131.
+
+\item On the other hand, the least attractive women (categories 1 and 2) have below-average match scores, regardless of the appearance of their male counterpart. Specifically, the  match scores of women in the "1" category range from 0.055 to 0.075. The match scores of women in the "2" category range from 0.055 to 0.076.
+
+\item These two points support our theory that men are particularly sensitive to the physical attractiveness of women. If we only condition on receiver looks, then it appears than men typically want to send messages to attractive women, but they do not want to contact unattractive women.
+
+\item The pattern seen in \cref{fig:q3_score_heatmap} seems to be driven by mens' sensitivity to womens' attractiveness. Across the range of male attractiveness ("1" to "11"), the match scores are below average when men are paired with unattractive women (categories "1" and "2"). However, the match scores are all above-average when men are paired with highly attractive women (categories "10" and "11").   
+\end{itemize}
 
 \doublefig{Heatmap of Scores by Male/Female Looks}{q3_score_heatmap}{Using Receiver Looks Only}{q4_heat}{Using Both Sender \& Receiver Looks}
 
@@ -60,7 +70,11 @@ We can see this most clearly in \cref{fig:dotplot_female} and \cref{fig:dotplot_
 \begin{appendices}
 
 \crefalias{section}{appsec}
-\section{} \label{app:1}
+\section{Data Exploration} \label{app:1}
+
+\singlefig{q0_data_heat}{}
+\singlefig{q0_contact_heat}{}
+
 
 \end{appendices}
 

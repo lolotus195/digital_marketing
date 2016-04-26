@@ -63,7 +63,13 @@ Across the entire matrix, the average match score is 0.088. Overall, the followi
 
 
 \section{}
+First we regressed the binary contact indicator, \textit{y}, on \textit{ReceiverLooks}, \textit{SenderLooks}, and \textit{SenderGender} allowing those terms to interact with each other (see \vref{lst:q4_all}).  This took quite a while to run -- about 3 minutes on my 2010-era notebook -- and generated 242 coefficients ($11 * 11 * 2$).  While many of the coefficients were insignificant, they gave us a model we could use to account for sender/receiver looks as well as gender.  With this model, we then calculated a match score (see \vref{lst:q4_pred}) which we then used to generate a heat-map (see \vref{fig:q4_heat}).
 
+\begin{lstlisting}[language=R,label=lst:q4_all,caption=Regressing y on all available data.]
+glm(y ~ ReceiverLooks * SenderLooks * SenderGender, data=df, family="binomial")
+\end{lstlisting}
+
+\lstinputlisting[language=R,label=lst:q4_pred,caption=Predicting scores using all data.]{predict_snippet.R}
 
 %%%%%%%%%%% BEGIN APPENDIX
 \clearpage

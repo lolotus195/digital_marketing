@@ -70,3 +70,24 @@ g <- ggplot(data=df.test, aes(y, y_hat)) + geom_boxplot() +
     "SenderGender"=c("female"="Female Sender", "male"="Male Sender"))) +
   theme_bw() + labs(x="Contact Made", y="Predicted Probability Contact")
 GGPlotSave(g, "q3_boxplot")
+
+####
+# Alternate ----
+####
+df %>%
+  group_by(SenderGender,SenderLooks,ReceiverLooks) %>%
+  summarize(avg_y=mean(y)) -> df.tab
+df.tab %>%
+  filter(SenderGender=="male") %>%
+  rename(MaleLooks=SenderLooks, FemaleLooks=ReceiverLooks) -> df.tab.m
+df.tab %>%
+  filter(SenderGender=="female") %>%
+  rename(FemaleLooks=SenderLooks, MaleLooks=ReceiverLooks) -> df.tab.f
+merge(df.tab.m, df.tab.f, by=c("MaleLooks", "FemaleLooks")) %>%
+  mutate(score = sqrt(avg_y.x * avg_y.y),
+         MaleLooks = as.numeric(MaleLooks),
+         FemaleLooks = as.numeric(FemaleLooks)) %>%
+  select(MaleLooks, FemaleLooks, score) -> df.score
+
+glm(score ~ ., data=df.score)
+ggplot(df.score, aes(x=FemaleLooks, y=MaleLooks, fill=score)) + geom_tile()

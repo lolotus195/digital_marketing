@@ -44,14 +44,19 @@
 \setlength{\parskip}{12pt} % Sets a blank line in between paragraphs
 \setlength\parindent{0pt} % Sets the indent for each paragraph to zero
 
-\newcommand\singlefig[2] {
+\newcommand\singlefigscale[3] {
   \begin{figure}[htb]
     \centering
     \caption{#2}
-    \includegraphics[scale=.5]{#1.pdf}
+    \includegraphics[scale=#3]{#1.pdf}
     \label{fig:#1}
   \end{figure}  
 }
+
+\newcommand\singlefig[2] {
+  \singlefigscale{#1}{#2}{0.5}
+}
+
 \newcommand\doublefig[5] {
   \begin{figure}[htb]
     \centering

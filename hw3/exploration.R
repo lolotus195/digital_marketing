@@ -21,7 +21,7 @@ df$ReceiverGender <- RelevelGender(df$ReceiverGender)
 ####
 # Heatmap of Data by Gender ----
 ####
-col.theme <- gg_color_hue(2)
+col.theme <- gg_color_hue(3)
 g <- ggplot(data=df, aes(x=SenderLooks, y=ReceiverLooks)) + 
   stat_bin2d(aes(fill=..count..), drop=T) +
   scale_fill_gradient("Sample\nCount", low=col.theme[1], high=col.theme[2]) +
@@ -35,7 +35,7 @@ GGPlotSave(g, "q0_data_heat")
 ####
 # Heatmap of Contacts by Gender ----
 ####
-ggplot(data=df[df$y==1,], aes(x=SenderLooks, y=ReceiverLooks)) +
+g <- ggplot(data=df[df$y==1,], aes(x=SenderLooks, y=ReceiverLooks)) +
   stat_bin2d(aes(fill=..count..), drop=T) +
   scale_fill_gradient("Sample\nCount", low=col.theme[1], high=col.theme[2]) + 
   facet_wrap("SenderGender", labeller =labeller(

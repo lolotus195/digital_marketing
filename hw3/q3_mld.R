@@ -49,7 +49,7 @@ match.prd$yhat.f <- predict(mdl, newdata=
                             type="response")
 match.prd$score <- sqrt(match.prd$yhat.m * match.prd$yhat.f)
 
-col.theme <- gg_color_hue(2)
+col.theme <- gg_color_hue(3)
 g <- ggplot(match.prd,aes(x=FemaleLooks, y=MaleLooks, fill=score)) + 
   geom_tile() +
   scale_fill_gradient("Match\nScore", low=col.theme[1], high=col.theme[2]) + 

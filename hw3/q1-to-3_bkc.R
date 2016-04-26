@@ -150,19 +150,21 @@ summary(df$SenderGender==2) # 179,710 men
 pred.match(2,10) # 0.1003579
 pred.match(10,2) # 0.0653594
 
-men_looks <- as.numeric(1:11)
+men_looks <- as.numeric(11:1)
 women_looks <- as.numeric(1:11)
 
 pred_matrix <- matrix(NA,nrow=11,ncol=11)
 
-
 ## Match prediction matrix 
-for(i in 1:11){
+for(i in 11:1){
   for(j in 1:11){
   pred_matrix[i,j] = pred.match(men_looks[i], women_looks[j])
   }
   }
 pred_matrix
+
+
+write.csv(pred_matrix, file="pred_matrix.csv")
 
 ## Match prediction matrix for women
 for(i in 1:11){

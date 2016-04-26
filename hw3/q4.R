@@ -16,12 +16,13 @@ RelevelGender <- function(x) {
 }
 df$SenderGender <- RelevelGender(df$SenderGender)
 df$ReceiverGender <- RelevelGender(df$ReceiverGender)
+df$y <- df$y == 1
 
 
 ####
 # Regression ----
 ####
-mdl.contact <- LoadCacheTagOrRun("q4_regr", function() {
+mdl.contact <- LoadCacheTagOrRun("q4_regr_bin", function() {
   glm(y ~ ReceiverLooks * SenderLooks * SenderGender, data=df, family="binomial")
 })
 summary(mdl.contact)

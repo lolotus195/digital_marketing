@@ -46,7 +46,7 @@ We can see this most clearly in \vref{fig:dotplot_female,fig:dotplot_male}. The 
 
 
 \section{}
-We created an 11 x 11 matrix with the match scores that are associated with different combinations of male looks and female looks. \vref{fig:q3_score_heatmap} shows a heatmap of the results. The red cells indicate low match scores and the blue cells represent high match scores. 
+We created an 11 x 11 matrix with the match scores that are associated with different combinations of male looks and female looks. \vref{fig:q3_score_heatmap} shows a heatmap of the results. The red cells indicate low match scores and the green cells represent high match scores. 
 
 Across the entire matrix, the average match score is 0.088. Overall, the following observations can be made from \cref{fig:q3_score_heatmap}:
 \begin{itemize}
@@ -62,21 +62,9 @@ Across the entire matrix, the average match score is 0.088. Overall, the followi
 
 \end{itemize}
 
-\begin{figure}[!htb]
-  \centering
-  \caption{Heatmap of Match-Scores by Male/Female Looks Using Receiver Looks Only}
-  \includegraphics[scale=.7]{q3_score_heatmap.pdf}
-  \label{fig:q3_score_heatmap}
-\end{figure}
+\singlefigscale{q3_score_heatmap}{Heatmap of Match Scores by Gender Looks (Incorporating Receiver Looks Only)}{.6}
 
-\begin{figure}[!htb]
-  \centering
-  \caption{Heatmap of Match-Scores by Male/Female Looks Using Both Sender \& Receiver Looks}
-  \includegraphics[scale=.7]{q4_heat.pdf}
-  \label{fig:q4_heat}
-\end{figure}
-
-% \doublefig{Heatmap of Scores by Male/Female Looks}{q3_score_heatmap}{Using Receiver Looks Only}{q4_heat}{Using Both Sender \& Receiver Looks}
+\singlefigscale{q4_heat}{Heatmap of Match Scores by Gender Looks (Incorporating Sender \& Receiver Looks)}{.6}
 
 
 \section{}
@@ -94,9 +82,10 @@ glm(y ~ ReceiverLooks * SenderLooks * SenderGender, data=df, family="binomial")
 
 \crefalias{section}{appsec}
 \section{Data Exploration} \label{app:1}
+To begin our analysis we took a cursory look at the available data to see where we might be lacking the ability to make predictions.  In general females make up just 27.5\% of the data and make contact at a rate of 8.1\% (with males making contact at 9.6\%).  On the surface, these results aren't disheartening, but we next turn our concern to the variety of match data.  For example, we would be a little concerned if we never have a 11 female matched with a 1 male, or vice-versa. \Vref{fig:q0_data_heat} shows  a heatmap of the available information broken down not only by sender gender, but also the looks of the sender/receiver.  In general it shows that we do have available information for all segments.  However, there is a general lack of matches between people of either gender rated 10/11 as well as general lack of matches at extremes (around the 11/1 pairings).
 
-\singlefig{q0_data_heat}{}
-\singlefig{q0_contact_heat}{}
+\singlefigscale{q0_data_heat}{Heatmap of available match data}{0.6}
+% \singlefigscale{q0_contact_heat}{Heatmap of available contact data}{0.6}
 
 
 \end{appendices}

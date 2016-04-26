@@ -17,42 +17,42 @@ RelevelGender <- function(x) {
 }
 df$SenderGender <- RelevelGender(df$SenderGender)
 df$ReceiverGender <- RelevelGender(df$ReceiverGender)
+df$y <- df$y == 1
 
 ####
 # Q3: Using the pred.match function explore the match scores between ----
 #     men and women at various looks percentiles. Comment on and 
 #     explain your findings. For example, you may want to explore 
 #     why pred.match(2,10) differs from pred.match(10,2).    
-mdl <- glm(y ~ ReceiverLooks * SenderGender, data=df, family="binomial")
-
+mdl <- LoadCacheTagOrRun("q3_regr_bin", function() {
+  glm(y ~ ReceiverLooks * SenderGender, data=df, family="binomial")
+})
 summary(mdl)
 
-PredictedMatch <- function(maleLooks, femaleLooks) {
-  pred.match.female <- predict(
-    mdl, newdata=data.frame(SenderGender="female", 
-                            ReceiverLooks=factor(maleLooks, 1:11)), 
-    type="response")
-  pred.match.male <- predict(
-    mdl, newdata=data.frame(SenderGender="male", 
-                            ReceiverLooks=factor(femaleLooks, 1:11)), 
-    type="response")
-  return(sqrt(pred.match.female*pred.match.male))
-}
+####
+# Predict and Make heatmap ----
+####
+match.prd <- expand.grid(MaleLooks=sort(unique(df$SenderLooks)),
+                         FemaleLooks=sort(unique(df$SenderLooks)))
+require(dplyr)
+match.prd$yhat.m <- predict(mdl, newdata=
+                              match.prd %>% 
+                              select(SenderLooks=MaleLooks, 
+                                     ReceiverLooks=FemaleLooks) %>%
+                              mutate(SenderGender=factor("male", c("female", "male"))),
+                            type="response")
+match.prd$yhat.f <- predict(mdl, newdata=
+                              match.prd %>% 
+                              select(SenderLooks=FemaleLooks, 
+                                     ReceiverLooks=MaleLooks) %>%
+                              mutate(SenderGender=factor("female", c("female", "male"))),
+                            type="response")
+match.prd$score <- sqrt(match.prd$yhat.m * match.prd$yhat.f)
 
-match.scores <- matrix(nrow=11, ncol=11, dimnames = list(c(1:11), c(1:11)))
-for (maleLooks in as.numeric(colnames(match.scores))) {
-  for (femaleLooks in as.numeric(rownames(match.scores))) {
-    match.scores[femaleLooks, maleLooks] <- PredictedMatch(maleLooks, femaleLooks)
-  }
-}
-
-match.scores.melt <- melt(match.scores, varnames = c("FemaleLooks", "MaleLooks"))
-g <- ggplot(match.scores.melt, aes(x=FemaleLooks, y=MaleLooks, fill=value)) + 
+g <- ggplot(match.prd,aes(x=FemaleLooks, y=MaleLooks, fill=score)) + 
   geom_tile() +
-  scale_fill_gradient("Match Score") + 
-  coord_equal(xlim = c(1, 11), ylim=c(1, 11)) +
-  scale_y_continuous(breaks=1:11) + scale_x_continuous(breaks=1:11) +
-  theme_bw() +
+  scale_fill_gradient("Match\nScore") + 
+  coord_equal() + theme_bw() +
   theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
   labs(x="Female Looks", y="Male Looks")
 GGPlotSave(g, "q3_score_heatmap")

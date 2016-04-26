@@ -48,8 +48,23 @@ match.prd$yhat.f <- predict(mdl.contact, type="response", newdata=
                               mutate(SenderGender=factor("female", c("female", "male"))))
 match.prd$score <- sqrt(match.prd$yhat.m * match.prd$yhat.f)
 
-g <- ggplot(match.prd, aes(x=MaleLooks, y=FemaleLooks, fill=score)) + 
+g <- ggplot(match.prd, aes(y=MaleLooks, x=FemaleLooks, fill=score)) + 
   geom_tile() + 
   scale_fill_gradient("Match\nScore") +
-  coord_equal() + theme_bw()
+  coord_equal() + theme_bw() + 
+  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  labs(y="Male Looks", x="Female Looks")
 GGPlotSave(g, "q4_heat")
+
+
+####
+# Boxplot ----
+####
+df.test <- df
+df.test$y_hat <- predict(mdl.contact, newdata = df, type="response")
+
+g <- ggplot(data=df.test, aes(y, y_hat)) + geom_boxplot() + 
+  facet_wrap(~ SenderGender, labeller = labeller(
+    "SenderGender"=c("female"="Female Sender", "male"="Male Sender"))) +
+  theme_bw() + labs(x="Contact Made", y="Predicted Probability Contact")
+GGPlotSave(g, "q3_boxplot")

@@ -19,11 +19,11 @@ To take a concrete example from \cref{fig:heatmap_female}: suppose I am a female
 
 \doublefig{}{heatmap_female}{Relative Preferences of Female Senders}{heatmap_male}{Relative Preferences of Male Senders}
 
-A few random observation:
+Three random observations we can make about these data:
 \begin{itemize}
-\item It pays to be an average-looking woman, but not an average-looking man. Conditional on their own ratings, men are slightly more likely to reach out to a woman who is rated  6, while women are slightly less likely to reach out to men who are rated 6. 
-\item The pattern reverses for those receivers who are rated slightly above average. Men are less likely to reach out to a woman who is rated a 7, while women are more likely to reach out to a man who is rated a 7.
-\item In general, men and women both tend to aim for partners who are rated similar to themselves. This is why we see positive numbers concentrated on the diagonal axis in \cref{fig:heatmap_female} and \cref{fig:heatmap_male}. As a rule, though, men are likely to aim a little higher (or lower!) than women. 
+\item In general, women tend to look for men who are rated similarly to themselves, while men tend to look almost exclusively for women who are rated highly (even if the men are not rated highly themselves). The exceptions occur at the extreme end of the spectrum: men who are rated 1 or 2 are slightly more likely to contact women who are similarly rated.
+\item For both genders, it looks like there is a penalty for being rated as average. Men who are rated 5 or 6, or women who are rated 7, are almost all conditionally less likely to be messaged than their above- or below-average peers.
+\item Every man seems to think he has a chance with a woman who is rated 10 out of 11; these women are all conditionally more likely to be messaged. Women who are rated 11 out of 11, however, are apparently too good for some men at the bottom of the scale (1-4), who are conditionally less interested.
 \end{itemize}
 
 We can formalize this last point with a regression:
@@ -44,8 +44,25 @@ We can see this most clearly in \vref{fig:dotplot_female,fig:dotplot_male}. The 
 
 \section{}
 
+The utility/preference function does change depending on the looks of the sender, and these differences are unique to each gender.  Our primary findings regarding these preferences are as follows:
 
-\section{}
+We first examined the probability of a male sending a message to women of various looks ratings based on male looks ratings. \vref{fig:Q2_Male_senders_color} shows three categories of males and their respective probabilities of contacting women across the looks rating spectrum.  The green line shows all males, the red line shows only males with above average looks ratings and the blue line shows males of below average looks ratings.  As you can see, the likelihood of males to contact a woman is relatively consistent across all female looks ratings up to 9.  For women of looks rating 10 or 11, there is some divergence as better looking men are more likely to contact them than below-average looking men.  
+
+\singlefigscale{Q2_Male_senders_color}{Graph of male message sending probability based on female recipient looks category}{.6}
+
+We then expanded this analysis to examine the likelihood of men of every looks rating contacting women of every looks rating.  \vref{fig:Q2_Male_heatmap} shows a heatmap of the predicted probability ("yhat") of contact for male senders and female receivers at every looks rating.
+
+\singlefigscale{Q2_Male_heatmap}{Heatmap of male message sending probability based on female recipient looks category}{.6}
+
+After analyzing the likelihood of men of different looks ratings contacting women of different looks ratings, we then performed the same analysis for women. \vref{fig:Female_looks_color} shows three categories of women and their respective probabilities of contacting men across the looks rating spectrum. The blue line shows all women, the red line shows only women with below average looks ratings and the green line shows women of above average looks ratings.  The probability of women in all categories contacting men of different looks categories has a greater variance than for men.  Women of high looks ratings are very unlikely to contact men of low looks ratings and much more likely to contact men of high looks ratings than women of below-average looks ratings.  Conversely, women of below average looks ratings are much more likely to contact men of low looks ratings and much less likely to contact men of high looks ratings.  
+
+\singlefigscale{Female_looks_color}{Graph of female message sending probability based on male recipient looks category}{.6}
+
+We then expanded this analysis to examine the likelihood of women of every looks rating contacting men of every looks rating.  \vref{fig:Q2_Female_heatmap} shows a heatmap of the predicted probability ("yhat") of contact for male senders and female receivers at every looks rating.
+
+\singlefigscale{Q2_Female_heatmap}{Heatmap of female message sending probability based on male recipient looks category}{.6}
+
+\section{} \label{sec:q3}
 We created an 11 x 11 matrix with the match scores that are associated with different combinations of male looks and female looks. \vref{fig:q3_score_heatmap} shows a heatmap of the results. The red cells indicate low match scores and the green cells represent high match scores. 
 
 Across the entire matrix, the average match score is 0.088. Overall, the following observations can be made from \cref{fig:q3_score_heatmap}:
@@ -58,17 +75,23 @@ Across the entire matrix, the average match score is 0.088. Overall, the followi
 
 \item The pattern seen in \cref{fig:q3_score_heatmap} seems to be driven by mens' sensitivity to womens' attractiveness. Across the range of male attractiveness ("1" to "11"), the match scores are below average when men are paired with unattractive women (categories "1" and "2"). However, the match scores are all above-average when men are paired with highly attractive women (categories "10" and "11").
 
-\item The match score function is \textit{pred.match("Male looks", "Female looks")}. Since men are more sensitive to womens' appearance, we would expect \textit{pred.match(2,10)} to be greater than \textit{pred.match(10,2)}. Indeed, as we can see from the matrix in \cref{fig:q3_score_heatmap}, \textit{pred.match(2,10)} = 0.10 and \textit{pred.match(10,2)} = 0.07. As expected, 0.10 $>$ 0.07.
+\item The match score function is \textit{pred.match("Male looks", "Female looks")}. Since men are more sensitive to womens' appearance, we would expect $pred.match(2,10)$ to be greater than $pred.match(10,2)$. Indeed, as we can see from the matrix in \cref{fig:q3_score_heatmap}, $pred.match(2,10) = 0.10$ and $pred.match(10,2) = 0.07$. As expected, $0.10 > 0.07$.
 
 \end{itemize}
 
 \singlefigscale{q3_score_heatmap}{Heatmap of Match Scores by Gender Looks (Incorporating Receiver Looks Only)}{.6}
 
-\singlefigscale{q4_heat}{Heatmap of Match Scores by Gender Looks (Incorporating Sender \& Receiver Looks)}{.6}
-
-
 \section{}
-First we regressed the binary contact indicator, \textit{y}, on \textit{ReceiverLooks}, \textit{SenderLooks}, and \textit{SenderGender} allowing those terms to interact with each other (see \vref{lst:q4_all}).  This took quite a while to run -- about 3 minutes on my 2010-era notebook -- and generated 242 coefficients ($11 * 11 * 2$).  While many of the coefficients were insignificant, they gave us a model we could use to account for sender/receiver looks as well as gender.  With this model, we then calculated a match score (see \vref{lst:q4_pred}) which we then used to generate a heat-map (see \vref{fig:q4_heat}).
+First we regressed the binary contact indicator, \textit{y}, on \textit{ReceiverLooks}, \textit{SenderLooks}, and \textit{SenderGender} allowing those terms to interact with each other (see \vref{lst:q4_all}).  This took quite a while to run -- about 3 minutes on my 2010-era notebook -- and generated 242 coefficients ($=11 * 11 * 2$).  While many of the coefficients were insignificant, they gave us a model we could use to account for sender/receiver looks as well as gender differences.  With this model, we then calculated a match score (see \vref{lst:q4_pred}) which we then used to generate a heat-map.  In words the heat map in \vref{fig:q4_heat} shows
+\begin{itemize}
+\item matches between very different-looking people tend to have below-average match-scores;
+\item matches between similar-looking people (both with above average looks) tend to have above-average match-scores;
+\item matches between people with average, to below-average looks tends to be a mixed-bag.
+\end{itemize}
+
+Overall, these results contrast sharply with those in \vref{sec:q3}, which indicates that the mere involvement of a person with a high looks score is enough to yield a high match-score.
+
+\singlefigscale{q4_heat}{Heatmap of Match Scores by Gender Looks (Incorporating Sender \& Receiver Looks)}{.6}
 
 \begin{lstlisting}[language=R,label=lst:q4_all,caption=Regressing y on all available data.]
 glm(y ~ ReceiverLooks * SenderLooks * SenderGender, data=df, family="binomial")

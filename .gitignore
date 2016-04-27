@@ -25,3 +25,11 @@ vignettes/*.pdf
 
 # Cached r-output directory
 cached/
+
+# Exclude latex build files.
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+writeup.pdf
+*.synctex.gz

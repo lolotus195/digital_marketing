@@ -27,6 +27,31 @@ mdl.contact <- LoadCacheTagOrRun("q4_regr_bin", function() {
 })
 summary(mdl.contact)
 
+####
+# Q2 Plots ----
+####
+q2.grid <- expand.grid(SenderLooks=sort(unique(df$SenderLooks)),
+                       ReceiverLooks=sort(unique(df$ReceiverLooks)))
+q2.pr.m <- cbind(q2.grid, SenderGender=factor("male", c("female", "male")))
+q2.pr.f <- cbind(q2.grid, SenderGender=factor("female", c("female", "male")))
+q2.pr.m$y_hat <- predict(mdl.contact, newdata=q2.pr.m, type="response")
+q2.pr.m$pcnt <- (q2.pr.m$y_hat/mean(q2.pr.m$y_hat)-1)*100
+q2.pr.f$y_hat <- predict(mdl.contact, newdata=q2.pr.f, type="response")
+q2.pr.f$pcnt <- (q2.pr.f$y_hat/mean(q2.pr.f$y_hat)-1)*100
+
+PlotStuff <- function(pr) {
+  col.theme <- gg_color_hue(3)
+  g <- ggplot(pr, aes(x=SenderLooks, y=ReceiverLooks, fill=pcnt)) + geom_tile() +
+    scale_fill_gradient2(sprintf("Pr. Contact Rel.\nto Mean %3.2f", mean(pr$y_hat)),
+                         low=col.theme[1], mid="white", high=col.theme[2]) + 
+    geom_text(aes(x=SenderLooks, y=ReceiverLooks, label=sprintf("%+3.0f%%", pcnt))) +
+    coord_equal() + theme_bw() + 
+    theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+    labs(x="Sender Looks", y="Receiver Looks")
+  return(g)
+}
+GGPlotSave(PlotStuff(q2.pr.m), "Q2_Male_heatmap")
+GGPlotSave(PlotStuff(q2.pr.f), "Q2_Female_heatmap")
 
 ####
 # Predict Scores ----

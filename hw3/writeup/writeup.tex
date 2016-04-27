@@ -26,7 +26,7 @@ Three random observations we can make about these data:
 \item Every man seems to think he has a chance with a woman who is rated 10 out of 11; these women are all conditionally more likely to be messaged. Women who are rated 11 out of 11, however, are apparently too good for some men at the bottom of the scale (1-4), who are conditionally less interested.
 \end{itemize}
 
-We can formalize this last point with a regression:
+We can formalize this analysis with a univariate linear regression:
 \[ R_{i,j} = \alpha_j + \beta_j S_{i,j} + \varepsilon_{i,j} \]
 where $R_{i,j}$ is the rating of receiver $i$, $S_{i,j}$ is the rating of sender $i$, and $j=\text{\{female,male\}}$. Essentially we are trying to predict the rating of the receiver given the rating of the sender.
 
@@ -34,7 +34,9 @@ The estimated intercept will tell us what is the unconditional expectation for t
 
 \input{receiver_on_sender}
 
-For both genders, the unconditional expectation of the receivers' rating is below average (given that the average is a 6). Somewhat surprisingly, women (on average) tend to send messages to men who are slightly \textit{better} looking than they are, while men (on average) send messages to women who are slightly \textit{worse} looking than they are.\footnote{The rating of the average female sender is 5.05 (lower than $\hat{\alpha}_{F}$); the rating of the average male sender is 5.32 (higher than $\hat{\alpha}_{M}$).} Given that the coefficient $\hat{\beta}$ is higher for women than for men, in the aggregate, women are more likely than men to target someone who is rated similarly. Note, however, that the R-squared values for both regressions are very low, so this simple model explains very little of the targeting preferences for either gender.
+For both genders, the unconditional expectation of the receivers' rating (given by $\alpha_j$) is below average (given that the average is a 6). Both genders send messages to those who are, on average, better looking than they are.\footnote{The mean female sender rating is 4.9 and the mean male sender rating is 5.4, both less than the unconditional receiver ratings of 5.2 and 5.9, respectively.}
+
+Given that the coefficient $\hat{\beta}$ is higher for women than for men, in the aggregate, women are more likely than men to target someone who is rated similarly. Note, however, that the R-squared values for both regressions are very low, so this simple model explains very little of the targeting preferences for either gender.
 
 We can see this most clearly in \vref{fig:dotplot_female,fig:dotplot_male}. The volume of messages for a given receiver/sender pair are plotted (bigger dots $\rightarrow$ more messages). Women tend to be a little more discriminating than men, as the bulk of the messages seem to be slightly more concentrated near the diagonal axis. The regression line for each gender is plotted, and we can see that the line for women is a little bit steeper (though not by much!) than the line for the men.
 
@@ -48,17 +50,18 @@ The utility/preference function does change depending on the looks of the sender
 
 We first examined the probability of a male sending a message to women of various looks ratings based on male looks ratings. \vref{fig:Q2_Male_senders_color} shows three categories of males and their respective probabilities of contacting women across the looks rating spectrum.  The green line shows all males, the red line shows only males with above average looks ratings and the blue line shows males of below average looks ratings.  As you can see, the likelihood of males to contact a woman is relatively consistent across all female looks ratings up to 9.  For women of looks rating 10 or 11, there is some divergence as better looking men are more likely to contact them than below-average looking men.  
 
+After analyzing the likelihood of men of different looks ratings contacting women of different looks ratings, we then performed the same analysis for women. \vref{fig:Female_looks_color} shows three categories of women and their respective probabilities of contacting men across the looks rating spectrum. The blue line shows all women, the red line shows only women with below average looks ratings and the green line shows women of above average looks ratings.  The probability of women in all categories contacting men of different looks categories has a greater variance than for men.  Women of high looks ratings are very unlikely to contact men of low looks ratings and much more likely to contact men of high looks ratings than women of below-average looks ratings.  Conversely, women of below average looks ratings are much more likely to contact men of low looks ratings and much less likely to contact men of high looks ratings. 
+
 \doublefig{Sending Probability By Gender and Recipient Looks}{Q2_Male_senders_color}{Male Senders}{Female_looks_color}{Female Senders}
+
 
 We then expanded this analysis to examine the likelihood of men of every looks rating contacting women of every looks rating.  \vref{fig:Q2_Male_heatmap} shows a heatmap of the predicted probability ("yhat") of contact for male senders and female receivers at every looks rating.
 
+The same analysis was conducted to examine the likelihood of women of every looks rating contacting men of every looks rating.  \vref{fig:Q2_Female_heatmap} shows a heatmap of the predicted probability ("yhat") of contact for male senders and female receivers at every looks rating.
+
 \doublefig{Heatmap of Predicted Contact Based on Sender/Recipient Looks by Gender}{Q2_Male_heatmap}{Male Senders}{Q2_Female_heatmap}{Female Senders}
 
-After analyzing the likelihood of men of different looks ratings contacting women of different looks ratings, we then performed the same analysis for women. \vref{fig:Female_looks_color} shows three categories of women and their respective probabilities of contacting men across the looks rating spectrum. The blue line shows all women, the red line shows only women with below average looks ratings and the green line shows women of above average looks ratings.  The probability of women in all categories contacting men of different looks categories has a greater variance than for men.  Women of high looks ratings are very unlikely to contact men of low looks ratings and much more likely to contact men of high looks ratings than women of below-average looks ratings.  Conversely, women of below average looks ratings are much more likely to contact men of low looks ratings and much less likely to contact men of high looks ratings.  
-
 % \singlefigscale{Female_looks_color}{Graph of female message sending probability based on male recipient looks category}{.6}
-
-We then expanded this analysis to examine the likelihood of women of every looks rating contacting men of every looks rating.  \vref{fig:Q2_Female_heatmap} shows a heatmap of the predicted probability ("yhat") of contact for male senders and female receivers at every looks rating.
 
 % \singlefigscale{Q2_Female_heatmap}{Heatmap of female message sending probability based on male recipient looks category}{.6}
 

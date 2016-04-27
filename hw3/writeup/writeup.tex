@@ -48,19 +48,19 @@ The utility/preference function does change depending on the looks of the sender
 
 We first examined the probability of a male sending a message to women of various looks ratings based on male looks ratings. \vref{fig:Q2_Male_senders_color} shows three categories of males and their respective probabilities of contacting women across the looks rating spectrum.  The green line shows all males, the red line shows only males with above average looks ratings and the blue line shows males of below average looks ratings.  As you can see, the likelihood of males to contact a woman is relatively consistent across all female looks ratings up to 9.  For women of looks rating 10 or 11, there is some divergence as better looking men are more likely to contact them than below-average looking men.  
 
-\singlefigscale{Q2_Male_senders_color}{Graph of male message sending probability based on female recipient looks category}{.6}
+\doublefig{Sending Probability By Gender and Recipient Looks}{Q2_Male_senders_color}{Male Senders}{Female_looks_color}{Female Senders}
 
 We then expanded this analysis to examine the likelihood of men of every looks rating contacting women of every looks rating.  \vref{fig:Q2_Male_heatmap} shows a heatmap of the predicted probability ("yhat") of contact for male senders and female receivers at every looks rating.
 
-\singlefigscale{Q2_Male_heatmap}{Heatmap of male message sending probability based on female recipient looks category}{.6}
+\doublefig{Heatmap of Predicted Contact Based on Sender/Recipient Looks by Gender}{Q2_Male_heatmap}{Male Senders}{Q2_Female_heatmap}{Female Senders}
 
 After analyzing the likelihood of men of different looks ratings contacting women of different looks ratings, we then performed the same analysis for women. \vref{fig:Female_looks_color} shows three categories of women and their respective probabilities of contacting men across the looks rating spectrum. The blue line shows all women, the red line shows only women with below average looks ratings and the green line shows women of above average looks ratings.  The probability of women in all categories contacting men of different looks categories has a greater variance than for men.  Women of high looks ratings are very unlikely to contact men of low looks ratings and much more likely to contact men of high looks ratings than women of below-average looks ratings.  Conversely, women of below average looks ratings are much more likely to contact men of low looks ratings and much less likely to contact men of high looks ratings.  
 
-\singlefigscale{Female_looks_color}{Graph of female message sending probability based on male recipient looks category}{.6}
+% \singlefigscale{Female_looks_color}{Graph of female message sending probability based on male recipient looks category}{.6}
 
 We then expanded this analysis to examine the likelihood of women of every looks rating contacting men of every looks rating.  \vref{fig:Q2_Female_heatmap} shows a heatmap of the predicted probability ("yhat") of contact for male senders and female receivers at every looks rating.
 
-\singlefigscale{Q2_Female_heatmap}{Heatmap of female message sending probability based on male recipient looks category}{.6}
+% \singlefigscale{Q2_Female_heatmap}{Heatmap of female message sending probability based on male recipient looks category}{.6}
 
 \section{} \label{sec:q3}
 We created an 11 x 11 matrix with the match scores that are associated with different combinations of male looks and female looks. \vref{fig:q3_score_heatmap} shows a heatmap of the results. The red cells indicate low match scores and the green cells represent high match scores. 
@@ -79,19 +79,19 @@ Across the entire matrix, the average match score is 0.088. Overall, the followi
 
 \end{itemize}
 
-\singlefigscale{q3_score_heatmap}{Heatmap of Match Scores by Gender Looks (Incorporating Receiver Looks Only)}{.6}
+\doublefig{Heatmap of Match Scores by Gender Looks}{q3_score_heatmap}{Using Receiver Looks Only}{q4_heat}{Incorporating Sender/Receiver Looks}
 
 \section{}
-First we regressed the binary contact indicator, \textit{y}, on \textit{ReceiverLooks}, \textit{SenderLooks}, and \textit{SenderGender} allowing those terms to interact with each other (see \vref{lst:q4_all}).  This took quite a while to run -- about 3 minutes on my 2010-era notebook -- and generated 242 coefficients ($=11 * 11 * 2$).  While many of the coefficients were insignificant, they gave us a model we could use to account for sender/receiver looks as well as gender differences.  With this model, we then calculated a match score (see \vref{lst:q4_pred}) which we then used to generate a heat-map.  In words the heat map in \vref{fig:q4_heat} shows
+First we regressed the binary contact indicator, \textit{y}, on \textit{ReceiverLooks}, \textit{SenderLooks}, and \textit{SenderGender} allowing those terms to interact with each other (see \vref{lst:q4_all}).  This took quite a while to run -- about 3 minutes on my 2010-era notebook -- and generated 242 coefficients ($=11 * 11 * 2$).  While many of the coefficients were insignificant, they gave us a model we could use to account for sender/receiver looks as well as gender differences.  With this model, we then calculated a match score (see \vref{lst:q4_pred}) and generated a heat-map (see \vref{fig:q4_heat}).  The resulting heatmap shows:
 \begin{itemize}
 \item matches between very different-looking people tend to have below-average match-scores;
 \item matches between similar-looking people (both with above average looks) tend to have above-average match-scores;
 \item matches between people with average, to below-average looks tends to be a mixed-bag.
 \end{itemize}
 
-Overall, these results contrast sharply with those in \vref{sec:q3}, which indicates that the mere involvement of a person with a high looks score is enough to yield a high match-score.
+Overall, these results contrast sharply with those in \cref{sec:q3}, which indicates that the mere involvement of a person with a high looks score is enough to yield a high match-score.
 
-\singlefigscale{q4_heat}{Heatmap of Match Scores by Gender Looks (Incorporating Sender \& Receiver Looks)}{.6}
+% \singlefigscale{q4_heat}{Heatmap of Match Scores by Gender Looks (Incorporating Sender \& Receiver Looks)}{.6}
 
 \begin{lstlisting}[language=R,label=lst:q4_all,caption=Regressing y on all available data.]
 glm(y ~ ReceiverLooks * SenderLooks * SenderGender, data=df, family="binomial")

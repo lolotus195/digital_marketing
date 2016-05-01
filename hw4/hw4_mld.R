@@ -8,6 +8,7 @@
 rm(list=ls())
 source("../utils/source_me.R", chdir = T)
 CreateDefaultPlotOpts()
+source("descriptions.R")
 require(plyr)
 require(dplyr)
 
@@ -23,69 +24,8 @@ exp.cols <- c('intro', 'headline', 'main_text', 'button', 'action', 'purpose', '
 for (col in exp.cols) {
   dat[,col] <- factor(dat[,col])
 }
-
-desc.raw <- read.csv("persado_descriptions.csv")
-ParseDescriptions <- function(desc) {
-  desc.ctrl <- desc[17,]
-  desc <- desc[-17,]
-  desc.raw <- ldply(strsplit(as.character(desc$MESSAGE), " [*]"))
-  desc.parse <- desc.raw
-  # Intro
-  desc.parse$intro <- factor(desc.parse$V1, 
-                             levels=levels(factor(desc.parse$V1))[c(3, 4, 1, 2)])
-  # Headline
-  desc.parse$headline <- factor(desc.parse$V2,
-                                levels=levels(factor(desc.parse$V2))[c(4, 1, 3, 2)])
-  # Main Text
-  desc.parse$main_text <- factor(desc.parse$V3, 
-                                 levels=levels(factor(desc.parse$V3))[c(2,1)])
-  # Button
-  desc.parse$button <- "end"
-  desc.parse$button[grep("^('>>|▶)", desc.raw$V4)] <- "beginning"
-  desc.parse$button <- factor(desc.parse$button, levels = c("end", "beginning"))
-  
-  # Action
-  require(stringr)
-  unparse.message <- gsub("('>>|▶)", "", desc.raw$V4)
-  desc.parse$action <- "no click here"
-  desc.parse$action[grep("^Click Here to", str_trim(unparse.message))] <- 
-    "with click here"
-  desc.parse$action <- factor(desc.parse$action)
-  
-  # Purpose
-  clean_purpose <- factor(gsub("Click Here to ", "", str_trim(unparse.message)))
-  desc.parse$purpose <- factor(clean_purpose, levels(clean_purpose)[c(3, 1, 4, 2)])
-  
-  # Symbol
-  desc.parse$symbol <- NA
-  desc.parse$symbol[grep("'>>", desc.raw$V4)] <- "caret"
-  desc.parse$symbol[grep("▶", desc.raw$V4)] <- "triangle"
-  desc.parse$symbol <- factor(desc.parse$symbol, levels=c("triangle", "caret"))
-  
-  desc.parse[,exp.cols]
-}
-VerifyDescOrder <- function(dat, desc, exp.cols) {
-  for (col in exp.cols) {
-    if (!all(as.numeric(desc[,col]) == as.numeric(dat[,col]))) {
-      print(col)
-      print(as.numeric(desc[,col]))
-      print(as.numeric(dat[,col]))
-      warning("cannot continue, levels don't match")
-    }
-  }
-}
-desc <- ParseDescriptions(desc.raw)
-VerifyDescOrder(dat, desc, exp.cols)
-
-dat.combi <- dat[, c("unique_sent", "bounced", 
-                     "unique_received", "unique_opened",
-                     "unique_clicks")]
-dat.combi <- cbind(
-  dat.combi, 
-  sapply(exp.cols, function(x) { 
-    factor(dat[,x], levels=levels(dat[,x]), labels=levels(desc[,x]))
-  }))
-VerifyDescOrder(dat, dat.combi, exp.cols)
+desc <- LoadDescriptions(dat)
+TestCreateMessageStrings(dat, desc)
 
 
 ####
@@ -164,8 +104,11 @@ opened.topN <- order(all.combinations$p.opened_rate, decreasing = T)[1:topN]
 clicks.topN <- order(all.combinations$p.clicks_rate, decreasing = T)[1:topN]
 intersect(opened.topN, clicks.topN)
 
-all.combinations[opened.topN,]
-all.combinations[clicks.topN,]
+CreateMessageStrings(rbind(all.combinations[opened.topN,],
+                           all.combinations[clicks.topN,]), desc)
+
+GetMessageLevels(rbind(all.combinations[opened.topN,],
+                       all.combinations[clicks.topN,]), desc)
 
 ####
 # Q4: ----

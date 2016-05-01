@@ -20,12 +20,20 @@ dat$unique_received <- dat$unique_sent - dat$bounced
 dat.ctrl <- dat[17,]
 dat <- dat[-17,]
 
-exp.cols <- c('intro', 'headline', 'main_text', 'button', 'action', 'purpose', 'symbol')
+meas.cols <- c('unique_sent', 'bounced', 'unique_opened', 
+               'unique_clicks', 'unique_received')
+exp.cols <- c('intro', 'headline', 'main_text', 'button', 
+              'action', 'purpose', 'symbol')
 for (col in exp.cols) {
   dat[,col] <- factor(dat[,col])
 }
 desc <- LoadDescriptions(dat)
 TestCreateMessageStrings(dat, desc)
+
+# dat <- cbind(
+#   dat[, meas.cols],
+#   desc[, exp.cols]
+# )
 
 
 ####
@@ -58,6 +66,7 @@ mdl.clicks <- glm(
                  cbind(unique_clicks, unique_received - unique_clicks) ~ .),
   data=dat, family="binomial")
 
+summary(mdl.opened)
 
 ####
 # Q3: ----

@@ -88,19 +88,6 @@ mdl.cv.it <- LoadCacheTagOrRun("q4_cv_it", function() {
 })
 plot(mdl.cv.it)
 
-# OOS R-squared
-# setwd("C:/Users/Chingono/Documents/GitHub/digital_marketing/hw4")
-source("Deviance.R")
-p_hat <- predict(mdl.cv.it, newdata=[], type="response")
-D <- deviance(y=[ ], pred=p_hat, family="binomial")
-ybar <- mean(valDf$y==1) # marginal prob(y==1)
-D0 <- deviance(y=[], pred=ybar, family="binomial")
-
-## OOS R-squared is
-1 - D/D0
-
-
-
 sum(coef(mdl.cv.it, select = "1se") > 0)
 sum(coef(mdl.cv.it, select = "min") > 0)
 
@@ -190,6 +177,20 @@ combi[topN.idx$glm.pr,]
 histdat.all %>% mutate(rate = Unique_Clicks / Unique_Sent) -> histdat.all.rate 
 topN.emp.idx <- TopNIndices(histdat.all.rate,  "rate", 10)
 histdat.all.rate[topN.emp.idx$rate,]
+
+
+####
+# Psuedo-R2 calculations ----
+####
+# OOS R-squared
+# setwd("C:/Users/Chingono/Documents/GitHub/digital_marketing/hw4")
+# p_hat <- predict(mdl.cv.it, newdata=[], type="response")
+# D <- deviance(y=[ ], pred=p_hat, family="binomial")
+# ybar <- mean(valDf$y==1) # marginal prob(y==1)
+# D0 <- deviance(y=[], pred=ybar, family="binomial")
+# 
+# ## OOS R-squared is
+# 1 - D/D0
 
 
 ####

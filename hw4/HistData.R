@@ -177,6 +177,27 @@ GGPlotSave(g, "q4_pred_hist")
 
 
 ####
+# TopN Results ----
+####
+TopNIndices <- function(dat, cols, N=10) {
+  sapply(cols, function(col) {
+    return(list(order(dat[,col], decreasing = T)[1:N]))
+  })
+}
+topN.idx <- TopNIndices(combi, c("cv.pr.it.1se", "glm.pr"), 10)
+
+# Look at the topN.
+combi[intersect(topN.idx$cv.pr.it.1se, topN.idx$glm.pr),]
+combi[topN.idx$cv.pr.it.1se,]
+combi[topN.idx$glm.pr,]
+
+# Compare the empirical one.
+histdat.all %>% mutate(rate = Unique_Clicks / Unique_Sent) -> histdat.all.rate 
+topN.emp.idx <- TopNIndices(histdat.all.rate,  "rate", 10)
+histdat.all.rate[topN.emp.idx$rate,]
+
+
+####
 # The rest ----
 ####
 # By next Wednesday (May 04) please upload a csv file 

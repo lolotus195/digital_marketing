@@ -9,7 +9,7 @@ require(dplyr)
 
 # load data
 load(file = "Historical_Data.rdat")
-# Loads a list calles histdat
+# Loads a list called histdat
 # The list contains 318 elements
 length(histdat)
 # Each element is a matrix that gives you the results on an experiment that was run.
@@ -99,6 +99,19 @@ mdl.cv.it <- LoadCacheTagOrRun("q4_cv_it", function() {
            nfold = 20)
 })
 plot(mdl.cv.it)
+
+# OOS R-squared
+# setwd("C:/Users/Chingono/Documents/GitHub/digital_marketing/hw4")
+source("Deviance.R")
+p_hat <- predict(mdl.cv.it, newdata=[], type="response")
+D <- deviance(y=[ ], pred=p_hat, family="binomial")
+ybar <- mean(valDf$y==1) # marginal prob(y==1)
+D0 <- deviance(y=[], pred=ybar, family="binomial")
+
+## OOS R-squared is
+1 - D/D0
+
+
 
 sum(coef(mdl.cv.it, select = "1se") > 0)
 sum(coef(mdl.cv.it, select = "min") > 0)

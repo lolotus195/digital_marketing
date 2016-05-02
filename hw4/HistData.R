@@ -12,18 +12,6 @@ load(file = "Historical_Data.rdat")
 # Loads a list called histdat
 # The list contains 318 elements
 length(histdat)
-# Each element is a matrix that gives you the results on an experiment that was run.
-# For example the 11th element is a experiment with 48 messages
-# The first set of variables (named V1,V2, etc.) correspond to message elements
-# Unique_Clicks are responses and Unique_Sent are the number of emails sent.
-histdat[[11]]
-
-# Different experiments may have different sets of message elements
-# They will also have different sample sizes
-# However, the variable names are consistent. So V1 in experiment 11
-# is the same as V1 in experiment 35.
-# In total there are 9 message elements and there will be the same 9 elements in the 
-# upcoming experiments related to the project.
 
 ####
 # Relevel and combine history ----
@@ -132,7 +120,7 @@ BatchPredict <- function(predictFn, newdata, batchsize=1e4) {
     cat(sprintf("%d,", i))
     start_idx <- start_indices[i]
     stop_idx <- stop_indices[i]
-
+    
     res[start_idx:stop_idx] <- predictFn(newdata[start_idx:stop_idx,])    
   }
   cat("done.\n")
@@ -183,7 +171,6 @@ g <- ggplot(plot.melt, aes(x=value)) +
   labs(x="Pr(Click)", y="Density")
 GGPlotSave(g, "q4_pred_hist")
 
-
 ####
 # TopN Results ----
 ####
@@ -208,6 +195,12 @@ histdat.all.rate[topN.emp.idx$rate,]
 ####
 # The rest ----
 ####
+require(AlgDesign)
+
+fed1 <- optFederov(formula.interact,
+                   data = combi[, paste('V', 1:9, sep='')], 
+                   nTrials = 16, 
+                   criterion="I")
 
 # By next Wednesday (May 04) please upload a csv file 
 # with the first 9 columns labeled (V1,V2,...,V9) (all caps)
@@ -229,7 +222,7 @@ histdat.all.rate[topN.emp.idx$rate,]
 
 profit = function(unique_clicks,ncampaigns,other)
 {
-	unique_clicks*.1 - 200*ncampaigns - other
+  unique_clicks*.1 - 200*ncampaigns - other
 } 
 
 # so if you send out 5000,000 emails and got a 10% response

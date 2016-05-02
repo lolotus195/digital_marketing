@@ -184,10 +184,10 @@ histdat.all.rate[topN.emp.idx$rate,]
 ####
 require(AlgDesign)
 
-fed1 <- optFederov(formula.interact,
-                   data = combi[, paste('V', 1:9, sep='')], 
-                   nTrials = 16, 
-                   criterion="I")
+fed1 <- optFederov(~ .,
+                   data = GetModelFrame(combi), #combi[, paste('V', 1:9, sep='')], 
+                   nTrials = 48, 
+                   criterion="A")
 
 # By next Wednesday (May 04) please upload a csv file 
 # with the first 9 columns labeled (V1,V2,...,V9) (all caps)

@@ -1,5 +1,5 @@
 ####
-# Setup ----
+# Setup -------------------------------------------------------------------
 ####
 rm(list=ls())
 source("../utils/source_me.R", chdir = T)
@@ -14,7 +14,7 @@ load(file = "Historical_Data.rdat")
 length(histdat)
 
 ####
-# Relevel and combine history ----
+# Relevel and combine history ---------------------------------------------
 ####
 exp.cols <- sprintf("V%d", seq(1:9))
 VerifyStuff <- function(histdata) {
@@ -62,7 +62,7 @@ GGPlotSave(g, "q4_emp_hist")
 
 
 ####
-# Create Binomial Model (GLM) ----
+# Create Binomial Model (GLM) ---------------------------------------------
 ####
 mdl.glm <- glm(cbind(Unique_Clicks, Unique_Sent-Unique_Clicks) ~ .,
                data=histdat.all, family="binomial")
@@ -70,7 +70,7 @@ summary(mdl.glm)
 
 
 ####
-# Create Interaction Model (cv.gamlr) ----
+# Create Interaction Model (cv.gamlr) -------------------------------------
 ####
 require(gamlr)
 GetModelFrame <- function(data, .exp.cols=exp.cols) {
@@ -93,7 +93,7 @@ sum(coef(mdl.cv.it, select = "min") > 0)
 
 
 ####
-# Predict Using the Models ----
+# Predict Using the Models ------------------------------------------------
 ####
 # A simple batcher, only allows one value to be returned per row.
 BatchPredict <- function(predictFn, newdata, batchsize=1e4) {
@@ -137,7 +137,7 @@ combi$glm.pr <- LoadCacheTagOrRun("q4_pr_glm", function() {
 
 
 ####
-# Plot the prediction histograms ----
+# Plot the prediction histograms ------------------------------------------
 ####
 combi.melt <- melt(combi, id.vars=c(), measure.vars = c(
   "glm.pr", "cv.pr.it.min", "cv.pr.it.1se"))
@@ -158,8 +158,9 @@ g <- ggplot(plot.melt, aes(x=value)) +
   labs(x="Pr(Click)", y="Density")
 GGPlotSave(g, "q4_pred_hist")
 
+
 ####
-# TopN Results ----
+# TopN Results ------------------------------------------------------------
 ####
 TopNIndices <- function(dat, cols, N=10, decreasing=T) {
   sapply(cols, function(col) {
@@ -179,15 +180,14 @@ combi[intersect(botN.idx$cv.pr.it.1se, botN.idx$glm.pr),]
 combi[botN.idx$cv.pr.it.1se,]
 combi[botN.idx$glm.pr,]
 
-
 # Compare the empirical one.
-histdat.all %>% mutate(rate = Unique_Clicks / Unique_Sent) -> histdat.all.rate 
+histdat.all %>% mutate(rate = Unique_Clicks / Unique_Sent) -> histdat.all.rate
 topN.emp.idx <- TopNIndices(histdat.all.rate,  "rate", 10)
 histdat.all.rate[topN.emp.idx$rate,]
 
 
 ####
-# Psuedo-R2 calculations ----
+# Psuedo-R2 calculations --------------------------------------------------
 ####
 # OOS R-squared
 # setwd("C:/Users/Chingono/Documents/GitHub/digital_marketing/hw4")
@@ -201,15 +201,22 @@ histdat.all.rate[topN.emp.idx$rate,]
 
 
 ####
-# The rest ----
+# Experiment Design -------------------------------------------------------
 ####
 require(AlgDesign)
 
 fed1 <- optFederov(~ .,
                    data = GetModelFrame(combi), #combi[, paste('V', 1:9, sep='')], 
-                   nTrials = 48, 
-                   criterion="A")
+                   nTrials = 48,
+                   approximate = T,
+                   maxIteration=100,
+                   criterion="A",
+                   args=TRUE)
 
+
+####
+# The Rest ----------------------------------------------------------------
+####
 # By next Wednesday (May 04) please upload a csv file 
 # with the first 9 columns labeled (V1,V2,...,V9) (all caps)
 # there should be a 10th column called N 

@@ -3,13 +3,12 @@
 ####
 getwd()
 rm(list=ls())
-source("C:/Users/Chingono/Documents/GitHub/digital_marketing/utils/source_me.R", chdir = T)
+source("~/utils/source_me.R", chdir = T)
 CreateDefaultPlotOpts()
 require(plyr)
 require(dplyr)
 
 # load data
-setwd("C:/Users/Chingono/Documents/GitHub/digital_marketing/hw4")
 load(file = "Historical_Data.rdat")
 # Loads a list called histdat
 # The list contains 318 elements
@@ -264,7 +263,3 @@ profit(5000000*.1,96,5000)
 # go with that, do no experimentation and bought no data the client would make
 profit(5000000*.03,0,0)
 # $15,000
-
-
-
-

@@ -105,6 +105,22 @@ sum(coef(mdl.cv.it, select = "min") > 0)
 
 
 ####
+# Use GLMNET --------------------------------------------------------------
+####
+# require(glmnet)
+# histdat.net <- melt(
+#   histdat.all %>% 
+#     mutate(NonClicks=Unique_Sent - Unique_Clicks) %>% 
+#     select(-Unique_Sent), 
+#   id.vars=exp.cols, measure_vars=c("Unique_Clicks", "NonClicks"))
+# y <- histdat.net$variable == "Unique_Clicks"
+# weights <- histdat.net$value
+# mm.it <- model.matrix(formula.interact, data=GetModelFrame(histdat.net))
+# mdl.net.cv.it <- cv.glmnet(mm.it, y, family="binomial", weights=weights,
+#                            nfolds=20)
+
+
+####
 # Predict Using the Models ----
 ####
 # A simple batcher, only allows one value to be returned per row.

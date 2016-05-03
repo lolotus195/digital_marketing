@@ -375,40 +375,43 @@ VerifyUniqueCCs <- function(ccs, idxs, combi.norelevel) {
 }
 VerifyUniqueCCs(histdat.unique.ccs, histdat.unique.ccs.idx, combi.norelevel)
 
-VaryAugment <- function(aug.amt) {
-  res <- ldply(aug.amt, function(i) {
+####
+# Augment Experiment ------------------------------------------------------
+####
+VaryAugment <- function(aug.amt, fo) {
+  res <- lapply(aug.amt, function(i) {
     cat(sprintf("%d,", i))
-    res <- optFederov(~ ., 
-                      data = combi.norelevel,
-                      rows = histdat.unique.ccs.idx,
-                      augment = T,
-                      criterion = "D",
-                      nTrials = length(histdat.unique.ccs.idx) + i,
-                      evaluateI=T,
-                      args=T)
-    data.frame(aug.size=i, D=res$D, I=res$I, A=res$A)
+    optFederov(fo, 
+               data = combi.norelevel,
+               rows = histdat.unique.ccs.idx,
+               augment = T,
+               criterion = "D",
+               nTrials = length(histdat.unique.ccs.idx) + i,
+               evaluateI=T,
+               args=T)
   })
   cat("done.\n")
   return(res)
 }
-criterion.meas <- VaryAugment(c(0, 5, 10, 15:25))
-ggplot(melt(criterion.meas, id.vars="aug.size"), aes(x=aug.size, y=value)) +
-  geom_line() + facet_wrap(~ variable, scales="free_y")
 
+criterion.meas <- LoadCacheTagOrRun("q4_crit_no_inter", function() {
+  VaryAugment(c(0, 5, 10, 15:22), ~ .)
+})
+criterion.meas.it <- LoadCacheTagOrRun("q4_crit_inter", function() {
+  VaryAugment(c(0, 5, 10, 15), ~ . + .^2)
+})
 
-fed.aug.d <- optFederov(~ ., 
-                        data = combi.norelevel,
-                        rows = histdat.unique.ccs.idx,
-                        augment = T,
-                        criterion = "D",
-                        nTrials = length(histdat.unique.ccs.idx) + 15,
-                        args=T)
-exp.to.run <- combi.norelevel[setdiff(as.numeric(rownames(fed.aug.d$design)),
-                                      histdat.unique.ccs.idx),]
-exp.to.run$cv.pr.net.it.1se <- BatchPredictGLMNET(
-  mdl.net.cv.it, formula.interact,
-  GetModelFrame(RelevelCombinations(exp.to.run, histdat.levels)), 
-  "lambda.1se")
+# ggplot(melt(criterion.meas, id.vars="aug.size"), aes(x=aug.size, y=value)) +
+#   geom_line() + facet_wrap(~ variable, scales="free_y")
+# ggplot(melt(criterion.meas.it, id.vars="aug.size"), aes(x=aug.size, y=value)) +
+#   geom_line() + facet_wrap(~ variable, scales="free_y")
+
+# exp.to.run <- combi.norelevel[setdiff(as.numeric(rownames(fed.aug.d$design)),
+#                                       histdat.unique.ccs.idx),]
+# exp.to.run$cv.pr.net.it.1se <- BatchPredictGLMNET(
+#   mdl.net.cv.it, formula.interact,
+#   GetModelFrame(RelevelCombinations(exp.to.run, histdat.levels)), 
+#   "lambda.1se")
 
 #
 # 15 Experiments from D criterion (no interaction terms)

@@ -68,18 +68,20 @@ fit.click <- glm(form.click, weights = dat$received, family = 'binomial', data =
 
 Bopen <- coef(fit.open)[-1]
 prob.open <- 1 / (1 + exp(-Bopen))
-# prob.open <- prob.open[order(prob.open, decreasing = T)]
+prob.open <- prob.open[order(prob.open, decreasing = T)]
 
 Bclick <- coef(fit.click)[-1]
 prob.click <- 1 / (1 + exp(-Bclick))
-# prob.click <- prob.click[order(prob.click, decreasing = T)]
+prob.click <- prob.click[order(prob.click, decreasing = T)]
 
 # Results
-tab.res <- data.frame(coef.open = Bopen,
-                      prob.open = prob.open,
-                      coef.click = Bclick,
-                      prob.click = prob.click)
-rownames(tab.res) <- paste('\\textsf{', gsub('L', ':L', rownames(tab.res)), 
+tab.res <- data.frame(coef.open = coef(fit.open)[-1],
+                      prob.open = 1 / (1 + exp(-coef(fit.open)[-1])),
+                      coef.click = coef(fit.click)[-1],
+                      prob.click = 1 / (1 + exp(-coef(fit.click)[-1])))
+rownames(tab.res) <- gsub('L', ':L', rownames(tab.res))
+rownames(tab.res) <- gsub('_', '\\\\_', rownames(tab.res))
+rownames(tab.res) <- paste('\\textsf{', rownames(tab.res), 
                            '}', sep = '')
 colnames(tab.res) <- c('$\\beta_j^{\\text{open}}$', '$Pr(\\text{open}|j)$', 
                        '$\\beta_j^{\\text{click}}$', '$Pr(\\text{click}|j)$')

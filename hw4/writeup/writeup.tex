@@ -16,9 +16,32 @@ The number of possible message combinations that can be tested, or full factoria
 
 \section{} (Will) % Question 2
 
+We estimate two logistic regression models, one for an open rate and one for a click rate:
+\[ \log{\frac{p}{1-p}} = \bm{X}^{\prime} \bm{\beta} + \bm{\varepsilon} \]
+where $p$ is the probability of a click or an open, $\bm{X}$ is the model matrix containing indicator variables for each factor/level combination, and $\bm{\beta}$ is the vector of estimated coefficients. We report the coefficients for the click and open models in \cref{tab:logit_results}, as well as the associated probabilities for each. Recall that we can express the coefficients as probabilities by:
+\[ p = \frac{1}{1+\exp(-\beta)} \]
 \input{logit_results}
+We can make a few observations:
+\begin{itemize}
+\item The range of probabilities is higher in the click model (0.9 percent) than it is in the open model (5.8 percent). In general, the message variations have a larger marginal effect on click behavior (which is more valuable) than they do on open behavior.
+\item The most powerful coefficient is the L2 level of the action type. 
+\item Three of the top five strongest predictors of click rates are headlines (L2, L3, and L4). Choosing the proper headline makes a big difference in the final click rate.
+\item Similarly, the three largest negative effects on click rate are different levels of the message purpose (L2, L3, and L4). So choosing the proper message purpose would be a way to minimize those who open but do not click a message.
+\end{itemize}
 
-\section{} (Brian) % Question 3
+\section{} % Question 3
+We generated a full factorial of all 1,024 message combinations. Using this full factorial, we used our models to estimate open probabilities and click probabilities for each of the 1,024 message combinations. For comparison purposes, we also calculated the open and click probabilities for the control sample.
+
+Our results are in \cref{fig:q3_hist} below. As shown in those histograms, there is a significant difference between the baseline click and open probabilities of the control message versus the estimated probabilities from our full factorial.
+
+\begin{figure}[!htb]
+  \centering
+  \caption{Histogram of Predicted Probabilities vs. Control}
+  \includegraphics[scale=0.7]{q3_hist.pdf}
+  \label{fig:q3_hist}
+\end{figure}
+
+In terms of message combinations with the highest estimated click and open rates, we found that 
 
 \end{document}
 

@@ -1,9 +1,8 @@
 ####
 # Setup -------------------------------------------------------------------
 ####
-getwd()
 rm(list=ls())
-source("~/utils/source_me.R", chdir = T)
+source("../utils/source_me.R", chdir = T)
 CreateDefaultPlotOpts()
 require(plyr)
 require(dplyr)

@@ -95,18 +95,25 @@ sum(coef(mdl.cv.it, select = "min") > 0)
 ####
 # Use GLMNET --------------------------------------------------------------
 ####
-# require(glmnet)
-# histdat.net <- melt(
-#   histdat.all %>% 
-#     mutate(NonClicks=Unique_Sent - Unique_Clicks) %>% 
-#     select(-Unique_Sent), 
-#   id.vars=exp.cols, measure_vars=c("Unique_Clicks", "NonClicks"))
-# y <- histdat.net$variable == "Unique_Clicks"
-# weights <- histdat.net$value
-# mm.it <- model.matrix(formula.interact, data=GetModelFrame(histdat.net))
-# mdl.net.cv.it <- cv.glmnet(mm.it, y, family="binomial", weights=weights,
-#                            nfolds=20)
+require(glmnet)
+mdl.net.cv.it <- LoadCacheTagOrRun("q4_glmnet_cv_it", function() {
+  # Double the # of rows in histdat.all
+  # Put number of successes in first part, number of failures in second
+  # Use these counts as weights in glmnet binomial.
+  histdat.net <- melt(
+    histdat.all %>% 
+      mutate(NonClicks=Unique_Sent - Unique_Clicks) %>% 
+      select(-Unique_Sent), 
+    id.vars=exp.cols, measure_vars=c("Unique_Clicks", "NonClicks"))
+  y <- histdat.net$variable == "Unique_Clicks"
+  weights <- histdat.net$value
+  mm.it <- model.matrix(formula.interact, data=GetModelFrame(histdat.net))
+  cv.glmnet(mm.it, y, family="binomial", weights=weights, nfolds=20)
+})
+plot(mdl.net.cv.it)
 
+sum(coef(mdl.net.cv.it, s = "lambda.1se") > 0)
+sum(coef(mdl.net.cv.it, s = "lambda.min") > 0)
 
 ####
 # Predict Using the Models ------------------------------------------------
@@ -138,34 +145,63 @@ BatchPredictGamlr <- function(mdl, frm, newdata, select, batchsize=1e4) {
   }, newdata, batchsize)
 }
 
-combi <- expand.grid(lapply(histdat.all[,exp.cols], levels))
+# GLMNET specific version of BatchPredict.
+BatchPredictGLMNET <- function(mdl, frm, newdata, s, batchsize=1e4) {
+  BatchPredict(function(data) {
+    mm <- model.matrix(frm, data=data)
+    return(predict(mdl, newx=mm, s=s, type="response"))
+  }, newdata, batchsize)
+}
+
+# Add 0-level to all data.
+RelevelCombinations <- function(d, histdat.levels) {
+  for (col in exp.cols) {
+    d[,col] <- factor(d[,col], levels=0:histdat.levels[col])
+  }
+  return(d)
+}
+GenerateAllCombinations <- function(histdat.levels) {
+  d <- gen.factorial(histdat.levels, center=F, factors="all", 
+                     varNames=names(histdat.levels))
+}
+
+combi <- RelevelCombinations(GenerateAllCombinations(histdat.levels),
+                             histdat.levels)
+
 combi$cv.pr.it.1se <- LoadCacheTagOrRun("q4_pr_it_1se", function() {
   BatchPredictGamlr(mdl.cv.it, formula.interact, 
                     GetModelFrame(combi), "1se")
 })
+
 combi$cv.pr.it.min <- LoadCacheTagOrRun("q4_pr_it_min", function() {
   BatchPredictGamlr(mdl.cv.it, formula.interact, 
                     GetModelFrame(combi), "min")
 })
+
 combi$glm.pr <- LoadCacheTagOrRun("q4_pr_glm", function() {
   predict(mdl.glm, newdata=combi, type="response")
 })
 
+combi$cv.pr.net.it.1se <- LoadCacheTagOrRun("q4_pr_net_it_1se", function() {
+  BatchPredictGLMNET(mdl.net.cv.it, formula.interact,
+                     GetModelFrame(combi), "lambda.1se")
+})
 
 ####
 # Plot the prediction histograms ------------------------------------------
 ####
 combi.melt <- melt(combi, id.vars=c(), measure.vars = c(
-  "glm.pr", "cv.pr.it.min", "cv.pr.it.1se"))
+  "glm.pr", "cv.pr.it.1se", "cv.pr.net.it.1se"))
 
 histdat.emp <- data.frame(
   rate=histdat.all$Unique_Clicks / histdat.all$Unique_Sent)
 plot.melt <- rbind(combi.melt, 
                    melt(histdat.emp, id.vars=c(), measure.vars=c("rate")))
 measure.labels=c(
-  "cv.pr.it.1se" = "2-Level Interactions (CV - 1se)",
-  "cv.pr.it.min" = "2-Level Interactions (CV - min)",
+  "cv.pr.it.1se" = "2-Level Interactions (cv.gamlr - 1se)",
+  "cv.pr.it.min" = "2-Level Interactions (cv.gamlr - min)",
   "glm.pr" = "Simple Logit Model (GLM)",
+  "cv.pr.net.it.1se" = "2-Level Interactions (cv.glmnet - 1se)",
   "rate" = "Historical"
 )
 g <- ggplot(plot.melt, aes(x=value)) + 
@@ -185,21 +221,30 @@ TopNIndices <- function(dat, cols, N=10, decreasing=T) {
 }
 
 # Look at the topN.
-topN.idx <- TopNIndices(combi, c("cv.pr.it.1se", "glm.pr"), 10)
+topN.idx <- TopNIndices(
+  combi, c("cv.pr.it.1se", "cv.pr.net.it.1se", "glm.pr"), 10)
 combi[intersect(topN.idx$cv.pr.it.1se, topN.idx$glm.pr),]
+combi[intersect(topN.idx$cv.pr.net.it.1se, topN.idx$glm.pr),]
+combi[topN.idx$cv.pr.net.it.1se,]
 combi[topN.idx$cv.pr.it.1se,]
 combi[topN.idx$glm.pr,]
 
 # Look at the botN.
-botN.idx <- TopNIndices(combi, c("cv.pr.it.1se", "glm.pr"), 10, decreasing = F)
+botN.idx <- TopNIndices(
+  combi, c("cv.pr.it.1se", "cv.pr.net.it.1se", "glm.pr"), 10, decreasing = F)
 combi[intersect(botN.idx$cv.pr.it.1se, botN.idx$glm.pr),]
+combi[intersect(botN.idx$cv.pr.net.it.1se, botN.idx$glm.pr),]
 combi[botN.idx$cv.pr.it.1se,]
+combi[botN.idx$cv.pr.net.it.1se,]
 combi[botN.idx$glm.pr,]
 
 # Compare the empirical one.
 histdat.all %>% mutate(rate = Unique_Clicks / Unique_Sent) -> histdat.all.rate
 topN.emp.idx <- TopNIndices(histdat.all.rate,  "rate", 10)
 histdat.all.rate[topN.emp.idx$rate,]
+
+botN.emp.idx <- TopNIndices(histdat.all.rate, "rate", 10, decreasing = F)
+histdat.all.rate[botN.emp.idx$rate,]
 
 
 ####

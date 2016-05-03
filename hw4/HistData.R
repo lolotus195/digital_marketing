@@ -306,6 +306,24 @@ fed.i <- LoadCacheTagOrRun("q4_opt_fed_i", function() {
              nTrials=36, criterion="I", args=T)
 })
 
+FindClosestN <- function(designs, histdat.all, N,
+                         hisdat.levels=histdat.levels, .exp.cols=exp.cols) {
+  designs.r <- RelevelCombinations(designs, histdat.levels)
+  best <- apply(designs.r, 1, function(design) {
+    # Creates a score of length histdat.all
+    distances <- apply(histdat.all[,.exp.cols], 1, function(x) {
+      sum(design == x)
+    })
+    matches=cbind(histdat.all[order(distances, decreasing=T)[1:N],], 
+                  score=distances[order(distances, decreasing=T)][1:N])
+  })
+  lapply(1:length(best), function(idx) {
+    list(design=designs[idx,], matches=best[[idx]])
+  })
+}
+fed.a.dist <- FindClosestN(fed.a$design, histdat.all, 3)
+fed.d.dist <- FindClosestN(fed.d$design, histdat.all, 3)
+fed.i.dist <- FindClosestN(fed.i$design, histdat.all, 3)
 
 
 ####

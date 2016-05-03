@@ -2,10 +2,15 @@
 # Setup -------------------------------------------------------------------
 ####
 rm(list=ls())
+
 source("../utils/source_me.R", chdir = T)
 CreateDefaultPlotOpts()
+
 require(plyr)
 require(dplyr)
+require(AlgDesign)
+require(glmnet)
+require(gamlr)
 
 # load data
 load(file = "Historical_Data.rdat")
@@ -72,7 +77,7 @@ summary(mdl.glm)
 ####
 # Create Interaction Model (cv.gamlr) -------------------------------------
 ####
-require(gamlr)
+
 GetModelFrame <- function(data, .exp.cols=exp.cols) {
   fo <- as.formula(paste("~ ", paste(.exp.cols, collapse="+")))
   model.frame(fo, data=data)
@@ -95,7 +100,7 @@ sum(coef(mdl.cv.it, select = "min") > 0)
 ####
 # Use GLMNET --------------------------------------------------------------
 ####
-require(glmnet)
+
 mdl.net.cv.it <- LoadCacheTagOrRun("q4_glmnet_cv_it", function() {
   # Double the # of rows in histdat.all
   # Put number of successes in first part, number of failures in second
@@ -108,7 +113,7 @@ mdl.net.cv.it <- LoadCacheTagOrRun("q4_glmnet_cv_it", function() {
   y <- histdat.net$variable == "Unique_Clicks"
   weights <- histdat.net$value
   mm.it <- model.matrix(formula.interact, data=GetModelFrame(histdat.net))
-  cv.glmnet(mm.it, y, family="binomial", weights=weights, nfolds=20)
+  cv.glmnet(mm.it, y, family="binomial", weights=weights, alpha=1, nfolds=20)
 })
 plot(mdl.net.cv.it)
 
@@ -287,7 +292,6 @@ TopN_int$sample_cons <- round(sample.size(0.5,0.01),0)
 ####
 # Experiment Design -------------------------------------------------------
 ####
-require(AlgDesign)
 
 # fed1 <- LoadCacheTagOrRun("q4_opt_fed", function() {
 #   optFederov(~ .,

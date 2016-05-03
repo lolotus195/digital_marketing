@@ -275,21 +275,21 @@ require(AlgDesign)
 #              criterion="A",
 #              args=TRUE)
 # })
-
-fed.app.a <- LoadCacheTagOrRun("q4_opt_fed_app_a", function() {
-  optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
-             nTrials=36, criterion="A", args=T, approximate=T)
-})
-
-fed.app.d <- LoadCacheTagOrRun("q4_opt_fed_app_d", function() {
-  optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
-             nTrials=36, criterion="D", args=T, approximate=T)
-})
-
-fed.app.i <- LoadCacheTagOrRun("q4_opt_fed_app_i", function() {
-  optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
-             nTrials=36, criterion="I", args=T, approximate=T)
-})
+# 
+# fed.app.a <- LoadCacheTagOrRun("q4_opt_fed_app_a", function() {
+#   optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
+#              nTrials=36, criterion="A", args=T, approximate=T)
+# })
+# 
+# fed.app.d <- LoadCacheTagOrRun("q4_opt_fed_app_d", function() {
+#   optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
+#              nTrials=36, criterion="D", args=T, approximate=T)
+# })
+# 
+# fed.app.i <- LoadCacheTagOrRun("q4_opt_fed_app_i", function() {
+#   optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
+#              nTrials=36, criterion="I", args=T, approximate=T)
+# })
 
 fed.a <- LoadCacheTagOrRun("q4_opt_fed_a", function() {
   optFederov(~ ., data = GenerateAllCombinations(histdat.levels),

@@ -2,10 +2,15 @@
 # Setup -------------------------------------------------------------------
 ####
 rm(list=ls())
+
 source("../utils/source_me.R", chdir = T)
 CreateDefaultPlotOpts()
+
 require(plyr)
 require(dplyr)
+require(AlgDesign)
+require(glmnet)
+require(gamlr)
 
 # load data
 load(file = "Historical_Data.rdat")
@@ -72,7 +77,7 @@ summary(mdl.glm)
 ####
 # Create Interaction Model (cv.gamlr) -------------------------------------
 ####
-require(gamlr)
+
 GetModelFrame <- function(data, .exp.cols=exp.cols) {
   fo <- as.formula(paste("~ ", paste(.exp.cols, collapse="+")))
   model.frame(fo, data=data)
@@ -95,7 +100,7 @@ sum(coef(mdl.cv.it, select = "min") > 0)
 ####
 # Use GLMNET --------------------------------------------------------------
 ####
-require(glmnet)
+
 mdl.net.cv.it <- LoadCacheTagOrRun("q4_glmnet_cv_it", function() {
   # Double the # of rows in histdat.all
   # Put number of successes in first part, number of failures in second
@@ -108,7 +113,7 @@ mdl.net.cv.it <- LoadCacheTagOrRun("q4_glmnet_cv_it", function() {
   y <- histdat.net$variable == "Unique_Clicks"
   weights <- histdat.net$value
   mm.it <- model.matrix(formula.interact, data=GetModelFrame(histdat.net))
-  cv.glmnet(mm.it, y, family="binomial", weights=weights, nfolds=20)
+  cv.glmnet(mm.it, y, family="binomial", weights=weights, alpha=1, nfolds=20)
 })
 plot(mdl.net.cv.it)
 
@@ -246,6 +251,29 @@ histdat.all.rate[topN.emp.idx$rate,]
 botN.emp.idx <- TopNIndices(histdat.all.rate, "rate", 10, decreasing = F)
 histdat.all.rate[botN.emp.idx$rate,]
 
+####
+# Selecting the sample size of experiments --------------------------------
+## Sample size as a function of proportion (p) and margin of error (m)
+## The function below assumes a 95% significance level
+####
+sample.size = function(p,m)
+{
+  n = ((1.96^2)*p*(1-p))/m^2
+  return(n)
+}
+
+# We can either use an educated guess for p (our predicted probabilities)
+# or we can use a conservative method where p = 0.5 (this maximizes variance)
+# For 0 ≤ p ≤ 1, p(1 - p) achieves its largest value at p=0.5
+
+# Sample sizes for TopN intersection
+TopN_int <- combi[intersect(topN.idx$cv.pr.it.1se, topN.idx$glm.pr),]
+TopN_int$mean <- rowMeans(TopN_int[,10:12])
+
+# Sample sizes (educated guess and conservative method). 1% margin of error.
+TopN_int$sample_ed <- round(sample.size(TopN_int$mean,0.01),0)
+TopN_int$sample_cons <- round(sample.size(0.5,0.01),0)
+
 
 ####
 # Psuedo-R2 calculations --------------------------------------------------
@@ -264,7 +292,6 @@ histdat.all.rate[botN.emp.idx$rate,]
 ####
 # Experiment Design -------------------------------------------------------
 ####
-require(AlgDesign)
 
 # fed1 <- LoadCacheTagOrRun("q4_opt_fed", function() {
 #   optFederov(~ .,
@@ -275,21 +302,21 @@ require(AlgDesign)
 #              criterion="A",
 #              args=TRUE)
 # })
-
-fed.app.a <- LoadCacheTagOrRun("q4_opt_fed_app_a", function() {
-  optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
-             nTrials=36, criterion="A", args=T, approximate=T)
-})
-
-fed.app.d <- LoadCacheTagOrRun("q4_opt_fed_app_d", function() {
-  optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
-             nTrials=36, criterion="D", args=T, approximate=T)
-})
-
-fed.app.i <- LoadCacheTagOrRun("q4_opt_fed_app_i", function() {
-  optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
-             nTrials=36, criterion="I", args=T, approximate=T)
-})
+# 
+# fed.app.a <- LoadCacheTagOrRun("q4_opt_fed_app_a", function() {
+#   optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
+#              nTrials=36, criterion="A", args=T, approximate=T)
+# })
+# 
+# fed.app.d <- LoadCacheTagOrRun("q4_opt_fed_app_d", function() {
+#   optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
+#              nTrials=36, criterion="D", args=T, approximate=T)
+# })
+# 
+# fed.app.i <- LoadCacheTagOrRun("q4_opt_fed_app_i", function() {
+#   optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
+#              nTrials=36, criterion="I", args=T, approximate=T)
+# })
 
 fed.a <- LoadCacheTagOrRun("q4_opt_fed_a", function() {
   optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
@@ -306,6 +333,24 @@ fed.i <- LoadCacheTagOrRun("q4_opt_fed_i", function() {
              nTrials=36, criterion="I", args=T)
 })
 
+FindClosestN <- function(designs, histdat.all, N,
+                         hisdat.levels=histdat.levels, .exp.cols=exp.cols) {
+  designs.r <- RelevelCombinations(designs, histdat.levels)
+  best <- apply(designs.r, 1, function(design) {
+    # Creates a score of length histdat.all
+    distances <- apply(histdat.all[,.exp.cols], 1, function(x) {
+      sum(design == x)
+    })
+    matches=cbind(histdat.all[order(distances, decreasing=T)[1:N],], 
+                  score=distances[order(distances, decreasing=T)][1:N])
+  })
+  lapply(1:length(best), function(idx) {
+    list(design=designs[idx,], matches=best[[idx]])
+  })
+}
+fed.a.dist <- FindClosestN(fed.a$design, histdat.all, 3)
+fed.d.dist <- FindClosestN(fed.d$design, histdat.all, 3)
+fed.i.dist <- FindClosestN(fed.i$design, histdat.all, 3)
 
 
 ####
@@ -334,7 +379,7 @@ profit = function(unique_clicks,ncampaigns,other)
   unique_clicks*.1 - 200*ncampaigns - other
 } 
 
-# so if you send out 5000,000 emails and got a 10% response
+# so if you send out 5,000,000 emails and got a 10% response
 # and you tested 64 messages in the first experiment
 # and 32 messages in the second experiment
 # and you purchased $5000 worth of other data
@@ -342,9 +387,7 @@ profit = function(unique_clicks,ncampaigns,other)
 profit(5000000*.1,96,5000)
 # $25,800
 
-# If for example the control reponse rate was 3% and you decided to jsut 
-# go with that, do no experimentation and bought no datathe client would make
+# If for example the control reponse rate was 3% and you decided to just 
+# go with that, do no experimentation and bought no data the client would make
 profit(5000000*.03,0,0)
 # $15,000
-
-

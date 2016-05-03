@@ -13,8 +13,6 @@ CreateDefaultPlotOpts()
 dat <- read.csv('persado_data.csv') # row 17 is control message
 desc <- read.csv('persado_descriptions.csv')
 
-head(dat)
-
 # cleanup
 names(dat) <- gsub('.AF8.', '_', names(dat)) # maybe this is an Open Office thing?
 dat$start_date <- as.Date(dat$start_date, format = '%d/%m/%Y')
@@ -70,11 +68,23 @@ fit.click <- glm(form.click, weights = dat$received, family = 'binomial', data =
 
 Bopen <- coef(fit.open)[-1]
 prob.open <- 1 / (1 + exp(-Bopen))
-prob.open <- prob.open[order(prob.open, decreasing = T)]
+# prob.open <- prob.open[order(prob.open, decreasing = T)]
 
 Bclick <- coef(fit.click)[-1]
 prob.click <- 1 / (1 + exp(-Bclick))
-prob.click <- prob.click[order(prob.click, decreasing = T)]
+# prob.click <- prob.click[order(prob.click, decreasing = T)]
+
+# Results
+tab.res <- data.frame(coef.open = Bopen,
+                      prob.open = prob.open,
+                      coef.click = Bclick,
+                      prob.click = prob.click)
+rownames(tab.res) <- paste('\\textsf{', gsub('L', ':L', rownames(tab.res)), 
+                           '}', sep = '')
+colnames(tab.res) <- c('$\\beta_j^{\\text{open}}$', '$Pr(\\text{open}|j)$', 
+                       '$\\beta_j^{\\text{click}}$', '$Pr(\\text{click}|j)$')
+ExportTable(tab.res, 'logit_results', 'Logistic Regression Coefficients',
+            digits = 3, display = rep('g', 5))
 
 # ----
 # Q3: Use the estimated models to compute predicted probabilities for all 

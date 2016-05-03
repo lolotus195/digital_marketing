@@ -1,13 +1,15 @@
 ####
 # Setup ----
 ####
+getwd()
 rm(list=ls())
-source("../utils/source_me.R", chdir = T)
+source("C:/Users/Chingono/Documents/GitHub/digital_marketing/utils/source_me.R", chdir = T)
 CreateDefaultPlotOpts()
 require(plyr)
 require(dplyr)
 
 # load data
+setwd("C:/Users/Chingono/Documents/GitHub/digital_marketing/hw4")
 load(file = "Historical_Data.rdat")
 # Loads a list called histdat
 # The list contains 318 elements
@@ -179,6 +181,30 @@ topN.emp.idx <- TopNIndices(histdat.all.rate,  "rate", 10)
 histdat.all.rate[topN.emp.idx$rate,]
 
 
+## Selecting the sample size of experiments
+## Sample size as a function of proportion (p) and margin of error (m)
+## The function below assumes a 95% significance level
+
+sample.size = function(p,m)
+{
+  n = ((1.96^2)*p*(1-p))/m^2
+  return(n)
+}
+
+# We can either use an educated guess for p (our predicted probabilities)
+# or we can use a conservative method where p = 0.5 (this maximizes variance)
+# For 0 ≤ p ≤ 1, p(1 - p) achieves its largest value at p=0.5
+
+# Sample sizes for TopN intersection
+TopN_int <- combi[intersect(topN.idx$cv.pr.it.1se, topN.idx$glm.pr),]
+TopN_int$mean <- rowMeans(TopN_int[,10:12])
+
+# Sample sizes (educated guess and conservative method). 1% margin of error.
+TopN_int$sample_ed <- round(sample.size(TopN_int$mean,0.01),0)
+TopN_int$sample_cons <- round(sample.size(0.5,0.01),0)
+
+
+
 ####
 # Psuedo-R2 calculations ----
 ####
@@ -226,7 +252,7 @@ profit = function(unique_clicks,ncampaigns,other)
   unique_clicks*.1 - 200*ncampaigns - other
 } 
 
-# so if you send out 5000,000 emails and got a 10% response
+# so if you send out 5,000,000 emails and got a 10% response
 # and you tested 64 messages in the first experiment
 # and 32 messages in the second experiment
 # and you purchased $5000 worth of other data
@@ -234,9 +260,11 @@ profit = function(unique_clicks,ncampaigns,other)
 profit(5000000*.1,96,5000)
 # $25,800
 
-# If for example the control reponse rate was 3% and you decided to jsut 
-# go with that, do no experimentation and bought no datathe client would make
+# If for example the control reponse rate was 3% and you decided to just 
+# go with that, do no experimentation and bought no data the client would make
 profit(5000000*.03,0,0)
 # $15,000
+
+
 
 

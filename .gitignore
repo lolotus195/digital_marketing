@@ -1,6 +1,8 @@
 # Random Crap from Emacs and OSX.
 .DS_Store
 *~
+#Private Folder
+Private/ 
 
 # History files
 .Rhistory

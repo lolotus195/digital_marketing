@@ -205,14 +205,15 @@ histdat.all.rate[topN.emp.idx$rate,]
 ####
 require(AlgDesign)
 
-fed1 <- optFederov(~ .,
-                   data = GetModelFrame(combi), #combi[, paste('V', 1:9, sep='')], 
-                   nTrials = 48,
-                   approximate = T,
-                   maxIteration=100,
-                   criterion="A",
-                   args=TRUE)
-
+fed1 <- LoadCacheTagOrRun("q4_opt_fed", function() {
+  optFederov(~ .,
+             data = GetModelFrame(combi), #combi[, paste('V', 1:9, sep='')], 
+             nTrials = 48,
+             approximate = T,
+             maxIteration=100,
+             criterion="A",
+             args=TRUE)
+})
 
 ####
 # The Rest ----------------------------------------------------------------

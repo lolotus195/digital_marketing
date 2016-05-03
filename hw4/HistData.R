@@ -375,20 +375,61 @@ VerifyUniqueCCs <- function(ccs, idxs, combi.norelevel) {
 }
 VerifyUniqueCCs(histdat.unique.ccs, histdat.unique.ccs.idx, combi.norelevel)
 
+VaryAugment <- function(aug.amt) {
+  res <- ldply(aug.amt, function(i) {
+    cat(sprintf("%d,", i))
+    res <- optFederov(~ ., 
+                      data = combi.norelevel,
+                      rows = histdat.unique.ccs.idx,
+                      augment = T,
+                      criterion = "D",
+                      nTrials = length(histdat.unique.ccs.idx) + i,
+                      evaluateI=T,
+                      args=T)
+    data.frame(aug.size=i, D=res$D, I=res$I, A=res$A)
+  })
+  cat("done.\n")
+  return(res)
+}
+criterion.meas <- VaryAugment(c(0, 5, 10, 15:25))
+ggplot(melt(criterion.meas, id.vars="aug.size"), aes(x=aug.size, y=value)) +
+  geom_line() + facet_wrap(~ variable, scales="free_y")
+
+
 fed.aug.d <- optFederov(~ ., 
                         data = combi.norelevel,
                         rows = histdat.unique.ccs.idx,
                         augment = T,
                         criterion = "D",
-                        nTrials = length(histdat.unique.ccs.idx) + 10,
+                        nTrials = length(histdat.unique.ccs.idx) + 15,
                         args=T)
-
 exp.to.run <- combi.norelevel[setdiff(as.numeric(rownames(fed.aug.d$design)),
                                       histdat.unique.ccs.idx),]
 exp.to.run$cv.pr.net.it.1se <- BatchPredictGLMNET(
   mdl.net.cv.it, formula.interact,
   GetModelFrame(RelevelCombinations(exp.to.run, histdat.levels)), 
   "lambda.1se")
+
+#
+# 15 Experiments from D criterion (no interaction terms)
+#
+# V1 V2 V3 V4 V5 V6 V7 V8 V9 cv.pr.net.it.1se
+# 153765  3  2  3  2  5  3  2  2  3       0.04580092
+# 169656  6  4  3  2  4  1  1  4  3       0.02125988
+# 177648  6  4  3  1  4  2  2  4  3       0.04411273
+# 181874  2  1  1  2  2  1  1  5  3       0.02009277
+# 254666  2  1  1  1  2  2  2  5  4       0.04183826
+# 254690  2  5  1  1  2  2  2  5  4       0.04183826
+# 254721  3  4  2  1  2  2  2  5  4       0.04183826
+# 255043  1  4  2  1  3  2  2  5  4       0.04183826
+# 255414  6  5  3  1  4  2  2  5  4       0.04183826
+# 298552  4  1  2  2  2  1  1  4  5       0.02164538
+# 364596  6  4  3  1  1  2  1  4  6       0.01827670
+# 370731  3  1  3  1  5  1  2  4  6       0.05601142
+# 371058  6  1  3  1  1  2  2  4  6       0.03804751
+# 371076  6  4  3  1  1  2  2  4  6       0.03804751
+# 372351  3  1  3  1  5  2  2  4  6       0.05601142
+
 
 FindClosestN <- function(designs, histdat.all, N,
                          hisdat.levels=histdat.levels, .exp.cols=exp.cols) {

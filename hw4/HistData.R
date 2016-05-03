@@ -433,7 +433,9 @@ criterion.meas.it <- LoadCacheTagOrRun("q4_crit_inter", function() {
 # 371076  6  4  3  1  1  2  2  4  6       0.03804751
 # 372351  3  1  3  1  5  2  2  4  6       0.05601142
 
-
+####
+# Closest -----------------------------------------------------------------
+####
 FindClosestN <- function(designs, histdat.all, N,
                          hisdat.levels=histdat.levels, .exp.cols=exp.cols) {
   designs.r <- RelevelCombinations(designs, histdat.levels)

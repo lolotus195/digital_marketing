@@ -1,12 +1,12 @@
 % latex table generated in R 3.2.5 by xtable 1.8-0 package
-% Tue May  3 17:28:37 2016
+% Tue May  3 17:34:22 2016
 \begin{table}[ht]
 \centering
 \caption{Logistic Regression Coefficients} 
 \label{tab:logit_results}
 \begin{tabular}{rrrrr}
   \hline
- & $\beta_j^{\text{open}}$ & $100(\beta_j^{\text{open}}-1)$ & $\beta_j^{\text{click}}$ & $100(\beta_j^{\text{click}}-1)$ \\ 
+ & $\beta_j^{\text{open}}$ & $100\cdotexp(\beta_j^{\text{open}}-1)$ & $\beta_j^{\text{click}}$ & $100\cdotexp(\beta_j^{\text{click}}-1)$ \\ 
   \hline
 \textsf{intro:L2} & 0.0127 & 1.27 & 0.00146 & 0.146 \\ 
   \textsf{intro:L3} & 0.0177 & 1.78 & 0.122 & 12.9 \\ 

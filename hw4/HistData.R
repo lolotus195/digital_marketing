@@ -1,5 +1,5 @@
 ####
-# Setup ----
+# Setup -------------------------------------------------------------------
 ####
 getwd()
 rm(list=ls())
@@ -15,7 +15,7 @@ load(file = "Historical_Data.rdat")
 length(histdat)
 
 ####
-# Relevel and combine history ----
+# Relevel and combine history ---------------------------------------------
 ####
 exp.cols <- sprintf("V%d", seq(1:9))
 VerifyStuff <- function(histdata) {
@@ -63,7 +63,7 @@ GGPlotSave(g, "q4_emp_hist")
 
 
 ####
-# Create Binomial Model (GLM) ----
+# Create Binomial Model (GLM) ---------------------------------------------
 ####
 mdl.glm <- glm(cbind(Unique_Clicks, Unique_Sent-Unique_Clicks) ~ .,
                data=histdat.all, family="binomial")
@@ -71,7 +71,7 @@ summary(mdl.glm)
 
 
 ####
-# Create Interaction Model (cv.gamlr) ----
+# Create Interaction Model (cv.gamlr) -------------------------------------
 ####
 require(gamlr)
 GetModelFrame <- function(data, .exp.cols=exp.cols) {
@@ -94,7 +94,30 @@ sum(coef(mdl.cv.it, select = "min") > 0)
 
 
 ####
-# Predict Using the Models ----
+# Use GLMNET --------------------------------------------------------------
+####
+require(glmnet)
+mdl.net.cv.it <- LoadCacheTagOrRun("q4_glmnet_cv_it", function() {
+  # Double the # of rows in histdat.all
+  # Put number of successes in first part, number of failures in second
+  # Use these counts as weights in glmnet binomial.
+  histdat.net <- melt(
+    histdat.all %>% 
+      mutate(NonClicks=Unique_Sent - Unique_Clicks) %>% 
+      select(-Unique_Sent), 
+    id.vars=exp.cols, measure_vars=c("Unique_Clicks", "NonClicks"))
+  y <- histdat.net$variable == "Unique_Clicks"
+  weights <- histdat.net$value
+  mm.it <- model.matrix(formula.interact, data=GetModelFrame(histdat.net))
+  cv.glmnet(mm.it, y, family="binomial", weights=weights, nfolds=20)
+})
+plot(mdl.net.cv.it)
+
+sum(coef(mdl.net.cv.it, s = "lambda.1se") > 0)
+sum(coef(mdl.net.cv.it, s = "lambda.min") > 0)
+
+####
+# Predict Using the Models ------------------------------------------------
 ####
 # A simple batcher, only allows one value to be returned per row.
 BatchPredict <- function(predictFn, newdata, batchsize=1e4) {
@@ -123,34 +146,63 @@ BatchPredictGamlr <- function(mdl, frm, newdata, select, batchsize=1e4) {
   }, newdata, batchsize)
 }
 
-combi <- expand.grid(lapply(histdat.all[,exp.cols], levels))
+# GLMNET specific version of BatchPredict.
+BatchPredictGLMNET <- function(mdl, frm, newdata, s, batchsize=1e4) {
+  BatchPredict(function(data) {
+    mm <- model.matrix(frm, data=data)
+    return(predict(mdl, newx=mm, s=s, type="response"))
+  }, newdata, batchsize)
+}
+
+# Add 0-level to all data.
+RelevelCombinations <- function(d, histdat.levels) {
+  for (col in exp.cols) {
+    d[,col] <- factor(d[,col], levels=0:histdat.levels[col])
+  }
+  return(d)
+}
+GenerateAllCombinations <- function(histdat.levels) {
+  d <- gen.factorial(histdat.levels, center=F, factors="all", 
+                     varNames=names(histdat.levels))
+}
+
+combi <- RelevelCombinations(GenerateAllCombinations(histdat.levels),
+                             histdat.levels)
+
 combi$cv.pr.it.1se <- LoadCacheTagOrRun("q4_pr_it_1se", function() {
   BatchPredictGamlr(mdl.cv.it, formula.interact, 
                     GetModelFrame(combi), "1se")
 })
+
 combi$cv.pr.it.min <- LoadCacheTagOrRun("q4_pr_it_min", function() {
   BatchPredictGamlr(mdl.cv.it, formula.interact, 
                     GetModelFrame(combi), "min")
 })
+
 combi$glm.pr <- LoadCacheTagOrRun("q4_pr_glm", function() {
   predict(mdl.glm, newdata=combi, type="response")
 })
 
+combi$cv.pr.net.it.1se <- LoadCacheTagOrRun("q4_pr_net_it_1se", function() {
+  BatchPredictGLMNET(mdl.net.cv.it, formula.interact,
+                     GetModelFrame(combi), "lambda.1se")
+})
 
 ####
-# Plot the prediction histograms ----
+# Plot the prediction histograms ------------------------------------------
 ####
 combi.melt <- melt(combi, id.vars=c(), measure.vars = c(
-  "glm.pr", "cv.pr.it.min", "cv.pr.it.1se"))
+  "glm.pr", "cv.pr.it.1se", "cv.pr.net.it.1se"))
 
 histdat.emp <- data.frame(
   rate=histdat.all$Unique_Clicks / histdat.all$Unique_Sent)
 plot.melt <- rbind(combi.melt, 
                    melt(histdat.emp, id.vars=c(), measure.vars=c("rate")))
 measure.labels=c(
-  "cv.pr.it.1se" = "2-Level Interactions (CV - 1se)",
-  "cv.pr.it.min" = "2-Level Interactions (CV - min)",
+  "cv.pr.it.1se" = "2-Level Interactions (cv.gamlr - 1se)",
+  "cv.pr.it.min" = "2-Level Interactions (cv.gamlr - min)",
   "glm.pr" = "Simple Logit Model (GLM)",
+  "cv.pr.net.it.1se" = "2-Level Interactions (cv.glmnet - 1se)",
   "rate" = "Historical"
 )
 g <- ggplot(plot.melt, aes(x=value)) + 
@@ -159,25 +211,41 @@ g <- ggplot(plot.melt, aes(x=value)) +
   labs(x="Pr(Click)", y="Density")
 GGPlotSave(g, "q4_pred_hist")
 
+
 ####
-# TopN Results ----
+# TopN Results ------------------------------------------------------------
 ####
-TopNIndices <- function(dat, cols, N=10) {
+TopNIndices <- function(dat, cols, N=10, decreasing=T) {
   sapply(cols, function(col) {
-    return(list(order(dat[,col], decreasing = T)[1:N]))
+    return(list(order(dat[,col], decreasing = decreasing)[1:N]))
   })
 }
-topN.idx <- TopNIndices(combi, c("cv.pr.it.1se", "glm.pr"), 10)
 
 # Look at the topN.
+topN.idx <- TopNIndices(
+  combi, c("cv.pr.it.1se", "cv.pr.net.it.1se", "glm.pr"), 10)
 combi[intersect(topN.idx$cv.pr.it.1se, topN.idx$glm.pr),]
+combi[intersect(topN.idx$cv.pr.net.it.1se, topN.idx$glm.pr),]
+combi[topN.idx$cv.pr.net.it.1se,]
 combi[topN.idx$cv.pr.it.1se,]
 combi[topN.idx$glm.pr,]
 
+# Look at the botN.
+botN.idx <- TopNIndices(
+  combi, c("cv.pr.it.1se", "cv.pr.net.it.1se", "glm.pr"), 10, decreasing = F)
+combi[intersect(botN.idx$cv.pr.it.1se, botN.idx$glm.pr),]
+combi[intersect(botN.idx$cv.pr.net.it.1se, botN.idx$glm.pr),]
+combi[botN.idx$cv.pr.it.1se,]
+combi[botN.idx$cv.pr.net.it.1se,]
+combi[botN.idx$glm.pr,]
+
 # Compare the empirical one.
-histdat.all %>% mutate(rate = Unique_Clicks / Unique_Sent) -> histdat.all.rate 
+histdat.all %>% mutate(rate = Unique_Clicks / Unique_Sent) -> histdat.all.rate
 topN.emp.idx <- TopNIndices(histdat.all.rate,  "rate", 10)
 histdat.all.rate[topN.emp.idx$rate,]
+
+botN.emp.idx <- TopNIndices(histdat.all.rate, "rate", 10, decreasing = F)
+histdat.all.rate[botN.emp.idx$rate,]
 
 
 ## Selecting the sample size of experiments
@@ -205,7 +273,7 @@ TopN_int$sample_cons <- round(sample.size(0.5,0.01),0)
 
 
 ####
-# Psuedo-R2 calculations ----
+# Psuedo-R2 calculations --------------------------------------------------
 ####
 # OOS R-squared
 # setwd("C:/Users/Chingono/Documents/GitHub/digital_marketing/hw4")
@@ -219,15 +287,73 @@ TopN_int$sample_cons <- round(sample.size(0.5,0.01),0)
 
 
 ####
-# The rest ----
+# Experiment Design -------------------------------------------------------
 ####
 require(AlgDesign)
 
-fed1 <- optFederov(~ .,
-                   data = GetModelFrame(combi), #combi[, paste('V', 1:9, sep='')], 
-                   nTrials = 48, 
-                   criterion="A")
+# fed1 <- LoadCacheTagOrRun("q4_opt_fed", function() {
+#   optFederov(~ .,
+#              data = GetModelFrame(combi), #combi[, paste('V', 1:9, sep='')], 
+#              nTrials = 48,
+#              approximate = T,
+#              maxIteration=100,
+#              criterion="A",
+#              args=TRUE)
+# })
+# 
+# fed.app.a <- LoadCacheTagOrRun("q4_opt_fed_app_a", function() {
+#   optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
+#              nTrials=36, criterion="A", args=T, approximate=T)
+# })
+# 
+# fed.app.d <- LoadCacheTagOrRun("q4_opt_fed_app_d", function() {
+#   optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
+#              nTrials=36, criterion="D", args=T, approximate=T)
+# })
+# 
+# fed.app.i <- LoadCacheTagOrRun("q4_opt_fed_app_i", function() {
+#   optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
+#              nTrials=36, criterion="I", args=T, approximate=T)
+# })
 
+fed.a <- LoadCacheTagOrRun("q4_opt_fed_a", function() {
+  optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
+             nTrials=36, criterion="A", args=T)
+})
+
+fed.d <- LoadCacheTagOrRun("q4_opt_fed_d", function() {
+  optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
+             nTrials=36, criterion="D", args=T)
+})
+
+fed.i <- LoadCacheTagOrRun("q4_opt_fed_i", function() {
+  optFederov(~ ., data = GenerateAllCombinations(histdat.levels),
+             nTrials=36, criterion="I", args=T)
+})
+
+FindClosestN <- function(designs, histdat.all, N,
+                         hisdat.levels=histdat.levels, .exp.cols=exp.cols) {
+  designs.r <- RelevelCombinations(designs, histdat.levels)
+  best <- apply(designs.r, 1, function(design) {
+    # Creates a score of length histdat.all
+    distances <- apply(histdat.all[,.exp.cols], 1, function(x) {
+      sum(design == x)
+    })
+    matches=cbind(histdat.all[order(distances, decreasing=T)[1:N],], 
+                  score=distances[order(distances, decreasing=T)][1:N])
+  })
+  lapply(1:length(best), function(idx) {
+    list(design=designs[idx,], matches=best[[idx]])
+  })
+}
+fed.a.dist <- FindClosestN(fed.a$design, histdat.all, 3)
+fed.d.dist <- FindClosestN(fed.d$design, histdat.all, 3)
+fed.i.dist <- FindClosestN(fed.i$design, histdat.all, 3)
+
+
+####
+# The Rest ----------------------------------------------------------------
+####
 # By next Wednesday (May 04) please upload a csv file 
 # with the first 9 columns labeled (V1,V2,...,V9) (all caps)
 # there should be a 10th column called N 

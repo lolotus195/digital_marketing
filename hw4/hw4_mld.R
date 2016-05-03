@@ -66,6 +66,7 @@ mdl.clicks <- glm(
                  cbind(unique_clicks, unique_received - unique_clicks) ~ .),
   data=dat, family="binomial")
 
+summary(mdl.clicks)
 summary(mdl.opened)
 
 ####
@@ -112,6 +113,9 @@ topN <- 1
 opened.topN <- order(all.combinations$p.opened_rate, decreasing = T)[1:topN]
 clicks.topN <- order(all.combinations$p.clicks_rate, decreasing = T)[1:topN]
 intersect(opened.topN, clicks.topN)
+
+all.combinations[opened.topN,]
+all.combinations[clicks.topN,]
 
 CreateMessageStrings(rbind(all.combinations[opened.topN,],
                            all.combinations[clicks.topN,]), desc)

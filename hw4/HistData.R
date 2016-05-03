@@ -247,11 +247,11 @@ histdat.all.rate[topN.emp.idx$rate,]
 botN.emp.idx <- TopNIndices(histdat.all.rate, "rate", 10, decreasing = F)
 histdat.all.rate[botN.emp.idx$rate,]
 
-
-## Selecting the sample size of experiments
+####
+# Selecting the sample size of experiments --------------------------------
 ## Sample size as a function of proportion (p) and margin of error (m)
 ## The function below assumes a 95% significance level
-
+####
 sample.size = function(p,m)
 {
   n = ((1.96^2)*p*(1-p))/m^2
@@ -269,7 +269,6 @@ TopN_int$mean <- rowMeans(TopN_int[,10:12])
 # Sample sizes (educated guess and conservative method). 1% margin of error.
 TopN_int$sample_ed <- round(sample.size(TopN_int$mean,0.01),0)
 TopN_int$sample_cons <- round(sample.size(0.5,0.01),0)
-
 
 
 ####

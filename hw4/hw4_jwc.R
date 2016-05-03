@@ -13,6 +13,8 @@ CreateDefaultPlotOpts()
 dat <- read.csv('persado_data.csv') # row 17 is control message
 desc <- read.csv('persado_descriptions.csv')
 
+head(dat)
+
 # cleanup
 names(dat) <- gsub('.AF8.', '_', names(dat)) # maybe this is an Open Office thing?
 dat$start_date <- as.Date(dat$start_date, format = '%d/%m/%Y')

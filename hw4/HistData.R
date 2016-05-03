@@ -39,8 +39,8 @@ VerifyStuff <- function(histdata) {
     stop("something's seriously wrong, some columns have multiple levels")
   }
   
-  return(unlist(res[complete.cases(res),][1,]))
-  # return(res[complete.cases(res)[1]])
+#   return(unlist(res[complete.cases(res),][1,]))
+  return(res[complete.cases(res),])
 }
 
 RelevelHistDat <- function(histdat, histdat.levels) {
@@ -57,8 +57,10 @@ RelevelHistDat <- function(histdat, histdat.levels) {
     cbind(dat, d[,c("Unique_Clicks", "Unique_Sent")])
   })
 }
-
-histdat.levels <- VerifyStuff(histdat)
+histdat.complete <- VerifyStuff(histdat)
+histdat.complete.cases <- ldply(as.numeric(rownames(histdat.complete)), 
+                                function(x) histdat[[x]])
+histdat.levels <- unlist(histdat.complete[1,])
 histdat.releveled <- RelevelHistDat(histdat, histdat.levels)
 histdat.all <- ldply(histdat.releveled, function(x) x)
 
@@ -333,6 +335,61 @@ fed.i <- LoadCacheTagOrRun("q4_opt_fed_i", function() {
              nTrials=36, criterion="I", args=T)
 })
 
+
+# rownames.idx <- LoadCacheTagOrRun("q4_match_ccs", function() {
+#   all.cases.num <- matrix(as.numeric(as.matrix(all.cases)), ncol=9)
+#   all.complete.num <- matrix(as.numeric(as.matrix(unique(
+#     histdat.complete.cases[,exp.cols]))), ncol=9)
+#   
+#   cat(sprintf("%d complete cases: ", nrow(all.complete.num)))
+#   res <- sapply(1:nrow(all.complete.num), function(cc.idx) {
+#     cat(sprintf("%d,", cc.idx))
+#     which(sapply(1:nrow(all.cases.num), function(ac.idx) {
+#       all(all.complete.num[cc.idx,] == all.cases.num[ac.idx,])
+#     }))
+#   })
+#   cat("Done.\n")
+#   return(res)
+# })
+
+histdat.unique.ccs <- unique(histdat.complete.cases[,exp.cols])
+histdat.unique.ccs.idx <- LoadCacheTagOrRun("q4_unique_cc_idx", function() {
+  unlist(sapply(1:nrow(histdat.unique.ccs), function(cc.idx) {
+    case <- histdat.unique.ccs[cc.idx,]
+    acc <- 0
+    for (i in length(case):2) {
+      acc <- histdat.levels[i-1]*(acc + (as.numeric(case[i])-1))
+    }
+    acc <- unname(acc + as.numeric(case[1]))
+    return(acc)
+  }))
+})
+
+combi.norelevel <- GenerateAllCombinations(histdat.levels)
+VerifyUniqueCCs <- function(ccs, idxs, combi.norelevel) {
+  for (i in 1:nrow(ccs)) {
+    if (!all(ccs[i,] == combi.norelevel[idxs[i],])) {
+      stop("Calculated Combination is not right.")
+    }
+  }
+}
+VerifyUniqueCCs(histdat.unique.ccs, histdat.unique.ccs.idx, combi.norelevel)
+
+fed.aug.d <- optFederov(~ ., 
+                        data = combi.norelevel,
+                        rows = histdat.unique.ccs.idx,
+                        augment = T,
+                        criterion = "D",
+                        nTrials = length(histdat.unique.ccs.idx) + 10,
+                        args=T)
+
+exp.to.run <- combi.norelevel[setdiff(as.numeric(rownames(fed.aug.d$design)),
+                                      histdat.unique.ccs.idx),]
+exp.to.run$cv.pr.net.it.1se <- BatchPredictGLMNET(
+  mdl.net.cv.it, formula.interact,
+  GetModelFrame(RelevelCombinations(exp.to.run, histdat.levels)), 
+  "lambda.1se")
+
 FindClosestN <- function(designs, histdat.all, N,
                          hisdat.levels=histdat.levels, .exp.cols=exp.cols) {
   designs.r <- RelevelCombinations(designs, histdat.levels)
@@ -351,6 +408,7 @@ FindClosestN <- function(designs, histdat.all, N,
 fed.a.dist <- FindClosestN(fed.a$design, histdat.all, 3)
 fed.d.dist <- FindClosestN(fed.d$design, histdat.all, 3)
 fed.i.dist <- FindClosestN(fed.i$design, histdat.all, 3)
+
 
 
 ####

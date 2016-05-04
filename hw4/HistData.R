@@ -394,24 +394,47 @@ VaryAugment <- function(aug.amt, fo) {
   return(res)
 }
 
+aug.size.no.inter <- c(0, 5, 10, 15:25)
+aug.size.inter <- c(0, 5, 10, 15, 20)
 criterion.meas <- LoadCacheTagOrRun("q4_crit_no_inter", function() {
-  VaryAugment(c(0, 5, 10, 15:22), ~ .)
+  VaryAugment(aug.size.no.inter, ~ .)
 })
 criterion.meas.it <- LoadCacheTagOrRun("q4_crit_inter", function() {
-  VaryAugment(c(0, 5, 10, 15), ~ . + .^2)
+  VaryAugment(aug.size.inter, ~ . + .^2)
 })
 
-# ggplot(melt(criterion.meas, id.vars="aug.size"), aes(x=aug.size, y=value)) +
-#   geom_line() + facet_wrap(~ variable, scales="free_y")
-# ggplot(melt(criterion.meas.it, id.vars="aug.size"), aes(x=aug.size, y=value)) +
-#   geom_line() + facet_wrap(~ variable, scales="free_y")
+ExtractNewExperiments <- function(old, all) {
+  exp.to.run <- combi.norelevel[setdiff(as.numeric(rownames(all)), old),]
+  exp.to.run$cv.pr.net.it.1se <- BatchPredictGLMNET(
+    mdl.net.cv.it, formula.interact,
+    GetModelFrame(RelevelCombinations(exp.to.run, histdat.levels)), 
+    "lambda.1se")
+  exp.to.run$glm.pr <- predict(
+    mdl.glm, 
+    newdata=RelevelCombinations(exp.to.run, histdat.levels), 
+    type="response")
+  return(exp.to.run)
+}
 
-# exp.to.run <- combi.norelevel[setdiff(as.numeric(rownames(fed.aug.d$design)),
-#                                       histdat.unique.ccs.idx),]
-# exp.to.run$cv.pr.net.it.1se <- BatchPredictGLMNET(
-#   mdl.net.cv.it, formula.interact,
-#   GetModelFrame(RelevelCombinations(exp.to.run, histdat.levels)), 
-#   "lambda.1se")
+# aug.size=15
+ExtractNewExperiments(histdat.unique.ccs.idx, criterion.meas.it[[4]]$design)
+
+# aug.size=15
+ExtractNewExperiments(histdat.unique.ccs.idx, criterion.meas[[4]]$design)
+
+PlotCriterionChanges <- function(criterion, aug.size) {
+  crit <- cbind(aug.size=aug.size,
+                ldply(criterion, function(x) {
+                  data.frame(D=x$D, I=x$I, A=x$A)
+                }))
+  g <- ggplot(melt(crit, id.vars="aug.size"), aes(x=aug.size, y=value)) +
+    geom_line() + facet_wrap(~variable, scales="free_y")
+  return(g)
+}
+
+PlotCriterionChanges(criterion.meas, aug.size.no.inter)
+PlotCriterionChanges(criterion.meas.it, aug.size.inter)
+
 
 #
 # 15 Experiments from D criterion (no interaction terms)

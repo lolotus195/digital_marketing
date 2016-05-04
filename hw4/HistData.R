@@ -593,18 +593,19 @@ WriteDesign("sampled_quantile.csv", combi[samp.quant,exp.cols])
 all.criterion <- data.frame(
   Name=c("Scratch-A", "Scratch-D", "Scratch-I", "Non-Augmented (Histdat)",
          "Augmented (Histdat+15)", "Non-Augmented (Interact) (Histdat)",
-         "Augmented (Interact) (Histdat+15)", "Scratch-Interact-D"),
+         "Augmented (Interact) (Histdat+15)", "Scratch-Interact-D",
+         "Scratch-Interact-Simpler-D"),
   File=c("scratch_A.csv", "scratch_D.csv", "scratch_I.csv", NA,
          "augmented_no_inter.csv", NA, "augmented_with_inter.csv",
-         "scratch_interact_1se.csv"),
+         "scratch_interact_1se.csv", "scratch_interact_1se_co.csv"),
   D=c(fed.a$D, fed.d$D, fed.i$D, criterion.meas[[1]]$D, criterion.meas[[4]]$D,
       criterion.meas.it[[1]]$D, criterion.meas.it[[4]]$D,
-      new.search.1se$D),
+      new.search.1se$D, new.search.1se.co$D),
   A=c(fed.a$A, fed.d$A, fed.i$A, criterion.meas[[1]]$A, criterion.meas[[4]]$A,
       criterion.meas.it[[1]]$A, criterion.meas.it[[4]]$A,
-      new.search.1se$A),
+      new.search.1se$A, new.search.1se.co$A),
   I=c(NA, NA, fed.i$I, criterion.meas[[1]]$I, criterion.meas[[4]]$I,
-      criterion.meas.it[[1]]$I, criterion.meas.it[[4]]$I, NA))
+      criterion.meas.it[[1]]$I, criterion.meas.it[[4]]$I, NA, NA))
 
 ExportTable(all.criterion, "criterion", "Criterion for Designs", NA.string = "NA", digits = 4)
 

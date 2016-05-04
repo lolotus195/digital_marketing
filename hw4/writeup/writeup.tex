@@ -10,11 +10,11 @@ University of Chicago Booth School of Business}
 
 \maketitle
 
-\section{} (Jon) % Question 1
+\section{Message Combinations} % Question 1
 
 The number of possible message combinations that can be tested, or full factorial, is 1,024 message combinations. This number of combinations is a result of the number of factors that are being tested (7), and the number of levels for each factor.  The levels for the factors, in order from 1 to 7 are 4,4,2,2,2,4 and 2.  Thus, the number of combinations is equal to the product $4\times4\times2\times2\times2\times4\times2 = 1,024$.    
 
-\section{} (Will) % Question 2
+\section{Logit Model Estimation} % Question 2
 
 We estimate two logistic regression models, one for an open rate and one for a click rate:
 \[ \log{\frac{p}{1-p}} = \bm{X}^{\prime} \bm{\beta} + \bm{\varepsilon} \]
@@ -27,7 +27,8 @@ We can make a few observations:
 \item Conversely, a bad \textsf{purpose} will really drag down a message's click rate. The pair of \textsf{purpose L3} and \textsf{purpose L4} decrease the odds of a click by 9.2 percent and 8.9 percent, respectively.
 \end{itemize}
 
-\section{} % Question 3
+\section{Prediction} % Question 3
+
 We generated a full factorial of all 1,024 message combinations. Using this full factorial, we used our models to estimate open probabilities and click probabilities for each of the 1,024 message combinations. For comparison purposes, we also calculated the open and click probabilities for the control sample.
 
 Our results are in \cref{fig:q3_hist} below. As shown in those histograms, there is a significant difference between the baseline click and open probabilities of the control message versus the estimated probabilities from our full factorial. Even the worst message in the test set is better than the baseline message.
@@ -39,14 +40,14 @@ Our results are in \cref{fig:q3_hist} below. As shown in those histograms, there
   \label{fig:q3_hist}
 \end{figure}
 
-In terms of optimal message combinations, we found that the best combination for the fitted open probability was (V1=L3, V2=L2, V3=L1, V4=L2, V5=L1, V6=L2, V7=L2). The optimal combination for the fitted click probability was (V1=L3, V2=L2, V3=L1, V4=L1, V5=L2, V6=L1, V7=L1).
+In terms of optimal message combinations, the best combination for the fitted open probability is outlined in \cref{tab:best_open}. This message had a predicted open rate of 56.7 percent and a predicted click rate of 11.2 percent (placing it in the 79th percentile of emails ranked by click rate).
+
+The optimal combination for the fitted click probability  is listed in \cref{tab:best_click}. This message had a predicted open rate of 55.6 percent (placing it in the 47th percentile of emails ranked by open rate) and a predicted click rate of 13.0 percent.
 
 \input{best_open}
 \input{best_click}
 
-These two messages are generally similar because they both have an introduction of \textit{"MORE Everything has been activated"} and they both have a headline of \textit{"CONGRATS!"}. Moreover, the main text in both of these messages is \textit{"Make the most of your new plan’s savings \& shareable data - add a new device today!"}. These similarities may be the parts of the message that pique the readers' interest.
-
-The differences between the messages are in terms of the button positioning, the call to action, the purpose, and the symbol.
+These two messages are generally similar because they both have an introduction of \textit{``MORE Everything has been activated''} and they both have a headline of \textit{``CONGRATS!''}. Moreover, the main text in both of these messages is \textit{``Make the most of your new plan’s savings \& shareable data - add a new device today!''}. These similarities may be the parts of the message that pique the readers' interest. The differences between the messages are in terms of the button positioning, the call to action, the purpose, and the symbol.
 
 \end{document}
 

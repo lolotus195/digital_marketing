@@ -343,6 +343,14 @@ fed.i <- LoadCacheTagOrRun("q4_opt_fed_i", function() {
              nTrials=36, criterion="I", args=T)
 })
 
+WriteDesign <- function(filename, design) {
+  # This is really dumb, I hate R.
+  mtx <- matrix(as.numeric(as.matrix(design)), ncol=9)
+  write.table(mtx, file=filename, row.names = F, sep = ",")
+}
+WriteDesign("scratch_A.csv", fed.a$design)
+WriteDesign("scratch_D.csv", fed.d$design)
+WriteDesign("scratch_I.csv", fed.i$design)
 
 # rownames.idx <- LoadCacheTagOrRun("q4_match_ccs", function() {
 #   all.cases.num <- matrix(as.numeric(as.matrix(all.cases)), ncol=9)
@@ -402,14 +410,14 @@ VaryAugment <- function(aug.amt, fo) {
   return(res)
 }
 
-aug.size.no.inter <- c(0, 5, 10, 15:25)
-aug.size.inter <- c(0, 5, 10, 15, 20)
-criterion.meas <- LoadCacheTagOrRun("q4_crit_no_inter", function() {
-  VaryAugment(aug.size.no.inter, ~ .)
-})
-criterion.meas.it <- LoadCacheTagOrRun("q4_crit_inter", function() {
-  VaryAugment(aug.size.inter, ~ . + .^2)
-})
+# aug.size.no.inter <- c(0, 5, 10, 15:25)
+# aug.size.inter <- c(0, 5, 10, 15, 20)
+# criterion.meas <- LoadCacheTagOrRun("q4_crit_no_inter", function() {
+#   VaryAugment(aug.size.no.inter, ~ .)
+# })
+# criterion.meas.it <- LoadCacheTagOrRun("q4_crit_inter", function() {
+#   VaryAugment(aug.size.inter, ~ . + .^2)
+# })
 
 ExtractNewExperiments <- function(old, all) {
   exp.to.run <- combi.norelevel[setdiff(as.numeric(rownames(all)), old),]
@@ -429,10 +437,10 @@ ExtractNewExperiments <- function(old, all) {
 }
 
 # aug.size=15
-ExtractNewExperiments(histdat.unique.ccs.idx, criterion.meas.it[[4]]$design)
+# ExtractNewExperiments(histdat.unique.ccs.idx, criterion.meas.it[[4]]$design)
 
 # aug.size=15
-ExtractNewExperiments(histdat.unique.ccs.idx, criterion.meas[[4]]$design)
+# ExtractNewExperiments(histdat.unique.ccs.idx, criterion.meas[[4]]$design)
 
 PlotCriterionChanges <- function(criterion, aug.size) {
   crit <- cbind(aug.size=aug.size,
@@ -444,15 +452,15 @@ PlotCriterionChanges <- function(criterion, aug.size) {
   return(g)
 }
 
-fed.d$D
-criterion.meas[[1]]$D
+# fed.d$D
+# criterion.meas[[1]]$D
 
 
-fed.d$A
-criterion.meas[[1]]$A
+# fed.d$A
+# criterion.meas[[1]]$A
 
-PlotCriterionChanges(criterion.meas, aug.size.no.inter)
-PlotCriterionChanges(criterion.meas.it, aug.size.inter)
+# PlotCriterionChanges(criterion.meas, aug.size.no.inter)
+# PlotCriterionChanges(criterion.meas.it, aug.size.inter)
 
 
 #
@@ -490,15 +498,19 @@ base.interaction.terms.1se <- unique(gsub("V(\\d)\\d:V(\\d)\\d", "V\\1*V\\2",
 
 search.fo.1se <- as.formula(paste("~ . +", 
                                   paste(base.interaction.terms.1se, collapse=" + ")))
+# ~. + V1 * V2 + V1 * V7 + V2 * V7 + V4 * V5 + V4 * V7 + V5 * V7 + 
+#   V5 * V8 + V5 * V9 + V6 * V7 + V7 * V8 + V7 * V9
 
-new.search.1se <- LoadCacheTagOrRun("q4_fed_new_search_1se", function() {
-  optFederov(search.fo.1se,
-             data=combi.norelevel,
-             criterion="D",
-             maxIteration = 100,
-             evaluateI = T,
-             args=TRUE)
-})
+print(sprintf("# of required experiments for lambda.1se: %d", 
+              ncol(model.matrix(search.fo.1se, data=histdat[[3]]))+5))
+# 131 + 5 (for safety)
+
+# new.search.1se <- LoadCacheTagOrRun("q4_fed_new_search_1se", function() {
+#   optFederov(search.fo.1se,
+#              data=combi.norelevel,
+#              criterion="D",
+#              args=TRUE)
+# })
 
 ####
 # Another Idea (min) ------------------------------------------------------
@@ -516,16 +528,23 @@ base.interaction.terms <- unique(gsub("V(\\d)\\d:V(\\d)\\d", "V\\1*V\\2",
 
 search.fo <- as.formula(paste("~ . +", 
                               paste(base.interaction.terms, collapse=" + ")))
+# ~. + V1 * V2 + V1 * V5 + V1 * V6 + V1 * V7 + V1 * V8 + V2 * V7 + 
+#   V2 * V8 + V3 * V4 + V3 * V5 + V3 * V7 + V3 * V8 + V4 * V5 + 
+#   V4 * V7 + V5 * V6 + V5 * V7 + V5 * V8 + V5 * V9 + V6 * V7 + 
+#   V6 * V8 + V6 * V9 + V7 * V8 + V7 * V9 + V8 * V9
 
-new.search <- LoadCacheTagOrRun("q4_fed_new_search", function() {
-  optFederov(search.fo,
-             data=combi.norelevel,
-             criterion="D",
-             maxIteration = 100,
-             evaluateI = T,
-             args=TRUE)
-})
+print(sprintf("# of required experiments for lambda.min: %d", 
+              ncol(model.matrix(search.fo, data=histdat[[3]]))+5))
+# 287 + 5 (for safety)
 
+# new.search <- LoadCacheTagOrRun("q4_fed_new_search", function() {
+#   optFederov(search.fo,
+#              data=combi.norelevel,
+#              criterion="D",
+#              evaluateI = T,
+#              args=TRUE)
+# })
+# 
 ####
 # Closest -----------------------------------------------------------------
 ####

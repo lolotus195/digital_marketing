@@ -467,18 +467,6 @@ design.with.inter <- ExtractNewExperiments(histdat.unique.ccs.idx,
                                            criterion.meas.it[[4]]$design)
 WriteDesign("augment_with_inter.csv", design.with.inter[,exp.cols])
 
-all.criterion <- data.frame(
-  Name=c("Scratch-A", "Scratch-D", "Scratch-I", "Non-Augmented (Histdat)",
-         "Augmented (Histdat+15)", "Non-Augmented (Interact) (Histdat)",
-         "Augmented (Interact) (Histdat+15)"),
-  D=c(fed.a$D, fed.d$D, fed.i$D, criterion.meas[[1]]$D, criterion.meas[[4]]$D,
-      criterion.meas.it[[1]]$D, criterion.meas.it[[4]]$D),
-  A=c(fed.a$A, fed.d$A, fed.i$A, criterion.meas[[1]]$A, criterion.meas[[4]]$A,
-      criterion.meas.it[[1]]$A, criterion.meas.it[[4]]$A),
-  I=c(NA, NA, fed.i$I, criterion.meas[[1]]$I, criterion.meas[[4]]$I,
-      criterion.meas.it[[1]]$I, criterion.meas.it[[4]]$I))
-ExportTable(all.criterion, "criterion", "Criterion for Designs", NA.string = "NA")
-
 #
 # 15 Experiments from D criterion (no interaction terms)
 #
@@ -568,6 +556,27 @@ samp.quant <- ord.idx[round(c(seq(from=0, to=0.8, length.out = 10),
                               seq(from=0.8, to=1, length.out = 26))*length(ord.idx))]
 combi[samp.quant,]
 WriteDesign("sampled_quantile.csv", combi[samp.quant,exp.cols])
+
+####
+# Criterion Table ---------------------------------------------------------
+####
+all.criterion <- data.frame(
+  Name=c("Scratch-A", "Scratch-D", "Scratch-I", "Non-Augmented (Histdat)",
+         "Augmented (Histdat+15)", "Non-Augmented (Interact) (Histdat)",
+         "Augmented (Interact) (Histdat+15)", "Scratch-Interact-D"),
+  File=c("scratch_A.csv", "scratch_D.csv", "scratch_I.csv", NA,
+         "augmented_no_inter.csv", NA, "augmented_with_inter.csv",
+         "scratch_interact_1se.csv"),
+  D=c(fed.a$D, fed.d$D, fed.i$D, criterion.meas[[1]]$D, criterion.meas[[4]]$D,
+      criterion.meas.it[[1]]$D, criterion.meas.it[[4]]$D,
+      new.search.1se$D),
+  A=c(fed.a$A, fed.d$A, fed.i$A, criterion.meas[[1]]$A, criterion.meas[[4]]$A,
+      criterion.meas.it[[1]]$A, criterion.meas.it[[4]]$A,
+      new.search.1se$A),
+  I=c(NA, NA, fed.i$I, criterion.meas[[1]]$I, criterion.meas[[4]]$I,
+      criterion.meas.it[[1]]$I, criterion.meas.it[[4]]$I, NA))
+
+ExportTable(all.criterion, "criterion", "Criterion for Designs", NA.string = "NA", digits = 4)
 
 ####
 # Closest -----------------------------------------------------------------

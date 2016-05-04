@@ -353,6 +353,13 @@ WriteDesign("scratch_A.csv", fed.a$design)
 WriteDesign("scratch_D.csv", fed.d$design)
 WriteDesign("scratch_I.csv", fed.i$design)
 
+d.design <- fed.d$design 
+d.design$pr.glmnet.1se <- BatchPredictGLMNET(
+  mdl.net.cv.it, formula.interact, 
+  RelevelCombinations(fed.d$design, histdat.levels), "lambda.1se")
+d.design <- d.design[order(d.design$pr.glmnet.1se),]
+ExportTable(d.design, "ordered_d_design", "Ordered D-Design")
+
 # rownames.idx <- LoadCacheTagOrRun("q4_match_ccs", function() {
 #   all.cases.num <- matrix(as.numeric(as.matrix(all.cases)), ncol=9)
 #   all.complete.num <- matrix(as.numeric(as.matrix(unique(

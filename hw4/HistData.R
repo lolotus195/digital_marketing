@@ -119,8 +119,36 @@ mdl.net.cv.it <- LoadCacheTagOrRun("q4_glmnet_cv_it", function() {
 })
 plot(mdl.net.cv.it)
 
-sum(coef(mdl.net.cv.it, s = "lambda.1se") > 0)
-sum(coef(mdl.net.cv.it, s = "lambda.min") > 0)
+sum(abs(coef(mdl.net.cv.it, s = "lambda.1se")) > 0)
+sum(abs(coef(mdl.net.cv.it, s = "lambda.min")) > 0)
+
+mdl.net.cv.it2 <- LoadCacheTagOrRun("q4_glmnet_cv_it2", function() {
+  # Double the # of rows in histdat.all
+  # Put number of successes in first part, number of failures in second
+  # Use these counts as weights in glmnet binomial.
+  histdat.net <- melt(
+    histdat.all %>% 
+      mutate(NonClicks=Unique_Sent - Unique_Clicks) %>% 
+      select(-Unique_Sent), 
+    id.vars=exp.cols, measure_vars=c("Unique_Clicks", "NonClicks"))
+  y <- histdat.net$variable == "Unique_Clicks"
+  weights <- histdat.net$value
+  mm.it <- model.matrix(formula.interact, data=GetModelFrame(histdat.net))
+  
+  # Set penalty on the interaction terms first.
+  penalty.factor <- rep(2/3, ncol(mm.it))
+  
+  # Then set the penalty on the non-interaction terms.
+  penalty.factor[grep("^V\\d+$", colnames(mm.it))] <- 0.5
+  
+  cv.glmnet(mm.it, y, family="binomial", weights=weights, alpha=1, nfolds=20,
+            penalty.factor=penalty.factor)
+})
+plot(mdl.net.cv.it2)
+
+sum(abs(coef(mdl.net.cv.it2, s = "lambda.1se")) > 0)
+sum(abs(coef(mdl.net.cv.it2, s = "lambda.min")) > 0)
+
 
 ####
 # Predict Using the Models ------------------------------------------------

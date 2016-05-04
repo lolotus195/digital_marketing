@@ -131,10 +131,10 @@ r2 <- c('headline','L2','CONGRATS!')
 r3 <- c('main\\_text','L1','Make the most of your new plan’s savings \\& shareable data...')
 r4 <- c('button','L2','Symbol Before text')
 r5 <- c('action','L1','Uses word click')
-r5 <- c('purpose','L2','Have a Look')
-r6 <- c('symbol','L2','$>>$')
+r6 <- c('purpose','L2','Have a Look')
+r7 <- c('symbol','L2','$>>$')
 
-tab.best <- rbind(r1, r2, r3, r4, r5, r6)
+tab.best <- rbind(r1, r2, r3, r4, r5, r6, r7)
 rownames(tab.best) <- tab.best[,1]
 tab.best <- tab.best[,2:3]
 colnames(tab.best) <- c('Level', 'Description')
@@ -146,11 +146,19 @@ r2 <- c('headline','L2','CONGRATS!')
 r3 <- c('main\\_text','L1','Make the most of your new plan’s savings \\& shareable data...')
 r4 <- c('button','L1','Symbol after text')
 r5 <- c('action','L2','Does not use word click')
-r5 <- c('purpose','L1','Take a Look')
-r6 <- c('symbol','L1','$\\blacktriangleright$')
+r6 <- c('purpose','L1','Take a Look')
+r7 <- c('symbol','L1','$\\blacktriangleright$')
 
-tab.best <- rbind(r1, r2, r3, r4, r5, r6)
+tab.best <- rbind(r1, r2, r3, r4, r5, r6, r7)
 rownames(tab.best) <- tab.best[,1]
 tab.best <- tab.best[,2:3]
 colnames(tab.best) <- c('Level', 'Description')
 ExportTable(tab.best, 'best_click', 'Features of Best Click Rate Message')
+
+
+# Expl ----
+
+load(file = 'Historical_Data.rdat')
+hist.click.rate <- sapply(histdat, function(h) {
+  mean(h$Unique_Clicks / h$Unique_Sent)
+})

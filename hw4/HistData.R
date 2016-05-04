@@ -410,14 +410,27 @@ VaryAugment <- function(aug.amt, fo) {
   return(res)
 }
 
-# aug.size.no.inter <- c(0, 5, 10, 15:25)
-# aug.size.inter <- c(0, 5, 10, 15, 20)
-# criterion.meas <- LoadCacheTagOrRun("q4_crit_no_inter", function() {
-#   VaryAugment(aug.size.no.inter, ~ .)
-# })
-# criterion.meas.it <- LoadCacheTagOrRun("q4_crit_inter", function() {
-#   VaryAugment(aug.size.inter, ~ . + .^2)
-# })
+aug.size.no.inter <- c(0, 5, 10, 15:25)
+aug.size.inter <- c(0, 5, 10, 15, 20)
+criterion.meas <- LoadCacheTagOrRun("q4_crit_no_inter", function() {
+  VaryAugment(aug.size.no.inter, ~ .)
+})
+criterion.meas.it <- LoadCacheTagOrRun("q4_crit_inter", function() {
+  VaryAugment(aug.size.inter, ~ . + .^2)
+})
+
+PlotCriterionChanges <- function(criterion, aug.size) {
+  crit <- cbind(aug.size=aug.size,
+                ldply(criterion, function(x) {
+                  data.frame(D=x$D, I=x$I, A=x$A)
+                }))
+  g <- ggplot(melt(crit, id.vars="aug.size"), aes(x=aug.size, y=value)) +
+    geom_line() + facet_wrap(~variable, scales="free_y")
+  return(g)
+}
+GGPlotSave(PlotCriterionChanges(criterion.meas, aug.size.no.inter), "aug_no_inter")
+GGPlotSave(PlotCriterionChanges(criterion.meas.it, aug.size.inter), "aug_with_inter")
+
 
 ExtractNewExperiments <- function(old, all) {
   exp.to.run <- combi.norelevel[setdiff(as.numeric(rownames(all)), old),]
@@ -437,31 +450,22 @@ ExtractNewExperiments <- function(old, all) {
 }
 
 # aug.size=15
-# ExtractNewExperiments(histdat.unique.ccs.idx, criterion.meas.it[[4]]$design)
+design.no.inter <- ExtractNewExperiments(histdat.unique.ccs.idx, 
+                                         criterion.meas[[4]]$design)
+WriteDesign("augment_no_inter.csv", design.no.inter[,exp.cols])
 
 # aug.size=15
-# ExtractNewExperiments(histdat.unique.ccs.idx, criterion.meas[[4]]$design)
+design.with.inter <- ExtractNewExperiments(histdat.unique.ccs.idx, 
+                                           criterion.meas.it[[4]]$design)
+WriteDesign("augment_with_inter.csv", design.with.inter[,exp.cols])
 
-PlotCriterionChanges <- function(criterion, aug.size) {
-  crit <- cbind(aug.size=aug.size,
-                ldply(criterion, function(x) {
-                  data.frame(D=x$D, I=x$I, A=x$A)
-                }))
-  g <- ggplot(melt(crit, id.vars="aug.size"), aes(x=aug.size, y=value)) +
-    geom_line() + facet_wrap(~variable, scales="free_y")
-  return(g)
-}
-
-# fed.d$D
-# criterion.meas[[1]]$D
-
-
-# fed.d$A
-# criterion.meas[[1]]$A
-
-# PlotCriterionChanges(criterion.meas, aug.size.no.inter)
-# PlotCriterionChanges(criterion.meas.it, aug.size.inter)
-
+all.criterion <- data.frame(
+  Name=c("Scratch-A", "Scratch-D", "Scratch-I", "Non-Augmented (Histdat)",
+         "Augmented (Histdat+15)"),
+  D=c(fed.a$D, fed.d$D, fed.i$D, criterion.meas[[1]]$D, criterion.meas[[4]]$D),
+  A=c(fed.a$A, fed.d$A, fed.i$A, criterion.meas[[1]]$A, criterion.meas[[4]]$A),
+  I=c(NA, NA, fed.i$I, criterion.meas[[1]]$I, criterion.meas[[4]]$I))
+ExportTable(all.criterion, "criterion", "Criterion for Designs")
 
 #
 # 15 Experiments from D criterion (no interaction terms)

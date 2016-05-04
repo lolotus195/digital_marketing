@@ -476,9 +476,33 @@ PlotCriterionChanges(criterion.meas.it, aug.size.inter)
 # 372351  3  1  3  1  5  2  2  4  6       0.05601142
 
 ####
-# Another Idea ------------------------------------------------------------
+# Another Idea (1se)-------------------------------------------------------
 ####
 # https://piazza.com/class/im6wk9z189a2ha?cid=17
+coefs.1se <- coef(mdl.net.cv.it, s="lambda.1se")
+idx.non.inter <- 1:42
+interaction.terms.1se <- rownames(coefs.1se)[-idx.non.inter][
+  which(coefs.1se[-idx.non.inter]!=0)]
+# [1] "V15:V23" "V16:V23" "V14:V72" "V26:V72" "V41:V55" "V41:V72" "V55:V72" "V55:V84" "V55:V94"
+# [10] "V63:V72" "V72:V84" "V72:V85" "V72:V92" "V72:V94"
+base.interaction.terms.1se <- unique(gsub("V(\\d)\\d:V(\\d)\\d", "V\\1*V\\2",
+                                          interaction.terms.1se))
+
+search.fo.1se <- as.formula(paste("~ . +", 
+                                  paste(base.interaction.terms.1se, collapse=" + ")))
+
+new.search.1se <- LoadCacheTagOrRun("q4_fed_new_search_1se", function() {
+  optFederov(search.fo.1se,
+             data=combi.norelevel,
+             criterion="D",
+             maxIteration = 100,
+             evaluateI = T,
+             args=TRUE)
+})
+
+####
+# Another Idea (min) ------------------------------------------------------
+####
 coefs <- coef(mdl.net.cv.it, s="lambda.min")
 idx.non.inter <- 1:42
 interaction.terms <- rownames(coefs)[-idx.non.inter][which(coefs[-idx.non.inter]!=0)]

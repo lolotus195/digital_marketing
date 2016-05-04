@@ -508,12 +508,13 @@ print(sprintf("# of required experiments for lambda.1se: %d",
               ncol(model.matrix(search.fo.1se, data=histdat[[3]]))+5))
 # 131 + 5 (for safety)
 
-# new.search.1se <- LoadCacheTagOrRun("q4_fed_new_search_1se", function() {
-#   optFederov(search.fo.1se,
-#              data=combi.norelevel,
-#              criterion="D",
-#              args=TRUE)
-# })
+new.search.1se <- LoadCacheTagOrRun("q4_fed_new_search_1se", function() {
+  optFederov(search.fo.1se,
+             data=combi.norelevel,
+             criterion="D",
+             args=TRUE)
+})
+WriteDesign("scratch_interact_1se", new.search.1se$design)
 
 ####
 # Another Idea (min) ------------------------------------------------------

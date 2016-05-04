@@ -417,6 +417,10 @@ ExtractNewExperiments <- function(old, all) {
     mdl.net.cv.it, formula.interact,
     GetModelFrame(RelevelCombinations(exp.to.run, histdat.levels)), 
     "lambda.1se")
+  exp.to.run$cv.pr.net.it.min <- BatchPredictGLMNET(
+    mdl.net.cv.it, formula.interact,
+    GetModelFrame(RelevelCombinations(exp.to.run, histdat.levels)), 
+    "lambda.min")
   exp.to.run$glm.pr <- predict(
     mdl.glm, 
     newdata=RelevelCombinations(exp.to.run, histdat.levels), 
@@ -439,6 +443,13 @@ PlotCriterionChanges <- function(criterion, aug.size) {
     geom_line() + facet_wrap(~variable, scales="free_y")
   return(g)
 }
+
+fed.d$D
+criterion.meas[[1]]$D
+
+
+fed.d$A
+criterion.meas[[1]]$A
 
 PlotCriterionChanges(criterion.meas, aug.size.no.inter)
 PlotCriterionChanges(criterion.meas.it, aug.size.inter)
@@ -463,6 +474,33 @@ PlotCriterionChanges(criterion.meas.it, aug.size.inter)
 # 371058  6  1  3  1  1  2  2  4  6       0.03804751
 # 371076  6  4  3  1  1  2  2  4  6       0.03804751
 # 372351  3  1  3  1  5  2  2  4  6       0.05601142
+
+####
+# Another Idea ------------------------------------------------------------
+####
+# https://piazza.com/class/im6wk9z189a2ha?cid=17
+coefs <- coef(mdl.net.cv.it, s="lambda.min")
+idx.non.inter <- 1:42
+interaction.terms <- rownames(coefs)[-idx.non.inter][which(coefs[-idx.non.inter]!=0)]
+# [1] "V12:V22" "V14:V22" "V11:V23" "V13:V23" "V14:V23" "V15:V23" "V16:V23" "V15:V25"
+# [9] "V15:V26" "V14:V55" "V15:V55" "V14:V63" "V14:V72" "V15:V72" "V15:V84" "V22:V72"
+# [17] "V22:V85" "V33:V41" "V33:V55" "V33:V72" "V33:V85" "V41:V55" "V41:V72" "V55:V63"
+# [25] "V55:V72" "V55:V84" "V55:V85" "V55:V94" "V61:V72" "V63:V72" "V63:V84" "V61:V94"
+# [33] "V72:V81" "V72:V84" "V72:V85" "V72:V92" "V72:V94" "V85:V92"
+base.interaction.terms <- unique(gsub("V(\\d)\\d:V(\\d)\\d", "V\\1*V\\2",
+                                      interaction.terms))
+
+search.fo <- as.formula(paste("~ . +", 
+                              paste(base.interaction.terms, collapse=" + ")))
+
+new.search <- LoadCacheTagOrRun("q4_fed_new_search", function() {
+  optFederov(search.fo,
+             data=combi.norelevel,
+             criterion="D",
+             maxIteration = 100,
+             evaluateI = T,
+             args=TRUE)
+})
 
 ####
 # Closest -----------------------------------------------------------------

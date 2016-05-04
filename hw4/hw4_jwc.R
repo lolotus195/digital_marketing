@@ -76,15 +76,17 @@ prob.click <- prob.click[order(prob.click, decreasing = T)]
 
 # Results
 tab.res <- data.frame(coef.open = coef(fit.open)[-1],
-                      prob.open = 1 / (1 + exp(-coef(fit.open)[-1])),
+                      omult.open = exp(coef(fit.open)[-1]),
                       coef.click = coef(fit.click)[-1],
-                      prob.click = 1 / (1 + exp(-coef(fit.click)[-1])))
+                      omult.click = exp(coef(fit.click)[-1]))
 rownames(tab.res) <- gsub('L', ':L', rownames(tab.res))
 rownames(tab.res) <- gsub('_', '\\\\_', rownames(tab.res))
 rownames(tab.res) <- paste('\\textsf{', rownames(tab.res), 
                            '}', sep = '')
-colnames(tab.res) <- c('$\\beta_j^{\\text{open}}$', '$Pr(\\text{open}|j)$', 
-                       '$\\beta_j^{\\text{click}}$', '$Pr(\\text{click}|j)$')
+colnames(tab.res) <- c('$\\beta_j^{\\text{open}}$', 
+                       '$\\exp(\\beta_j^{\\text{open}})$', 
+                       '$\\beta_j^{\\text{click}}$', 
+                       '$\\exp(\\beta_j^{\\text{click}})$')
 ExportTable(tab.res, 'logit_results', 'Logistic Regression Coefficients',
             digits = 3, display = rep('g', 5))
 
@@ -120,7 +122,35 @@ g2 <- qplot(pred.click, bins = 50) +
 plot(g2)
 
 # ----
-# Q4: Please use the historical data provided in the project section of chalk 
-# to provide me your experimental design. See HistData.R for details.	  
+# Addendum -- Brian's charts
 # ----
 
+# Open rate
+r1 <- c('intro','L3','MORE Everything has been activated')
+r2 <- c('headline','L2','CONGRATS!')
+r3 <- c('main\\_text','L1','Make the most of your new plan’s savings \\& shareable data...')
+r4 <- c('button','L2','Symbol Before text')
+r5 <- c('action','L1','Uses word click')
+r5 <- c('purpose','L2','Have a Look')
+r6 <- c('symbol','L2','$>>$')
+
+tab.best <- rbind(r1, r2, r3, r4, r5, r6)
+rownames(tab.best) <- tab.best[,1]
+tab.best <- tab.best[,2:3]
+colnames(tab.best) <- c('Level', 'Description')
+ExportTable(tab.best, 'best_open', 'Features of Best Open Rate Message')
+
+# Click rate
+r1 <- c('intro','L3','MORE Everything has been activated')
+r2 <- c('headline','L2','CONGRATS!')
+r3 <- c('main\\_text','L1','Make the most of your new plan’s savings \\& shareable data...')
+r4 <- c('button','L1','Symbol after text')
+r5 <- c('action','L2','Does not use word click')
+r5 <- c('purpose','L1','Take a Look')
+r6 <- c('symbol','L1','$\\blacktriangleright$')
+
+tab.best <- rbind(r1, r2, r3, r4, r5, r6)
+rownames(tab.best) <- tab.best[,1]
+tab.best <- tab.best[,2:3]
+colnames(tab.best) <- c('Level', 'Description')
+ExportTable(tab.best, 'best_click', 'Features of Best Click Rate Message')

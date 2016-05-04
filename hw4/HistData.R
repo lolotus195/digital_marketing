@@ -523,13 +523,16 @@ WriteDesign("scratch_interact_1se", new.search.1se$design)
 coefs.1se <- coef(mdl.net.cv.it, s="lambda.1se")
 idx.non.inter <- 1:42
 interaction.terms.1se <- rownames(coefs.1se)[-idx.non.inter][
-  which(abs(coefs.1se[-idx.non.inter])>0.1)]
+  which(coefs.1se[-idx.non.inter]>0.08)]
 # "V15:V23" "V16:V23" "V72:V84"
-base.interaction.terms.1se <- unique(gsub("V(\\d)\\d:V(\\d)\\d", "V\\1:V\\2",
+base.interaction.terms.1se <- unique(gsub("V(\\d)\\d:V(\\d)\\d", "V\\1*V\\2",
                                           interaction.terms.1se))
+base.interaction.terms.1se
 
 search.fo.1se <- as.formula(paste("~ . +", 
                                   paste(base.interaction.terms.1se, collapse=" + ")))
+search.fo.1se
+# search.fo.1se <- formula(~. + V7*V8)
 # ~. + V1:V2 + V7:V8
 print(sprintf("# of required experiments for lambda.1se: %d", 
               ncol(model.matrix(search.fo.1se, data=histdat[[3]]))+5))

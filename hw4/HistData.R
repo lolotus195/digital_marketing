@@ -346,11 +346,19 @@ fed.i <- LoadCacheTagOrRun("q4_opt_fed_i", function() {
 WriteDesign <- function(filename, design) {
   # This is really dumb, I hate R.
   mtx <- matrix(as.numeric(as.matrix(design)), ncol=9)
-  write.table(mtx, file=filename, row.names = F, sep = ",")
+  write.table(mtx, file=sprintf("experiments/%s", filename), 
+              row.names = F, sep = ",")
 }
 WriteDesign("scratch_A.csv", fed.a$design)
 WriteDesign("scratch_D.csv", fed.d$design)
 WriteDesign("scratch_I.csv", fed.i$design)
+
+d.design <- fed.d$design 
+d.design$pr.glmnet.1se <- BatchPredictGLMNET(
+  mdl.net.cv.it, formula.interact, 
+  RelevelCombinations(fed.d$design, histdat.levels), "lambda.1se")
+d.design <- d.design[order(d.design$pr.glmnet.1se),]
+ExportTable(d.design, "ordered_d_design", "Ordered D-Design")
 
 # rownames.idx <- LoadCacheTagOrRun("q4_match_ccs", function() {
 #   all.cases.num <- matrix(as.numeric(as.matrix(all.cases)), ncol=9)
@@ -461,11 +469,15 @@ WriteDesign("augment_with_inter.csv", design.with.inter[,exp.cols])
 
 all.criterion <- data.frame(
   Name=c("Scratch-A", "Scratch-D", "Scratch-I", "Non-Augmented (Histdat)",
-         "Augmented (Histdat+15)"),
-  D=c(fed.a$D, fed.d$D, fed.i$D, criterion.meas[[1]]$D, criterion.meas[[4]]$D),
-  A=c(fed.a$A, fed.d$A, fed.i$A, criterion.meas[[1]]$A, criterion.meas[[4]]$A),
-  I=c(NA, NA, fed.i$I, criterion.meas[[1]]$I, criterion.meas[[4]]$I))
-ExportTable(all.criterion, "criterion", "Criterion for Designs")
+         "Augmented (Histdat+15)", "Non-Augmented (Interact) (Histdat)",
+         "Augmented (Interact) (Histdat+15)"),
+  D=c(fed.a$D, fed.d$D, fed.i$D, criterion.meas[[1]]$D, criterion.meas[[4]]$D,
+      criterion.meas.it[[1]]$D, criterion.meas.it[[4]]$D),
+  A=c(fed.a$A, fed.d$A, fed.i$A, criterion.meas[[1]]$A, criterion.meas[[4]]$A,
+      criterion.meas.it[[1]]$A, criterion.meas.it[[4]]$A),
+  I=c(NA, NA, fed.i$I, criterion.meas[[1]]$I, criterion.meas[[4]]$I,
+      criterion.meas.it[[1]]$I, criterion.meas.it[[4]]$I))
+ExportTable(all.criterion, "criterion", "Criterion for Designs", NA.string = "NA")
 
 #
 # 15 Experiments from D criterion (no interaction terms)

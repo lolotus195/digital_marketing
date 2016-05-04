@@ -18,30 +18,32 @@ The number of possible message combinations that can be tested, or full factoria
 
 We estimate two logistic regression models, one for an open rate and one for a click rate:
 \[ \log{\frac{p}{1-p}} = \bm{X}^{\prime} \bm{\beta} + \bm{\varepsilon} \]
-where $p$ is the probability of a click or an open, $\bm{X}$ is the model matrix containing indicator variables for each factor/level combination, and $\bm{\beta}$ is the vector of estimated coefficients. We report the coefficients for the click and open models in \cref{tab:logit_results}, as well as the associated probabilities for each. Recall that we can express the coefficients as probabilities by:
-\[ p = \frac{1}{1+\exp(-\beta)} \]
+where $p$ is the probability of a click or an open, $\bm{X}$ is the model matrix containing indicator variables for each factor/level combination, and $\bm{\beta}$ is the vector of estimated coefficients. We report the coefficients for the click and open models in \cref{tab:logit_results}, as well as the odds multipliers for each coefficient (which are just $\exp{\beta_j}$).
 \input{logit_results}
 We can make a few observations:
 \begin{itemize}
-\item The range of probabilities is higher in the click model (0.9 percent) than it is in the open model (5.8 percent). In general, the message variations have a larger marginal effect on click behavior (which is more valuable) than they do on open behavior.
-\item The most powerful coefficient is the L2 level of the action type. 
-\item Three of the top five strongest predictors of click rates are headlines (L2, L3, and L4). Choosing the proper headline makes a big difference in the final click rate.
-\item Similarly, the three largest negative effects on click rate are different levels of the message purpose (L2, L3, and L4). So choosing the proper message purpose would be a way to minimize those who open but do not click a message.
+\item The effects in the click model are all stronger than the effects in the open model. Put differently, message optimization has a much stronger effect on click behavior than it does on open behavior. The odds multipliers on the open model are all very close to 1; the odds multipliers on the click model vary from 0.907 to 1.13.
+\item Far and away, the two most important elements of a message for generating clicks are to use \textsf{action L2} and \textsf{intro L3}. They increase the odds of a click by 12.6 and 12.9 percent, respectively.
+\item Conversely, a bad \textsf{purpose} will really drag down a message's click rate. The pair of \textsf{purpose L3} and \textsf{purpose L4} decrease the odds of a click by 9.2 percent and 8.9 percent, respectively.
 \end{itemize}
 
 \section{} % Question 3
 We generated a full factorial of all 1,024 message combinations. Using this full factorial, we used our models to estimate open probabilities and click probabilities for each of the 1,024 message combinations. For comparison purposes, we also calculated the open and click probabilities for the control sample.
 
-Our results are in \cref{fig:q3_hist} below. As shown in those histograms, there is a significant difference between the baseline click and open probabilities of the control message versus the estimated probabilities from our full factorial.
+Our results are in \cref{fig:q3_hist} below. As shown in those histograms, there is a significant difference between the baseline click and open probabilities of the control message versus the estimated probabilities from our full factorial. Even the worst message in the test set is better than the baseline message.
 
 \begin{figure}[!htb]
   \centering
   \caption{Histogram of Predicted Probabilities vs. Control}
-  \includegraphics[scale=0.7]{q3_hist.pdf}
+  \includegraphics[scale=0.5]{q3_hist.pdf}
   \label{fig:q3_hist}
 \end{figure}
 
-In terms of message combinations with the highest estimated click and open rates, we found that 
+In terms of optimal message combinations, we found that the best combination for the fitted open probability was (V1=L3, V2=L2, V3=L1, V4=L2, V5=L1, V6=L2, V7=L2). The optimal combination for the fitted click probability was (V1=L3, V2=L2, V3=L1, V4=L1, V5=L2, V6=L1, V7=L1).
+
+These two messages are generally similar because they both have an introduction of \textit{"MORE Everything has been activated"} and they both have a headline of \textit{"CONGRATS!"}. Moreover, the main text in both of these messages is \textit{"Make the most of your new plan’s savings \& shareable data - add a new device today!"}. These similarities may be the parts of the message that pique the readers' interest.
+
+The differences between the messages are in terms of the button positioning, the call to action, the purpose, and the symbol.
 
 \end{document}
 

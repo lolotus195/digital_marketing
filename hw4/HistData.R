@@ -544,8 +544,7 @@ new.search.1se.co <- LoadCacheTagOrRun("q4_fed_new_search_1se_co", function() {
              criterion="D",
              args=TRUE)
 })
-WriteDesign("scratch_interact_1se_co", new.search.1se.co$design)
-
+WriteDesign("scratch_interact_1se_co.csv", new.search.1se.co$design)
 
 ####
 # Another Idea (min) ------------------------------------------------------

@@ -517,6 +517,34 @@ new.search.1se <- LoadCacheTagOrRun("q4_fed_new_search_1se", function() {
 WriteDesign("scratch_interact_1se", new.search.1se$design)
 
 ####
+# 1se with cutoff ---------------------------------------------------------
+####
+# https://piazza.com/class/im6wk9z189a2ha?cid=17
+coefs.1se <- coef(mdl.net.cv.it, s="lambda.1se")
+idx.non.inter <- 1:42
+interaction.terms.1se <- rownames(coefs.1se)[-idx.non.inter][
+  which(abs(coefs.1se[-idx.non.inter])>0.1)]
+# "V15:V23" "V16:V23" "V72:V84"
+base.interaction.terms.1se <- unique(gsub("V(\\d)\\d:V(\\d)\\d", "V\\1:V\\2",
+                                          interaction.terms.1se))
+
+search.fo.1se <- as.formula(paste("~ . +", 
+                                  paste(base.interaction.terms.1se, collapse=" + ")))
+# ~. + V1:V2 + V7:V8
+print(sprintf("# of required experiments for lambda.1se: %d", 
+              ncol(model.matrix(search.fo.1se, data=histdat[[3]]))+5))
+# 63 + 5 (for safety)
+
+new.search.1se.co <- LoadCacheTagOrRun("q4_fed_new_search_1se_co", function() {
+  optFederov(search.fo.1se,
+             data=combi.norelevel,
+             criterion="D",
+             args=TRUE)
+})
+WriteDesign("scratch_interact_1se_co", new.search.1se.co$design)
+
+
+####
 # Another Idea (min) ------------------------------------------------------
 ####
 coefs <- coef(mdl.net.cv.it, s="lambda.min")

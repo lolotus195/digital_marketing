@@ -546,6 +546,15 @@ print(sprintf("# of required experiments for lambda.min: %d",
 #              args=TRUE)
 # })
 # 
+
+####
+# Predicted Quantile Sampling ---------------------------------------------
+####
+ord.idx <- order(combi$cv.pr.net.it.1se)
+samp.quant <- ord.idx[round(c(seq(from=0, to=0.8, length.out = 8),
+                              seq(from=0.8, to=1, length.out = 12))*length(ord.idx))]
+combi[samp.quant,]
+
 ####
 # Closest -----------------------------------------------------------------
 ####

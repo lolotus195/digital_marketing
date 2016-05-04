@@ -194,11 +194,18 @@ combi$cv.pr.net.it.1se <- LoadCacheTagOrRun("q4_pr_net_it_1se", function() {
                      GetModelFrame(combi), "lambda.1se")
 })
 
+combi$cv.pr.net.it.min <- LoadCacheTagOrRun("q4_pr_net_it_min", function() {
+  BatchPredictGLMNET(mdl.net.cv.it, formula.interact,
+                     GetModelFrame(combi), "lambda.min")
+})
+
+
 ####
 # Plot the prediction histograms ------------------------------------------
 ####
 combi.melt <- melt(combi, id.vars=c(), measure.vars = c(
-  "glm.pr", "cv.pr.it.1se", "cv.pr.net.it.1se"))
+  "cv.pr.it.1se", "cv.pr.net.it.1se",
+  "cv.pr.net.it.min"))
 
 histdat.emp <- data.frame(
   rate=histdat.all$Unique_Clicks / histdat.all$Unique_Sent)
@@ -209,6 +216,7 @@ measure.labels=c(
   "cv.pr.it.min" = "2-Level Interactions (cv.gamlr - min)",
   "glm.pr" = "Simple Logit Model (GLM)",
   "cv.pr.net.it.1se" = "2-Level Interactions (cv.glmnet - 1se)",
+  "cv.pr.net.it.min" = "2-Level Interactions (cv.glmnet - min)",
   "rate" = "Historical"
 )
 g <- ggplot(plot.melt, aes(x=value)) + 
@@ -229,10 +237,10 @@ TopNIndices <- function(dat, cols, N=10, decreasing=T) {
 
 # Look at the topN.
 topN.idx <- TopNIndices(
-  combi, c("cv.pr.it.1se", "cv.pr.net.it.1se", "glm.pr"), 10)
+  combi, c("cv.pr.it.1se", "cv.pr.net.it.min", "glm.pr"), 10)
 combi[intersect(topN.idx$cv.pr.it.1se, topN.idx$glm.pr),]
-combi[intersect(topN.idx$cv.pr.net.it.1se, topN.idx$glm.pr),]
-combi[topN.idx$cv.pr.net.it.1se,]
+combi[intersect(topN.idx$cv.pr.net.it.min, topN.idx$glm.pr),]
+combi[topN.idx$cv.pr.net.it.min,]
 combi[topN.idx$cv.pr.it.1se,]
 combi[topN.idx$glm.pr,]
 

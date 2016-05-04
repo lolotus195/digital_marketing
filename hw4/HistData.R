@@ -497,14 +497,13 @@ interaction.terms.1se <- rownames(coefs.1se)[-idx.non.inter][
   which(coefs.1se[-idx.non.inter]!=0)]
 # [1] "V15:V23" "V16:V23" "V14:V72" "V26:V72" "V41:V55" "V41:V72" "V55:V72" "V55:V84" "V55:V94"
 # [10] "V63:V72" "V72:V84" "V72:V85" "V72:V92" "V72:V94"
-base.interaction.terms.1se <- unique(gsub("V(\\d)\\d:V(\\d)\\d", "V\\1*V\\2",
+base.interaction.terms.1se <- unique(gsub("V(\\d)\\d:V(\\d)\\d", "V\\1:V\\2",
                                           interaction.terms.1se))
 
 search.fo.1se <- as.formula(paste("~ . +", 
                                   paste(base.interaction.terms.1se, collapse=" + ")))
-# ~. + V1 * V2 + V1 * V7 + V2 * V7 + V4 * V5 + V4 * V7 + V5 * V7 + 
-#   V5 * V8 + V5 * V9 + V6 * V7 + V7 * V8 + V7 * V9
-
+# ~. + V1:V2 + V1:V7 + V2:V7 + V4:V5 + V4:V7 + V5:V7 + V5:V8 + 
+#   V5:V9 + V6:V7 + V7:V8 + V7:V9
 print(sprintf("# of required experiments for lambda.1se: %d", 
               ncol(model.matrix(search.fo.1se, data=histdat[[3]]))+5))
 # 131 + 5 (for safety)
@@ -527,16 +526,14 @@ interaction.terms <- rownames(coefs)[-idx.non.inter][which(coefs[-idx.non.inter]
 # [17] "V22:V85" "V33:V41" "V33:V55" "V33:V72" "V33:V85" "V41:V55" "V41:V72" "V55:V63"
 # [25] "V55:V72" "V55:V84" "V55:V85" "V55:V94" "V61:V72" "V63:V72" "V63:V84" "V61:V94"
 # [33] "V72:V81" "V72:V84" "V72:V85" "V72:V92" "V72:V94" "V85:V92"
-base.interaction.terms <- unique(gsub("V(\\d)\\d:V(\\d)\\d", "V\\1*V\\2",
+base.interaction.terms <- unique(gsub("V(\\d)\\d:V(\\d)\\d", "V\\1:V\\2",
                                       interaction.terms))
 
 search.fo <- as.formula(paste("~ . +", 
                               paste(base.interaction.terms, collapse=" + ")))
-# ~. + V1 * V2 + V1 * V5 + V1 * V6 + V1 * V7 + V1 * V8 + V2 * V7 + 
-#   V2 * V8 + V3 * V4 + V3 * V5 + V3 * V7 + V3 * V8 + V4 * V5 + 
-#   V4 * V7 + V5 * V6 + V5 * V7 + V5 * V8 + V5 * V9 + V6 * V7 + 
-#   V6 * V8 + V6 * V9 + V7 * V8 + V7 * V9 + V8 * V9
-
+# ~. + V1:V2 + V1:V5 + V1:V6 + V1:V7 + V1:V8 + V2:V7 + V2:V8 + 
+#   V3:V4 + V3:V5 + V3:V7 + V3:V8 + V4:V5 + V4:V7 + V5:V6 + V5:V7 + 
+#   V5:V8 + V5:V9 + V6:V7 + V6:V8 + V6:V9 + V7:V8 + V7:V9 + V8:V9
 print(sprintf("# of required experiments for lambda.min: %d", 
               ncol(model.matrix(search.fo, data=histdat[[3]]))+5))
 # 287 + 5 (for safety)

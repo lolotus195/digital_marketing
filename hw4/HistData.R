@@ -14,9 +14,6 @@ require(gamlr)
 
 # load data
 load(file = "Historical_Data.rdat")
-# Loads a list called histdat
-# The list contains 318 elements
-length(histdat)
 
 ####
 # Relevel and combine history ---------------------------------------------
@@ -285,7 +282,36 @@ ConvertSignifCoefsToFormula <- function(coefs) {
   return(as.formula(paste("~", paste(parsed.coefs, collapse=" + "))))
 }
 
-ConvertSignifCoefsToFormula(coef(mdl.net.cv.it2, s="lambda.1se"))
+form.glmnet <- ConvertSignifCoefsToFormula(coef(mdl.net.cv.it2, s="lambda.1se"))
+
+####
+# Design experiment with glmnet coefficients ----------------------------------
+####
+
+MakeSubsetDataFrame <- function(coefs) {
+  signif.coefs.idx <- which(abs(coefs) > 0)
+  # Remote the intercept if it's there
+  if (signif.coefs.idx[1] == 1) {
+    signif.coefs.idx <- signif.coefs.idx[-1]
+  }
+  coefnames <- rownames(coefs)[signif.coefs.idx]
+  
+  # Make a new data matrix by only varying the columsn of interest
+  dat.new <- gen.factorial(nVars = length(signif.coefs.idx),
+                           levels = 2,
+                           varNames = coefnames)
+  
+  # Default is 1/-1, probably there is a way to set this
+  # This is a laxy fix
+  dat.new[dat.new==-1] <- 0
+  return(dat.new)
+}
+
+opt.d.glmnet <- LoadCacheTagOrRun("fed_opt_d_glmnet", function() {
+  optFederov(data = MakeSubsetDataFrame(coef(mdl.net.cv.it2, s="lambda.1se")),
+             nTrials = 22, 
+             criterion = "D", args = T)
+})
 
 ####
 # TopN Results ------------------------------------------------------------

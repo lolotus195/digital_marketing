@@ -296,126 +296,139 @@ if (signif.coefs.idx[1] == 1) {
 }
 coefnames <- rownames(coefs)[signif.coefs.idx]
 
-dat.new <- expand.grid(V1=c(5,6),
-                       V4=c(1,3),
-                       V7=c(1,2),
-                       V8=c(2,3,4,5),
-                       V9=c(2,4,6))
+# Will -- so low energy, has to hard code it. Sad!
+dat.new <- expand.grid(V1=c(0,5,6),
+                       V2=c(0,3,6),
+                       V4=c(0,1,3),
+                       V5=c(0,5),
+                       V6=c(0,3),
+                       V7=c(0,1,2),
+                       V8=c(0,2,3,4,5),
+                       V9=c(0,2,4,6))
 dat.new <- sapply(dat.new, as.factor)
 
 opt.d.glmnet <- optFederov(data = dat.new,
-                           nTrials = 9, 
+                           nTrials = 18, 
                            criterion = "D", args = T)
 
+# histdat.levels
+opt.design <- opt.d.glmnet$design
+sapply(colnames(opt.design), function(c) {
+  idx.zeros <- which(opt.design[,c]==0)
+
+  non.levels <- (1:histdat.levels[c])[!(1:histdat.levels[c]) %in% opt.design[,c]]
+  
+  opt.design[idx.zeros, c] <- as.factor(sample(non.levels, sum(opt.design[,c]==0), replace = T))
+})
 
 ####
 # TopN Results ------------------------------------------------------------
 ####
-TopNIndices <- function(dat, cols, N=10, decreasing=T) {
-  sapply(cols, function(col) {
-    return(list(order(dat[,col], decreasing = decreasing)[1:N]))
-  })
-}
-
-# Look at the topN.
-topN.idx <- TopNIndices(
-  combi, c("cv.pr.it.1se", "cv.pr.net.it.min", "glm.pr"), 10)
-combi[intersect(topN.idx$cv.pr.it.1se, topN.idx$glm.pr),]
-combi[intersect(topN.idx$cv.pr.net.it.min, topN.idx$glm.pr),]
-combi[topN.idx$cv.pr.net.it.min,]
-combi[topN.idx$cv.pr.it.1se,]
-combi[topN.idx$glm.pr,]
-
-# Look at the botN.
-botN.idx <- TopNIndices(
-  combi, c("cv.pr.it.1se", "cv.pr.net.it.1se", "glm.pr"), 10, decreasing = F)
-combi[intersect(botN.idx$cv.pr.it.1se, botN.idx$glm.pr),]
-combi[intersect(botN.idx$cv.pr.net.it.1se, botN.idx$glm.pr),]
-combi[botN.idx$cv.pr.it.1se,]
-combi[botN.idx$cv.pr.net.it.1se,]
-combi[botN.idx$glm.pr,]
-
-# Compare the empirical one.
-histdat.all %>% mutate(rate = Unique_Clicks / Unique_Sent) -> histdat.all.rate
-topN.emp.idx <- TopNIndices(histdat.all.rate,  "rate", 10)
-histdat.all.rate[topN.emp.idx$rate,]
-
-botN.emp.idx <- TopNIndices(histdat.all.rate, "rate", 10, decreasing = F)
-histdat.all.rate[botN.emp.idx$rate,]
-
-####
-# Selecting the sample size of experiments --------------------------------
-## Sample size as a function of proportion (p) and margin of error (m)
-## The function below assumes a 95% significance level
-####
-sample.size = function(p,m)
-{
-  n = ((1.96^2)*p*(1-p))/m^2
-  return(n)
-}
-
-# We can either use an educated guess for p (our predicted probabilities)
-# or we can use a conservative method where p = 0.5 (this maximizes variance)
-# For 0 ≤ p ≤ 1, p(1 - p) achieves its largest value at p=0.5
-
-# Sample sizes for TopN intersection
-TopN_int <- combi[intersect(topN.idx$cv.pr.it.1se, topN.idx$glm.pr),]
-TopN_int$mean <- rowMeans(TopN_int[,10:12])
-
-# Sample sizes (educated guess and conservative method). 1% margin of error.
-TopN_int$sample_ed <- round(sample.size(TopN_int$mean,0.01),0)
-TopN_int$sample_cons <- round(sample.size(0.5,0.01),0)
-
-
-####
-# Psuedo-R2 calculations --------------------------------------------------
-####
-# OOS R-squared
-# setwd("C:/Users/Chingono/Documents/GitHub/digital_marketing/hw4")
-# p_hat <- predict(mdl.cv.it, newdata=[], type="response")
-# D <- deviance(y=[ ], pred=p_hat, family="binomial")
-# ybar <- mean(valDf$y==1) # marginal prob(y==1)
-# D0 <- deviance(y=[], pred=ybar, family="binomial")
+# TopNIndices <- function(dat, cols, N=10, decreasing=T) {
+#   sapply(cols, function(col) {
+#     return(list(order(dat[,col], decreasing = decreasing)[1:N]))
+#   })
+# }
 # 
-# ## OOS R-squared is
-# 1 - D/D0
-
-
-####
-# The Rest ----------------------------------------------------------------
-####
-# By next Wednesday (May 04) please upload a csv file 
-# with the first 9 columns labeled (V1,V2,...,V9) (all caps)
-# there should be a 10th column called N 
-# Each row in your csv file should correspond to a message
-# That is the level of the message element V1 through V9.
-# N for each row should be the same and should reflect the number of 
-# emails you wish to send out for each message.
-# I have placed a shell csv file with the appropriate 
-# formatting in the project folder.
-
-
-# Computing your profit score
-# Each message campaign costs the client $200
-# So if you have 32 messages it will cost your client $6400 to set up and mail these.
-# The number of emails doesnt impact your cost (apart from the opportunity cost).
-
-# Your total project profitability will be calculated as follows
-
-profit = function(unique_clicks,ncampaigns,other)
-{
-  unique_clicks*.1 - 200*ncampaigns - other
-} 
-
-# so if you send out 5,000,000 emails and got a 10% response
-# and you tested 64 messages in the first experiment
-# and 32 messages in the second experiment
-# and you purchased $5000 worth of other data
-# you would have made the client
-profit(5000000*.1,96,5000)
-# $25,800
-
-# If for example the control reponse rate was 3% and you decided to just 
-# go with that, do no experimentation and bought no data the client would make
-profit(5000000*.03,0,0)
-# $15,000
+# # Look at the topN.
+# topN.idx <- TopNIndices(
+#   combi, c("cv.pr.it.1se", "cv.pr.net.it.min", "glm.pr"), 10)
+# combi[intersect(topN.idx$cv.pr.it.1se, topN.idx$glm.pr),]
+# combi[intersect(topN.idx$cv.pr.net.it.min, topN.idx$glm.pr),]
+# combi[topN.idx$cv.pr.net.it.min,]
+# combi[topN.idx$cv.pr.it.1se,]
+# combi[topN.idx$glm.pr,]
+# 
+# # Look at the botN.
+# botN.idx <- TopNIndices(
+#   combi, c("cv.pr.it.1se", "cv.pr.net.it.1se", "glm.pr"), 10, decreasing = F)
+# combi[intersect(botN.idx$cv.pr.it.1se, botN.idx$glm.pr),]
+# combi[intersect(botN.idx$cv.pr.net.it.1se, botN.idx$glm.pr),]
+# combi[botN.idx$cv.pr.it.1se,]
+# combi[botN.idx$cv.pr.net.it.1se,]
+# combi[botN.idx$glm.pr,]
+# 
+# # Compare the empirical one.
+# histdat.all %>% mutate(rate = Unique_Clicks / Unique_Sent) -> histdat.all.rate
+# topN.emp.idx <- TopNIndices(histdat.all.rate,  "rate", 10)
+# histdat.all.rate[topN.emp.idx$rate,]
+# 
+# botN.emp.idx <- TopNIndices(histdat.all.rate, "rate", 10, decreasing = F)
+# histdat.all.rate[botN.emp.idx$rate,]
+# 
+# ####
+# # Selecting the sample size of experiments --------------------------------
+# ## Sample size as a function of proportion (p) and margin of error (m)
+# ## The function below assumes a 95% significance level
+# ####
+# sample.size = function(p,m)
+# {
+#   n = ((1.96^2)*p*(1-p))/m^2
+#   return(n)
+# }
+# 
+# # We can either use an educated guess for p (our predicted probabilities)
+# # or we can use a conservative method where p = 0.5 (this maximizes variance)
+# # For 0 ≤ p ≤ 1, p(1 - p) achieves its largest value at p=0.5
+# 
+# # Sample sizes for TopN intersection
+# TopN_int <- combi[intersect(topN.idx$cv.pr.it.1se, topN.idx$glm.pr),]
+# TopN_int$mean <- rowMeans(TopN_int[,10:12])
+# 
+# # Sample sizes (educated guess and conservative method). 1% margin of error.
+# TopN_int$sample_ed <- round(sample.size(TopN_int$mean,0.01),0)
+# TopN_int$sample_cons <- round(sample.size(0.5,0.01),0)
+# 
+# 
+# ####
+# # Psuedo-R2 calculations --------------------------------------------------
+# ####
+# # OOS R-squared
+# # setwd("C:/Users/Chingono/Documents/GitHub/digital_marketing/hw4")
+# # p_hat <- predict(mdl.cv.it, newdata=[], type="response")
+# # D <- deviance(y=[ ], pred=p_hat, family="binomial")
+# # ybar <- mean(valDf$y==1) # marginal prob(y==1)
+# # D0 <- deviance(y=[], pred=ybar, family="binomial")
+# # 
+# # ## OOS R-squared is
+# # 1 - D/D0
+# 
+# 
+# ####
+# # The Rest ----------------------------------------------------------------
+# ####
+# # By next Wednesday (May 04) please upload a csv file 
+# # with the first 9 columns labeled (V1,V2,...,V9) (all caps)
+# # there should be a 10th column called N 
+# # Each row in your csv file should correspond to a message
+# # That is the level of the message element V1 through V9.
+# # N for each row should be the same and should reflect the number of 
+# # emails you wish to send out for each message.
+# # I have placed a shell csv file with the appropriate 
+# # formatting in the project folder.
+# 
+# 
+# # Computing your profit score
+# # Each message campaign costs the client $200
+# # So if you have 32 messages it will cost your client $6400 to set up and mail these.
+# # The number of emails doesnt impact your cost (apart from the opportunity cost).
+# 
+# # Your total project profitability will be calculated as follows
+# 
+# profit = function(unique_clicks,ncampaigns,other)
+# {
+#   unique_clicks*.1 - 200*ncampaigns - other
+# } 
+# 
+# # so if you send out 5,000,000 emails and got a 10% response
+# # and you tested 64 messages in the first experiment
+# # and 32 messages in the second experiment
+# # and you purchased $5000 worth of other data
+# # you would have made the client
+# profit(5000000*.1,96,5000)
+# # $25,800
+# 
+# # If for example the control reponse rate was 3% and you decided to just 
+# # go with that, do no experimentation and bought no data the client would make
+# profit(5000000*.03,0,0)
+# # $15,000

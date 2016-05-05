@@ -36,7 +36,7 @@ VerifyStuff <- function(histdata) {
     stop("something's seriously wrong, some columns have multiple levels")
   }
   
-#   return(unlist(res[complete.cases(res),][1,]))
+  #   return(unlist(res[complete.cases(res),][1,]))
   return(res[complete.cases(res),])
 }
 
@@ -279,7 +279,7 @@ ConvertSignifCoefsToFormula <- function(coefs) {
       return(ParseValue(coefname))
     }  
   })
-  return(as.formula(paste("~", paste(parsed.coefs, collapse=" + "))))
+  return(as.formula(paste("~", paste(parsed.coefs, collapse="+"))))
 }
 
 form.glmnet <- ConvertSignifCoefsToFormula(coef(mdl.net.cv.it2, s="lambda.1se"))
@@ -288,30 +288,25 @@ form.glmnet <- ConvertSignifCoefsToFormula(coef(mdl.net.cv.it2, s="lambda.1se"))
 # Design experiment with glmnet coefficients ----------------------------------
 ####
 
-MakeSubsetDataFrame <- function(coefs) {
-  signif.coefs.idx <- which(abs(coefs) > 0)
-  # Remote the intercept if it's there
-  if (signif.coefs.idx[1] == 1) {
-    signif.coefs.idx <- signif.coefs.idx[-1]
-  }
-  coefnames <- rownames(coefs)[signif.coefs.idx]
-  
-  # Make a new data matrix by only varying the columsn of interest
-  dat.new <- gen.factorial(nVars = length(signif.coefs.idx),
-                           levels = 2,
-                           varNames = coefnames)
-  
-  # Default is 1/-1, probably there is a way to set this
-  # This is a laxy fix
-  dat.new[dat.new==-1] <- 0
-  return(dat.new)
+coefs <- coefs.mdl.cv.it2 <- coef(mdl.net.cv.it2, s="lambda.1se")
+signif.coefs.idx <- which(abs(coefs) > 0)
+# Remote the intercept if it's there
+if (signif.coefs.idx[1] == 1) {
+  signif.coefs.idx <- signif.coefs.idx[-1]
 }
+coefnames <- rownames(coefs)[signif.coefs.idx]
 
-opt.d.glmnet <- LoadCacheTagOrRun("fed_opt_d_glmnet", function() {
-  optFederov(data = MakeSubsetDataFrame(coef(mdl.net.cv.it2, s="lambda.1se")),
-             nTrials = 22, 
-             criterion = "D", args = T)
-})
+dat.new <- expand.grid(V1=c(5,6),
+                       V4=c(1,3),
+                       V7=c(1,2),
+                       V8=c(2,3,4,5),
+                       V9=c(2,4,6))
+dat.new <- sapply(dat.new, as.factor)
+
+opt.d.glmnet <- optFederov(data = dat.new,
+                           nTrials = 9, 
+                           criterion = "D", args = T)
+
 
 ####
 # TopN Results ------------------------------------------------------------

@@ -255,6 +255,39 @@ GGPlotSave(g, "q4_pred_hist")
 
 
 ####
+# Convert GLMNET Coefs to Formula -----------------------------------------
+####
+ConvertSignifCoefsToFormula <- function(coefs) {
+  signif.coefs.idx <- which(abs(coefs) > 0)
+  
+  # Remote the intercept if it's there
+  if (signif.coefs.idx[1] == 1) {
+    signif.coefs.idx <- signif.coefs.idx[-1]
+  }
+  
+  # Parses a single "Vxy" to produce "I(Vx==y)"
+  ParseValue <- function(value) {
+    gsub("^V(\\d)(\\d)$", "I(V\\1==\\2)", value)
+  }
+  
+  coefnames <- rownames(coefs)[signif.coefs.idx]
+  parsed.coefs <- sapply(coefnames, function(coefname) {
+    # Determine if is an interaction term or a regular one.
+    if (length(grep(":", coefname))) {
+      # For interaction terms split into components and parse them.
+      parts <- regmatches(coefname, regexec(
+        "^(V\\d{2}):(V\\d{2})", coefname))[[1]][2:3]
+      return(paste(ParseValue(parts[1]), ParseValue(parts[2]), sep=":"))    
+    } else {
+      return(ParseValue(coefname))
+    }  
+  })
+  return(as.formula(paste("~", paste(parsed.coefs, collapse=" + "))))
+}
+
+ConvertSignifCoefsToFormula(coef(mdl.net.cv.it2, s="lambda.1se"))
+
+####
 # TopN Results ------------------------------------------------------------
 ####
 TopNIndices <- function(dat, cols, N=10, decreasing=T) {

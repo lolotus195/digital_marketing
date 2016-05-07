@@ -297,33 +297,52 @@ if (signif.coefs.idx[1] == 1) {
 coefnames <- rownames(coefs)[signif.coefs.idx]
 
 # Will -- so low energy, has to hard code it. Sad!
-dat.new <- expand.grid(V1=c(0,5,6),
-                       V2=c(0,3,6),
-                       V4=c(0,1,3),
-                       V5=c(0,5),
-                       V6=c(0,3),
+dat.new <- expand.grid(V1=c(4,5,6),
+                       V2=c(1,3,6),
+                       V4=c(1,2,3),
+                       V5=c(1,5),
+                       V6=c(1,3),
                        V7=c(1,2), # there are only two levels
-                       V8=c(0,2,3,4,5),
-                       V9=c(0,2,4,6))
+                       V8=c(2,3,4,5),
+                       V9=c(2,4,6))
 dat.new <- sapply(dat.new, as.factor)
 
-opt.d.glmnet <- optFederov(data = dat.new,
-                           nTrials = 18, 
+opt.d.glmnet <- optFederov(~ . + V1:V2, data = dat.new,
+                           nTrials=22,
                            criterion = "D", args = T)
 
 # Take my zero levels and randomly allocate them into all the non-predictive levels
-opt.design <- sapply(colnames(opt.d.glmnet$design), function(c) {
-  idx.zeros <- which(opt.d.glmnet$design[,c]==0)
-  non.levels <- (1:histdat.levels[c])[!(1:histdat.levels[c]) %in% opt.d.glmnet$design[,c]]
+AddRandomLevels <- function(design) {
+  design %>%
+    mutate(V3=factor(1)) %>%
+    select(V1, V2, V3, V4, V5, V6, V7, V8, V9) -> design
+  
+  res <- sapply(colnames(design), function(c) {
+    idx.zeros <- which(design[,c]==0)
+  non.levels <- (1:histdat.levels[c])[!(1:histdat.levels[c]) %in% design[,c]]
   if(length(non.levels) > 0) {
-    new.col <- as.character(opt.d.glmnet$design[,c])
-    new.col[idx.zeros] <- sample(non.levels, sum(opt.d.glmnet$design[,c]=="0"), replace = T)
-    new.col <- as.factor(new.col)
-    return(new.col)    
+      new.col <- as.character(design[,c])
+      new.col[idx.zeros] <- sample(non.levels, sum(design[,c]=="0"), replace = T)
+      new.col <- as.factor(new.col)
+      return(new.col)    
+    }
+    return(design[,c])
+  })
+  as.data.frame(res)
+}
+opt.design.rand <- AddRandomLevels(opt.d.glmnet$design)
+
+WriteDesign <- function(filename, design) {
+  if (ncol(design) != 10) {
+    stop("need 10 columns")
   }
-  return(opt.d.glmnet$design[,c])
-})
-write.csv(opt.design, 'opt_design_jwc.csv')
+  # This is really dumb, I hate R.
+  mtx <- matrix(as.numeric(as.matrix(design)), ncol=10)
+  write.table(mtx, file=sprintf("experiments/%s", filename), 
+              row.names = F, sep = ",")
+}
+opt.design <- cbind(opt.design.rand, N=as.numeric(1e4))
+WriteDesign('opt_design_jwc2.csv', opt.design)
 
 ####
 # TopN Results ------------------------------------------------------------

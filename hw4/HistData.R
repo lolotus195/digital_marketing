@@ -345,6 +345,39 @@ opt.design <- cbind(opt.design.rand, N=as.numeric(1e4))
 WriteDesign('opt_design_jwc2.csv', opt.design)
 
 ####
+# Test the opt design -----------------------------------------------------
+####
+opt.design.relevel <- RelevelCombinations(opt.design, histdat.levels)
+opt.design.relevel$p.glmnet.it.2 <- BatchPredictGLMNET(
+  mdl.net.cv.it2, formula.interact, 
+  GetModelFrame(opt.design.relevel), s="lambda.1se")
+opt.design.relevel$p.glm <- predict(
+  mdl.glm, newdata=GetModelFrame(opt.design.relevel), type="response")
+
+g <- ggplot(combi, aes(x=cv.pr.net.it2.1se)) +
+  geom_histogram(bins=30) + 
+  geom_vline(data=opt.design.relevel, aes(xintercept=p.glmnet.it.2), 
+             color="red", lty=2)
+GGPlotSave(g, "q4_design_sample_hist")
+
+opt.design.relevel %>% 
+  mutate(SUCCESS=round(p.glmnet.it.2 * N),
+         FAILURE=N-SUCCESS) %>%
+  select(SUCCESS, FAILURE, V1, V2, V3, V4, V5, V6, V7, V8, V9) -> opt.design.test
+
+base.formula <- formula(~ I(V1 == 4) + I(V2 == 6) + I(V4 == 1) + 
+  I(V4 == 3) + I(V5 == 5) + I(V6 == 3) + I(V7 == 1) + I(V7 == 2) + 
+  I(V8 == 2) + I(V8 == 3) + I(V8 == 4) + I(V8 == 5) + I(V9 == 2) + 
+  I(V9 == 4) + I(V9 == 6) + I(V1 == 5):I(V2 == 3) + I(V2 == 3):I(V1 == 6))
+# base.formula <- formula(~ V1 + V2 + V3 + V4 + V5 + V6 + V7 + V8 + V9 + V1:V2)
+#                           I(V1 == 5):I(V2 == 3) + I(V2 == 3):I(V1 == 6))
+
+res <- glm(update(base.formula, cbind(SUCCESS, FAILURE) ~ .), data=opt.design.test, 
+    family="binomial")
+summary(res)
+
+
+####
 # TopN Results ------------------------------------------------------------
 ####
 # TopNIndices <- function(dat, cols, N=10, decreasing=T) {

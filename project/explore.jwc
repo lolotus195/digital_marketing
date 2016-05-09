@@ -1,0 +1,23 @@
+####
+# Setup -------------------------------------------------------------------
+####
+rm(list=ls())
+
+source("../utils/source_me.R", chdir = T)
+CreateDefaultPlotOpts()
+
+require(plyr)
+require(dplyr)
+require(AlgDesign)
+require(glmnet)
+require(gamlr)
+
+# load data -- puts histdat into global env
+load(file = "../hw4/Historical_Data.rdat")
+
+B <- sapply(histdat, function(df) {
+  logit <- glm(cbind(Unique_Clicks, Unique_Sent-Unique_Clicks) ~ .,
+               data=df, family="binomial")
+  B <- coef(logit)
+})
+Ball <- ldply(B, rbind)

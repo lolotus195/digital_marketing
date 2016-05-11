@@ -63,9 +63,30 @@ dat.test <- RelevelData(expand.grid(V1=c(4,5,6),
 mdl <- glm(cbind(Clicks, N-Clicks) ~ V1 + V2 + V4 + V5 + V6 + V7 + I(V8 == 4) + V9 + V1:V2, 
            dat, family="binomial")
 summary(mdl)
-dat.test$p_click_rate <- predict(mdl, dat.test, type="response")
-dat.test[order(dat.test$p_click_rate, decreasing = T)[1:10],]
+pred.click <- predict(mdl, dat.test, type="response", se.fit = T)
+dat.test$p_click_rate <- pred.click$fit
+dat.test$p_click_rate.stderr <- pred.click$se.fit
+topN <- dat.test[order(dat.test$p_click_rate, decreasing = T)[1:10],]
+GetBoxplotInfo <- function(df, fit, se) {
+  data.frame(
+    ymin=df[,fit] + qnorm(0.025, sd=df[,se]),
+    lower=df[,fit] + qnorm(0.25, sd=df[,se]),
+    middle=df[,fit],
+    upper=df[,fit] + qnorm(0.75, sd=df[,se]),
+    ymax=df[,fit] + qnorm(0.975, sd=df[,se]))
+}
+to.plot <- cbind(x=1:10, idx=rownames(topN), 
+                 GetBoxplotInfo(topN, "p_click_rate", "p_click_rate.stderr"))
+ggplot(to.plot, aes(x=x, ymin=ymin, lower=lower, middle=middle, upper=upper, ymax=ymax)) + 
+  geom_boxplot(stat="identity")
+
+ggplot(topN, aes(x=1:10, y=p_click_rate)) + 
+  geom_bar(stat='identity', position='identity', fill=gg_color_hue(2)[2]) + 
+  geom_errorbar(aes(ymin=p_click_rate + qnorm(0.025, sd=p_click_rate.stderr),
+                    ymax=p_click_rate + qnorm(0.975, sd=p_click_rate.stderr)), width=0.25) +
+  scale_x_continuous("Message Index", breaks=1:10, labels=rownames(topN)) +
+  ylab("Predicted Click Rate")
 
 ggplot(dat.test, aes(x=p_click_rate)) +
-  geom_histogram(bins=30) + 
+  geom_histogram(bins=30) +
   geom_vline(data=dat, aes(xintercept=Clicks/N), lty=2, color='red')

@@ -1,0 +1,44 @@
+\documentclass[11pt, fleqn]{article}
+
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage[margin=1in]{geometry} % To set the margin widths
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{varioref}
+\usepackage[noabbrev,capitalize]{cleveref}
+\usepackage[group-separator={,}]{siunitx}
+\usepackage{subcaption}
+\usepackage{titlesec}
+\usepackage{lscape}
+\usepackage{bm}
+\usepackage{chngpage}
+\usepackage[titletoc,toc,title]{appendix}
+
+\renewcommand\thesection{\arabic{section}}
+\renewcommand\thesubsection{\thesection\alph{subsection}}
+
+\lstset{
+  frame=single,
+  basicstyle=\ttfamily,% print whole listing small
+  language=R,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  numbers=none,
+  commentstyle=\color{ForestGreen},
+  stringstyle=\color{Maroon},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=2,
+  literate={<-}{{$\gets$}}1 {~}{{$\sim$}}1
+}
+
+\sisetup{output-exponent-marker=\textsc{e}}
+
+\setlength{\parskip}{12pt} % Sets a blank line in between paragraphs
+\setlength\parindent{0pt} % Sets the indent for each paragraph to zero

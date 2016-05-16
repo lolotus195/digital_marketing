@@ -195,6 +195,8 @@ g <- ggplot(optim.summary, aes(y=profit, x=type)) +
   facet_wrap(~ mc, labeller=labeller(.default=function(x) {
     sprintf("Marginal Cost: $%s", x)
   })) +
+  scale_x_discrete(labels=c("state"="Job Location (State)",
+                            "category"="Job Category")) +
   geom_errorbar(aes(ymin=lower, ymax=upper), width=0.25) +
   labs(x="Segmentation Type", y="Profit [$]")
 GGPlotSave(g, "q3_profits_summary")

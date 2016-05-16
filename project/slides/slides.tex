@@ -11,7 +11,7 @@
 \setbeamercolor{frametitle}{fg=Black}
 
 \setbeamertemplate{footline}{
-   \raisebox{5pt}{\makebox[\paperwidth]{\hfill\makebox[20pt]{\color{gray}\scriptsize\insertframenumber}}}}
+  \raisebox{5pt}{\makebox[\paperwidth]{\hfill\makebox[20pt]{\color{gray}\scriptsize\insertframenumber}}}}
 
 \usepackage{algorithm}
 \usepackage{algorithmic}
@@ -43,18 +43,23 @@
 
 \title{Persado Email Subject Lines}
 \subtitle{Digital and Algorithmic Marketing (37304-01)}
-\author{Brian Chingono, Will Clark, Matthew DeLio, Jonathan Stevens\\
-University of Chicago Booth School of Business}
+\author{Brian Chingono, Will Clark, Matthew DeLio, Jonathan Stevens}
+% \institute{University of Chicago Booth School of Business}
+\institute{\includegraphics[width=0.5\textwidth]{university_of_chicago_booth_business_school.png}}
 \date{\today}
 
 \begin{document}
 
-\setcounter{page}{0}
-{\usebackgroundtemplate{\includegraphics[height=\paperheight]{phoenix}}
-
-\begin{frame}
+\begingroup % remove page number from title slide (probably a simpler way to get this done but it works)
+\renewcommand{\insertframenumber}{}
+ \begin{frame}
+  \addtocounter{framenumber}{-1}
   \titlepage
-\end{frame}
+ \end{frame}
+\endgroup
+
+% Didn't want on title page because we'd duplicate the phoenix
+{\usebackgroundtemplate{\includegraphics[height=\paperheight]{phoenix}}
 
 \begin{frame}
 
@@ -77,7 +82,7 @@ The lasso:
 % Note: strictly speaking the first term is *proportional* to the deviance and the second term is *proportional* to the absolute value
 
 \vskip 0.25cm \nv 
-We can vary $\lambda$ to impose different shrinkage for different variables!
+We can vary the weight on $\lambda$ to impose different shrinkage for different variables!
 
 \end{frame}
 
@@ -91,13 +96,13 @@ $\omega_1 < \omega_2$: the lasso will penalize interaction effect parameters mor
 
 \end{frame}
 
-\begin{frame}
-Trade-off between accuracy (\textit{\fg select variables via cross validation})...
-\includegraphics[width=\textwidth]{regpath1.pdf}
-\end{frame}
+% \begin{frame}
+% Trade-off between accuracy (\textit{\fg select variables via cross validation})...
+% \includegraphics[width=\textwidth]{regpath1.pdf}
+% \end{frame}
 
 \begin{frame}
-...and simplicity/parsimony (\textit{\fg choose a small model})
+Trade-off between accuracy (\textit{\fg select variables via cross validation}) and simplicity/parsimony (\textit{\fg choose a small model})
 \includegraphics[width=\textwidth]{regpath2.pdf}
 \end{frame}
 

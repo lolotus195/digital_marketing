@@ -32,10 +32,11 @@ to.plot <- rbind(select(mutate(dat.summary, series="Data"),
                  filter(select(mutate(pr.df, series="Fitted"), 
                                prc, r_sub, series),
                         prc < max(dat.summary$prc)))
-ggplot(data=to.plot, aes(x=prc, y=r_sub, color=series)) +
+g <- ggplot(data=to.plot, aes(x=prc, y=r_sub, color=series)) +
   geom_line() +
   scale_color_discrete("Series") +
   labs(x="Price [$]", y="Subscription Rate")
+GGPlotSave(g, "q1_fit")
 
 # Find and Plot the Optimums ----------------------------------------------
 WithinPercentage <- function(v, l, u, pcnt) {
@@ -109,12 +110,13 @@ optim.simple <- ldply(c(0, 10, 30, 50, 100), function(mc) {
 optim.simple$mc <- factor(optim.simple$mc)
 filter(optim.simple, series=="optim")
 
-ggplot(filter(optim.simple, series=="pred"), aes(x=prc, y=profit, color=mc)) + 
+g <- ggplot(filter(optim.simple, series=="pred"), aes(x=prc, y=profit, color=mc)) + 
   geom_line() +
   geom_point(data=filter(optim.simple, series=="optim"), pch=4, size=4, 
              show.legend = F) +
   scale_color_discrete("Marginal\nCost [$]") +
   labs(x="Price [$]", y=sprintf("Profit [$] (N=%d)", N))
+GGPlotSave(g, "q1_profits")
 
 # Q2 - Find Optimal Revenue Source ----------------------------------------
 mdl.cat <- glm(SUB ~ prc*job_category_classified_by_ai, data=dat, family="binomial")
@@ -130,7 +132,11 @@ OptimCategory <- function(mc, price.min=0.1, price.max=1000) {
       FindOptimalProfit(mdl.cat, mc, price.min, price.max, 
                         param$n, fixed.params=data.frame(
         "job_category_classified_by_ai"=param$job_category_classified_by_ai))
-    }, .progress = "text")
+    }, .progress = "text") %>% 
+    rename(segment=job_category_classified_by_ai) %>%
+    mutate(segment=as.character(segment),
+           type="category",
+           mc=mc)
 }
 
 OptimState <- function(mc, price.min=0.1, price.max=1000) {
@@ -142,44 +148,53 @@ OptimState <- function(mc, price.min=0.1, price.max=1000) {
       FindOptimalProfit(mdl.state, mc, price.min, price.max, 
                         param$n, fixed.params=data.frame(
         "job_state"=param$job_state))
-    }, .progress = "text")
+    }, .progress = "text") %>%
+    rename(segment=job_state) %>%
+    mutate(segment=as.character(segment),
+           type="state",
+           mc=mc)
 }
-optim.cat <- OptimCategory(0, price.max=1e3)
-optim.state <- OptimState(0, price.max=1e3)
-optim.cat10 <- OptimCategory(10, price.max=1e3)
-optim.state10 <- OptimState(10, price.max=1e3)
+
+rbind(OptimCategory(0, price.max=1e3),
+      OptimState(0, price.max=1e3),
+      OptimCategory(10, price.max=1e3),
+      OptimState(10, price.max=1e3)) %>%
+  mutate(segment=factor(segment)) -> optim.all
 
 # Summarize and Plot ------------------------------------------------------
-ggplot(filter(optim.cat, series=="pred"),
-       aes(x=prc, y=profit, color=job_category_classified_by_ai)) +
-  geom_line() + theme(legend.position="none")
-ggplot(filter(optim.state, series=="pred"),
-       aes(x=prc, y=profit, color=job_state)) +
-  geom_line() + theme(legend.position="none")
-ggplot(filter(optim.cat10, series=="pred"), 
-       aes(x=prc, y=profit, color=job_category_classified_by_ai)) +
-  geom_line() + theme(legend.position="none")
-ggplot(filter(optim.state10, series=="pred"),
-       aes(x=prc, y=profit, color=job_state)) +
-  geom_line() + theme(legend.position="none")
+g <- ggplot(filter(optim.all, series=="pred"), 
+       aes(x=prc, y=profit, color=segment)) +
+  geom_line() + 
+  facet_wrap(mc ~ type, labeller=labeller(
+    mc=function(x) sprintf("Marginal Cost: $%s", x),
+    type=c("category"="Segemented by Job Category",
+           "state"="Segemented by Job Location (State)"))) +
+  scale_color_discrete(guide=F) +
+  labs(x="Price [$]", y="Profit [$]")
+GGPlotSave(g, "q3_predicted")
 
-SummarizeOptim <- function(dat) {
-  dat %>% na.omit() %>% filter(series=="optim") %>%
-    summarize(profit=sum(profit),
-              lower=sum(lower),
-              upper=sum(upper))
-}
+# More Summarization ------------------------------------------------------
+# Which categories/states have undetermined profits.
+optim.all %>%
+  filter(series=="optim") %>%
+  group_by(type) %>%
+  filter(is.na(profit)) %>%
+  select(segment, n) -> optim.na
 
-optim.summary <- data.frame(
-  type=c("Category", "State"),
-  mc=c(0, 0, 10, 10),
-  ldply(list(optim.cat, optim.state, 
-             optim.cat10, optim.state10), SummarizeOptim))
+# # Summarize the profits forming upper/lower bounds.
+optim.all %>% 
+  group_by(type, mc) %>%
+  na.omit() %>% 
+  filter(series=="optim") %>% 
+  summarize(profit=sum(profit), 
+            lower=sum(lower), 
+            upper=sum(upper)) -> optim.summary
 
-ggplot(optim.summary, aes(y=profit, x=type)) + 
+g <- ggplot(optim.summary, aes(y=profit, x=type)) + 
   geom_bar(stat='identity') + 
   facet_wrap(~ mc, labeller=labeller(.default=function(x) {
     sprintf("Marginal Cost: $%s", x)
   })) +
   geom_errorbar(aes(ymin=lower, ymax=upper), width=0.25) +
   labs(x="Segmentation Type", y="Profit [$]")
+GGPlotSave(g, "q3_profits_summary")

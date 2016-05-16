@@ -173,7 +173,7 @@ g <- ggplot(filter(optim.all, series=="pred"),
   labs(x="Price [$]", y="Profit [$]")
 GGPlotSave(g, "q3_predicted")
 
-# More Summarization ------------------------------------------------------
+# Q3 More Summarization ---------------------------------------------------
 # Which categories/states have undetermined profits.
 optim.all %>%
   filter(series=="optim") %>%
@@ -181,21 +181,32 @@ optim.all %>%
   filter(is.na(profit)) %>%
   select(segment, n) -> optim.na
 
-# # Summarize the profits forming upper/lower bounds.
+# Summarize the profits forming upper/lower bounds.
 optim.all %>% 
   group_by(type, mc) %>%
   na.omit() %>% 
-  filter(series=="optim") %>% 
+  filter(series=="optim") %>%
+  select(-series) %>%
   summarize(profit=sum(profit), 
             lower=sum(lower), 
             upper=sum(upper)) -> optim.summary
 
-g <- ggplot(optim.summary, aes(y=profit, x=type)) + 
+# Now add the no segementation value as well.
+optim.summary <- rbind(
+  optim.summary, 
+  cbind(type="none", optim.simple) %>% 
+    filter(series=="optim", mc %in% c(0, 10)) %>% 
+    select(-prc, -series))
+
+
+g <- ggplot(optim.summary, 
+            aes(y=profit, x=relevel(factor(type), ref="none"))) + 
   geom_bar(stat='identity') + 
   facet_wrap(~ mc, labeller=labeller(.default=function(x) {
     sprintf("Marginal Cost: $%s", x)
   })) +
-  scale_x_discrete(labels=c("state"="Job Location (State)",
+  scale_x_discrete(labels=c("none"="None", 
+                            "state"="Job Location (State)",
                             "category"="Job Category")) +
   geom_errorbar(aes(ymin=lower, ymax=upper), width=0.25) +
   labs(x="Segmentation Type", y="Profit [$]")

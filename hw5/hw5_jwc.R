@@ -67,7 +67,7 @@ sim$prices[which.max(sim$profit10)]
 
 max.price <- 1e4
 
-GetRevenue <- function(int.var, int.reg) {
+GetRevenue <- function(int.var, int.reg, cost.per.customer) {
   rev <- sapply(unique(zipdat[,int.var]), function(s) {
 
     alpha <- coef(int.reg)['(Intercept)']
@@ -102,10 +102,10 @@ GetRevenue <- function(int.var, int.reg) {
     rate <- 1/(1+exp(-rate))
     
     num.customers <- sum(zipdat[,int.var] == s) * rate
-    revenue <- num.customers * prices
-    return(list(max(revenue), 
-                prices[which.max(revenue)], 
-                num.customers[which.max(revenue)],
+    profit <- num.customers * (prices - cost.per.customer)
+    return(list(max(profit), 
+                prices[which.max(profit)], 
+                num.customers[which.max(profit)],
                 base.model))
   })
   return(rev)
@@ -114,7 +114,7 @@ GetRevenue <- function(int.var, int.reg) {
 # BY STATE
 reg.state <- glm(SUB ~ prc*job_state, 
                  data = zipdat, family = 'binomial')
-by.state <- GetRevenue('job_state', reg.state)
+by.state <- GetRevenue('job_state', reg.state, 0)
 revenue.by.state <- data.frame(state = unique(zipdat$job_state),
                                revenue = unlist(by.state[1,]),
                                price = unlist(by.state[2,]),
@@ -136,7 +136,7 @@ plot(g1)
 # BY JOB CATEGORY
 reg.jcat <- glm(SUB ~ prc*job_category_classified_by_ai, 
                 data = zipdat, family = 'binomial')
-by.jcat <- GetRevenue('job_category_classified_by_ai', reg.jcat)
+by.jcat <- GetRevenue('job_category_classified_by_ai', reg.jcat, 0)
 revenue.by.jcat <- data.frame(state = unique(zipdat$job_category_classified_by_ai),
                                revenue = unlist(by.jcat[1,]),
                                price = unlist(by.jcat[2,]),
@@ -167,52 +167,48 @@ sum(revenue.by.jcat$revenue) > sum(revenue.by.state$revenue)
 # are $10 and the decision was made based on profits rather than revenues?
 
 # BY STATE
-profit.by.state <- sapply(unique(zipdat$job_state), function(s) {
-  
-  alpha <- coef(reg.state)['(Intercept)']
-  beta_price <- coef(reg.state)['prc']
-  beta_state <- coef(reg.state)[paste('job_state', s, sep = '')]
-  beta_price_state <- coef(reg.state)[paste('prc:job_state', s, sep = '')]
-  
-  prices <- 1:max.price
-  
-  rate <- alpha + 
-    beta_state + 
-    beta_price * prices + 
-    beta_price_state * prices
-  rate <- 1/(1+exp(-rate))
-  
-  num.customers <- sum(zipdat$job_state == s) * rate
-  profit <- num.customers * (prices - 10)
-  return(max(profit))
-})
-profit.by.state <- unlist(profit.by.state)
+by.state <- GetRevenue('job_state', reg.state, 10)
+profit.by.state <- data.frame(state = unique(zipdat$job_state),
+                               revenue = unlist(by.state[1,]),
+                               price = unlist(by.state[2,]),
+                               N = unlist(by.state[3,]),
+                               base.model = unlist(by.state[4,]))
+
+# sort by revenue for plotting purposes
+profit.by.state <- profit.by.state[order(profit.by.state$revenue, decreasing = T),]
+profit.by.state$xmax <- cumsum(profit.by.state$N)
+profit.by.state$xmin <- cumsum(profit.by.state$N) - profit.by.state$N
+
+g3 <- ggplot(profit.by.state) + 
+  geom_rect(aes(xmin=xmin, xmax=xmax, ymin=0, ymax=price, fill=base.model), 
+            color = '#000000') +
+  labs(x = '# of Paying Customers', y = 'Optimal Price ($)') + 
+  theme_bw()
+plot(g3)
 
 # BY JOB CATEGORY
-profit.by.jcat <- sapply(unique(zipdat$job_category_classified_by_ai), function(jc) {
-  
-  alpha <- coef(reg.jcat)['(Intercept)']
-  beta_price <- coef(reg.jcat)['prc']
-  beta_jcat <- coef(reg.jcat)[paste('job_category_classified_by_ai', jc, sep = '')]
-  beta_price_jcat <- coef(reg.jcat)[paste('prc:job_category_classified_by_ai', jc, sep = '')]
-  
-  prices <- 1:max.price
-  
-  rate <- alpha + 
-    beta_jcat + 
-    beta_price * prices + 
-    beta_price_jcat * prices
-  rate <- 1/(1+exp(-rate))
-  
-  num.customers <- sum(zipdat$job_category_classified_by_ai == jc) * rate
-  profit <- num.customers * (prices - 10)
-  return(max(profit))
-})
-profit.by.jcat <- unlist(profit.by.jcat)
+by.jcat <- GetRevenue('job_category_classified_by_ai', reg.jcat, 10)
+profit.by.jcat <- data.frame(state = unique(zipdat$job_category_classified_by_ai),
+                              revenue = unlist(by.jcat[1,]),
+                              price = unlist(by.jcat[2,]),
+                              N = unlist(by.jcat[3,]),
+                              base.model = unlist(by.jcat[4,]))
+
+# sort by revenue for plotting purposes
+profit.by.jcat <- revenue.by.jcat[order(profit.by.jcat$revenue, decreasing = T),]
+profit.by.jcat$xmax <- cumsum(profit.by.jcat$N)
+profit.by.jcat$xmin <- cumsum(profit.by.jcat$N) - profit.by.jcat$N
+
+g2 <- ggplot(profit.by.jcat) + 
+  geom_rect(aes(xmin=xmin, xmax=xmax, ymin=0, ymax=price, fill=base.model), 
+            color = '#000000') +
+  labs(x = '# of Paying Customers', y = 'Optimal Price ($)') + 
+  theme_bw()
+plot(g2)
 
 # Compare
-sum(profit.by.state, na.rm=T)
-sum(profit.by.jcat, na.rm=T)
+sum(profit.by.state$revenue)
+sum(profit.by.jcat$revenue)
 
-# Better to charge optimal state-by-state price even with MC = 10
-sum(profit.by.state, na.rm=T) > sum(profit.by.jcat, na.rm=T)
+# With my crazy assumptions it is better to price on job category
+sum(profit.by.jcat$revenue) > sum(profit.by.state$revenue)

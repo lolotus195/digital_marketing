@@ -43,6 +43,14 @@ WithinPercentage <- function(v, l, u, pcnt) {
   (abs((v-u)/u) < pcnt) | (abs((v-l)/l) < pcnt)
 }
 
+IsElasticityNegative <- function(mdl, var.prefix, var.name, alpha) {
+  var.path <- sprintf('prc:%s%s', var.prefix, var.name)
+  se.price <- summary(mdl)$coef['prc','Std. Error']
+  se.price.int <- summary(mdl)$coef[var.path,'Std. Error']
+  se.both <- sqrt(se.price^2 + se.price.int^2)
+  unname((coef(mdl)['prc'] + coef(mdl)[var.path] + qnorm(1-(alpha/2))*se.both) < 0)
+}
+
 FindOptimalProfit <- function(mdl, mc, lower, upper, N, 
                               length.out=100, fixed.params=NULL, 
                               bounds.tolerance=0.001) {
@@ -81,13 +89,14 @@ FindOptimalProfit <- function(mdl, mc, lower, upper, N,
   # Find the optimum value.
   opt <- optim(lower, PredictProfitFn(F), lower=lower, upper=upper,
                method = "Brent", control=list(fnscale=-1))
-  # Brent will always "converge", so need to check the tolerance.
-  if (WithinPercentage(opt$par[1], lower, upper, bounds.tolerance)) {
-    # Was within tolerance of upper/lower bound, toss the result out.
-    opt.df <- data.frame(prc=NA, profit=NA, profit.se=NA)
-  } else {
+  
+  if(is.null(fixed.params) | 
+     IsElasticityNegative(mdl, colnames(fixed.params)[1], fixed.params[1,1], 0.5)) {
     # Calculate the optimum with upper/lower bounds.
     opt.df <- data.frame(prc=opt$par[1], PredictProfitFn(T)(opt$par[1]))
+  } else {
+    # Was within tolerance of upper/lower bound, toss the result out.
+    opt.df <- data.frame(prc=NA, profit=NA, profit.se=NA)
   }
   
   # Now get some data to plot.
@@ -169,7 +178,7 @@ rbind(OptimCategory(0),
 
 # Summarize and Plot ------------------------------------------------------
 g <- ggplot(filter(optim.all, series=="pred"), 
-       aes(x=prc, y=profit, color=segment)) +
+            aes(x=prc, y=profit, color=segment)) +
   geom_line() + 
   facet_wrap(mc ~ type, labeller=labeller(
     mc=function(x) sprintf("Marginal Cost: $%s", x),

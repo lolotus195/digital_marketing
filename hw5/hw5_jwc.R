@@ -26,7 +26,7 @@ sub.rate$rate.lo <- (sub.rate$subs - qnorm(0.975)*sub.rate$binom.se) / sub.rate$
 
 # Let's run a toy regression
 reg <- glm(rate ~ prices, weights = total, data = sub.rate, family = 'binomial')
-# reg2 <- glm(SUB ~ prc, data = zipdat, family = 'binomial') # SAME
+# reg2 <- glm(SUB ~ prc, data = zipdat, family = binomial)
 sub.rate$pred <- predict(reg, type = 'response')
 sub.rate$pred.se <- predict(reg, type = 'response', se.fit = T)$se.fit
 
@@ -199,12 +199,12 @@ profit.by.jcat <- revenue.by.jcat[order(profit.by.jcat$revenue, decreasing = T),
 profit.by.jcat$xmax <- cumsum(profit.by.jcat$N)
 profit.by.jcat$xmin <- cumsum(profit.by.jcat$N) - profit.by.jcat$N
 
-g2 <- ggplot(profit.by.jcat) + 
+g4 <- ggplot(profit.by.jcat) + 
   geom_rect(aes(xmin=xmin, xmax=xmax, ymin=0, ymax=price, fill=base.model), 
             color = '#000000') +
   labs(x = '# of Paying Customers', y = 'Optimal Price ($)') + 
   theme_bw()
-plot(g2)
+plot(g4)
 
 # Compare
 sum(profit.by.state$revenue)

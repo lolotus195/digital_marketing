@@ -65,60 +65,102 @@ sim$prices[which.max(sim$profit10)]
 # and the code to justify which approach you think would get them higher 
 # expected revenues.
 
+max.price <- 1e4
+
+GetRevenue <- function(int.var, int.reg) {
+  rev <- sapply(unique(zipdat[,int.var]), function(s) {
+
+    alpha <- coef(int.reg)['(Intercept)']
+    beta_int <- coef(int.reg)[paste(int.var, s, sep = '')]
+    beta_price <- coef(int.reg)['prc']
+    beta_price_int <- coef(int.reg)[paste('prc:', int.var, s, sep = '')]
+    
+    prices <- 1:max.price
+    
+    base.model <- T # assume baseline model by default
+    if(is.na(beta_price_int) | is.na(beta_int)) { 
+      # no data, just use baseline model
+      rate <- coef(reg)['(Intercept)'] + prices * coef(reg)['prices']
+    } else {
+      # Want the standard error of beta_price + beta_price_int
+      se.price <- summary(int.reg)$coef['prc','Std. Error']
+      se.price_int <- summary(int.reg)$coef[paste('prc:', int.var, s, sep = ''),'Std. Error']
+      se.both <- sqrt(se.price^2 + se.price_int^2)
+      
+      # Let's be 50% confident that elasticity is actually negative
+      is.negative <- (beta_price + beta_price_int + qnorm(0.75)*se.both) < 0
+      
+      if (is.negative) {
+        # Elasticity is probably negative
+        rate <- alpha + beta_int + prices * (beta_price + beta_price_int)
+        base.model <- F
+      } else { 
+        # Can't be sure of negative elasticity, use baseline model
+        rate <- coef(reg)['(Intercept)'] + prices * coef(reg)['prices']
+      }
+    }
+    rate <- 1/(1+exp(-rate))
+    
+    num.customers <- sum(zipdat[,int.var] == s) * rate
+    revenue <- num.customers * prices
+    return(list(max(revenue), 
+                prices[which.max(revenue)], 
+                num.customers[which.max(revenue)],
+                base.model))
+  })
+  return(rev)
+}
+
 # BY STATE
-reg.state <- reg <- glm(SUB ~ prc*job_state, 
-                        data = zipdat, family = 'binomial')
-revenue.by.state <- sapply(unique(zipdat$job_state), function(s) {
-  
-  alpha <- coef(reg.state)['(Intercept)']
-  beta_price <- coef(reg.state)['prc']
-  beta_state <- coef(reg.state)[paste('job_state', s, sep = '')]
-  beta_price_state <- coef(reg.state)[paste('prc:job_state', s, sep = '')]
-  
-  prices <- 1:500
-  
-  rate <- alpha + 
-    beta_state + 
-    beta_price * prices + 
-    beta_price_state * prices
-  rate <- 1/(1+exp(-rate))
-  
-  num.customers <- sum(zipdat$job_state == s) * rate
-  revenue <- num.customers * prices
-  return(max(revenue))
-})
-revenue.by.state <- unlist(revenue.by.state)
+reg.state <- glm(SUB ~ prc*job_state, 
+                 data = zipdat, family = 'binomial')
+by.state <- GetRevenue('job_state', reg.state)
+revenue.by.state <- data.frame(state = unique(zipdat$job_state),
+                               revenue = unlist(by.state[1,]),
+                               price = unlist(by.state[2,]),
+                               N = unlist(by.state[3,]),
+                               base.model = unlist(by.state[4,]))
+
+# sort by revenue for plotting purposes
+revenue.by.state <- revenue.by.state[order(revenue.by.state$revenue, decreasing = T),]
+revenue.by.state$xmax <- cumsum(revenue.by.state$N)
+revenue.by.state$xmin <- cumsum(revenue.by.state$N) - revenue.by.state$N
+
+g1 <- ggplot(revenue.by.state) + 
+  geom_rect(aes(xmin=xmin, xmax=xmax, ymin=0, ymax=price, fill=base.model), 
+            color = '#000000') +
+  labs(x = '# of Paying Customers', y = 'Optimal Price ($)') + 
+  theme_bw()
+plot(g1)
 
 # BY JOB CATEGORY
-reg.jcat <- reg <- glm(SUB ~ prc*job_category_classified_by_ai, 
-                        data = zipdat, family = 'binomial')
-revenue.by.jcat <- sapply(unique(zipdat$job_category_classified_by_ai), function(jc) {
-  
-  alpha <- coef(reg.jcat)['(Intercept)']
-  beta_price <- coef(reg.jcat)['prc']
-  beta_jcat <- coef(reg.jcat)[paste('job_category_classified_by_ai', jc, sep = '')]
-  beta_price_jcat <- coef(reg.jcat)[paste('prc:job_category_classified_by_ai', jc, sep = '')]
-  
-  prices <- 1:500
-  
-  rate <- alpha + 
-    beta_jcat + 
-    beta_price * prices + 
-    beta_price_jcat * prices
-  rate <- 1/(1+exp(-rate))
-  
-  num.customers <- sum(zipdat$job_category_classified_by_ai == jc) * rate
-  revenue <- num.customers * prices
-  return(max(revenue))
-})
-revenue.by.jcat <- unlist(revenue.by.jcat)
+reg.jcat <- glm(SUB ~ prc*job_category_classified_by_ai, 
+                data = zipdat, family = 'binomial')
+by.jcat <- GetRevenue('job_category_classified_by_ai', reg.jcat)
+revenue.by.jcat <- data.frame(state = unique(zipdat$job_category_classified_by_ai),
+                               revenue = unlist(by.jcat[1,]),
+                               price = unlist(by.jcat[2,]),
+                               N = unlist(by.jcat[3,]),
+                               base.model = unlist(by.jcat[4,]))
+
+# sort by revenue for plotting purposes
+revenue.by.jcat <- revenue.by.jcat[order(revenue.by.jcat$revenue, decreasing = T),]
+revenue.by.jcat$xmax <- cumsum(revenue.by.jcat$N)
+revenue.by.jcat$xmin <- cumsum(revenue.by.jcat$N) - revenue.by.jcat$N
+
+g2 <- ggplot(revenue.by.jcat) + 
+  geom_rect(aes(xmin=xmin, xmax=xmax, ymin=0, ymax=price, fill=base.model), 
+            color = '#000000') +
+  labs(x = '# of Paying Customers', y = 'Optimal Price ($)') + 
+  theme_bw()
+plot(g2)
 
 # Compare
-sum(revenue.by.state, na.rm=T)
-sum(revenue.by.jcat, na.rm=T)
+sum(revenue.by.state$revenue)
+sum(revenue.by.jcat$revenue)
 
-# Better to charge optimal state-by-state price
-sum(revenue.by.state, na.rm=T) > sum(revenue.by.jcat, na.rm=T)
+# With my crazy assumptions it is better to price on job category
+sum(revenue.by.jcat$revenue) > sum(revenue.by.state$revenue)
 
 # -----------------------------------------------------------------------------
 # Q3: Does your answer to Q2 change if you assume marginal costs per customer 
@@ -132,7 +174,7 @@ profit.by.state <- sapply(unique(zipdat$job_state), function(s) {
   beta_state <- coef(reg.state)[paste('job_state', s, sep = '')]
   beta_price_state <- coef(reg.state)[paste('prc:job_state', s, sep = '')]
   
-  prices <- 1:500
+  prices <- 1:max.price
   
   rate <- alpha + 
     beta_state + 
@@ -154,7 +196,7 @@ profit.by.jcat <- sapply(unique(zipdat$job_category_classified_by_ai), function(
   beta_jcat <- coef(reg.jcat)[paste('job_category_classified_by_ai', jc, sep = '')]
   beta_price_jcat <- coef(reg.jcat)[paste('prc:job_category_classified_by_ai', jc, sep = '')]
   
-  prices <- 1:500
+  prices <- 1:max.price
   
   rate <- alpha + 
     beta_jcat + 

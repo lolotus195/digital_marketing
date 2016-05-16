@@ -14,9 +14,6 @@ LoadData <- function() {
 dat <- LoadData()
 dat$job_state <- factor(dat$job_state)
 
-# alpha for calculating error bounds.
-
-alpha <- 0.05
 # Data Exploration --------------------------------------------------------
 qplot(dat$prc)
 
@@ -48,7 +45,7 @@ WithinPercentage <- function(v, l, u, pcnt) {
 
 FindOptimalProfit <- function(mdl, mc, lower, upper, N, 
                               length.out=100, fixed.params=NULL, 
-                              bounds.tolerance=0.001, alpha.predict=0.05) {
+                              bounds.tolerance=0.001) {
   # Adds the extra params needed to make a prediction (job_state, etc)
   AddExtraParams <- function(dat) {
     if (!is.null(fixed.params)) {
@@ -104,8 +101,8 @@ FindOptimalProfit <- function(mdl, mc, lower, upper, N,
 
 N=nrow(dat)
 optim.simple <- ldply(c(0, 10, 30, 50, 100), function(mc) {
-  cbind(mc=mc, FindOptimalProfit(mdl.simple, mc, 0.1, 500, N,
-                                 alpha.predict = alpha))
+  FindOptimalProfit(mdl.simple, mc, 0.1, 500, N) %>%
+    mutate(type="none", mc=mc)
 }, .progress="text")
 
 g <- ggplot(filter(optim.simple, series=="pred"),
@@ -123,7 +120,7 @@ mdl.cat <- glm(SUB ~ prc*job_category_classified_by_ai, data=dat,
 mdl.state <- glm(SUB ~ prc*job_state, data=dat, family="binomial")
 
 # Run Optimization --------------------------------------------------------
-OptimCategory <- function(mc, alpha, price.min=0.1, price.max=1000) {
+OptimCategory <- function(mc, price.min=0.1, price.max=1000) {
   ddply(
     dat %>% group_by(job_category_classified_by_ai) %>% tally(), 
     .(job_category_classified_by_ai, n),
@@ -131,7 +128,7 @@ OptimCategory <- function(mc, alpha, price.min=0.1, price.max=1000) {
     function(param) {
       FindOptimalProfit(
         mdl.cat, mc, price.min, price.max, 
-        param$n, alpha.predict=alpha,
+        param$n,
         fixed.params=data.frame(
           "job_category_classified_by_ai"=
             param$job_category_classified_by_ai
@@ -144,7 +141,7 @@ OptimCategory <- function(mc, alpha, price.min=0.1, price.max=1000) {
            mc=mc)
 }
 
-OptimState <- function(mc, alpha, price.min=0.1, price.max=1000) {
+OptimState <- function(mc, price.min=0.1, price.max=1000) {
   ddply(
     dat %>% group_by(job_state) %>% tally(),
     .(job_state, n),
@@ -152,7 +149,7 @@ OptimState <- function(mc, alpha, price.min=0.1, price.max=1000) {
     function(param) {
       FindOptimalProfit(
         mdl.state, mc, price.min, price.max, 
-        param$n, alpha.predict = alpha, 
+        param$n,
         fixed.params=data.frame(
           "job_state"=param$job_state
         )
@@ -164,10 +161,10 @@ OptimState <- function(mc, alpha, price.min=0.1, price.max=1000) {
            mc=mc)
 }
 
-rbind(OptimCategory(0, alpha),
-      OptimState(0, alpha),
-      OptimCategory(10, alpha),
-      OptimState(10, alpha)) %>%
+rbind(OptimCategory(0),
+      OptimState(0),
+      OptimCategory(10),
+      OptimState(10)) %>%
   mutate(segment=factor(segment)) -> optim.all
 
 # Summarize and Plot ------------------------------------------------------
@@ -200,12 +197,14 @@ optim.all %>%
             profit.se=sqrt(sum(profit.se^2))) -> optim.summary.tmp
 
 # Now add the no segementation value as well.
+alpha <- 0.05
 optim.summary.tmp %>%
   bind_rows(filter(optim.simple, series=="optim", mc %in% c(0, 10)) %>%
-              mutate(type="none") %>% select(-prc, -series)) %>%
+              select(-series, -prc)) %>%
   mutate(profit.upper=profit + qnorm(1-alpha/2, sd=profit.se),
          profit.lower=profit + qnorm(alpha/2, sd=profit.se)) %>%
   select(-profit.se) -> optim.summary
+
 
 g <- ggplot(optim.summary, 
             aes(y=profit, x=relevel(factor(type), ref="none"))) + 

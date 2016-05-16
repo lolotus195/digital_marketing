@@ -14,6 +14,9 @@ LoadData <- function() {
 dat <- LoadData()
 dat$job_state <- factor(dat$job_state)
 
+# alpha for calculating error bounds.
+
+alpha <- 0.05
 # Data Exploration --------------------------------------------------------
 qplot(dat$prc)
 
@@ -72,13 +75,9 @@ FindOptimalProfit <- function(mdl, mc, lower, upper, N,
         return((prc-mc)*subs.rate * N)
       }
       
-      # If the user wants the fit bounds, then calculate an upper/lower bound.
-      fit <- subs.rate[["fit"]]
-      lb <- fit + qnorm(alpha.predict/2, sd=subs.rate[["se.fit"]])
-      ub <- fit + qnorm(1-alpha.predict/2, sd=subs.rate[["se.fit"]])
-      return(data.frame(profit=(prc-mc)*fit * N,
-                        lower=(prc-mc)*lb * N,
-                        upper=(prc-mc)*ub * N))
+      # If the user wants the fit bounds, then calculate the se as well.
+      return(data.frame(profit=(prc-mc)*subs.rate[["fit"]] * N,
+                        profit.se=(prc-mc)*subs.rate[["se.fit"]] * N))
     }
   }
   
@@ -88,7 +87,7 @@ FindOptimalProfit <- function(mdl, mc, lower, upper, N,
   # Brent will always "converge", so need to check the tolerance.
   if (WithinPercentage(opt$par[1], lower, upper, bounds.tolerance)) {
     # Was within tolerance of upper/lower bound, toss the result out.
-    opt.df <- data.frame(prc=NA, profit=NA, lower=NA, upper=NA)
+    opt.df <- data.frame(prc=NA, profit=NA, profit.se=NA)
   } else {
     # Calculate the optimum with upper/lower bounds.
     opt.df <- data.frame(prc=opt$par[1], PredictProfitFn(T)(opt$par[1]))
@@ -105,12 +104,12 @@ FindOptimalProfit <- function(mdl, mc, lower, upper, N,
 
 N=nrow(dat)
 optim.simple <- ldply(c(0, 10, 30, 50, 100), function(mc) {
-  cbind(mc=mc, FindOptimalProfit(mdl.simple, mc, 10, 500, N))
+  cbind(mc=mc, FindOptimalProfit(mdl.simple, mc, 0.1, 500, N,
+                                 alpha.predict = alpha))
 }, .progress="text")
-optim.simple$mc <- factor(optim.simple$mc)
-filter(optim.simple, series=="optim")
 
-g <- ggplot(filter(optim.simple, series=="pred"), aes(x=prc, y=profit, color=mc)) + 
+g <- ggplot(filter(optim.simple, series=="pred"),
+            aes(x=prc, y=profit, color=factor(mc))) + 
   geom_line() +
   geom_point(data=filter(optim.simple, series=="optim"), pch=4, size=4, 
              show.legend = F) +
@@ -119,19 +118,25 @@ g <- ggplot(filter(optim.simple, series=="pred"), aes(x=prc, y=profit, color=mc)
 GGPlotSave(g, "q1_profits")
 
 # Q2 - Find Optimal Revenue Source ----------------------------------------
-mdl.cat <- glm(SUB ~ prc*job_category_classified_by_ai, data=dat, family="binomial")
+mdl.cat <- glm(SUB ~ prc*job_category_classified_by_ai, data=dat, 
+               family="binomial")
 mdl.state <- glm(SUB ~ prc*job_state, data=dat, family="binomial")
 
 # Run Optimization --------------------------------------------------------
-OptimCategory <- function(mc, price.min=0.1, price.max=1000) {
+OptimCategory <- function(mc, alpha, price.min=0.1, price.max=1000) {
   ddply(
     dat %>% group_by(job_category_classified_by_ai) %>% tally(), 
     .(job_category_classified_by_ai, n),
     
     function(param) {
-      FindOptimalProfit(mdl.cat, mc, price.min, price.max, 
-                        param$n, fixed.params=data.frame(
-        "job_category_classified_by_ai"=param$job_category_classified_by_ai))
+      FindOptimalProfit(
+        mdl.cat, mc, price.min, price.max, 
+        param$n, alpha.predict=alpha,
+        fixed.params=data.frame(
+          "job_category_classified_by_ai"=
+            param$job_category_classified_by_ai
+        )
+      )
     }, .progress = "text") %>% 
     rename(segment=job_category_classified_by_ai) %>%
     mutate(segment=as.character(segment),
@@ -139,15 +144,19 @@ OptimCategory <- function(mc, price.min=0.1, price.max=1000) {
            mc=mc)
 }
 
-OptimState <- function(mc, price.min=0.1, price.max=1000) {
+OptimState <- function(mc, alpha, price.min=0.1, price.max=1000) {
   ddply(
     dat %>% group_by(job_state) %>% tally(),
     .(job_state, n),
     
     function(param) {
-      FindOptimalProfit(mdl.state, mc, price.min, price.max, 
-                        param$n, fixed.params=data.frame(
-        "job_state"=param$job_state))
+      FindOptimalProfit(
+        mdl.state, mc, price.min, price.max, 
+        param$n, alpha.predict = alpha, 
+        fixed.params=data.frame(
+          "job_state"=param$job_state
+        )
+      )
     }, .progress = "text") %>%
     rename(segment=job_state) %>%
     mutate(segment=as.character(segment),
@@ -155,10 +164,10 @@ OptimState <- function(mc, price.min=0.1, price.max=1000) {
            mc=mc)
 }
 
-rbind(OptimCategory(0, price.max=1e3),
-      OptimState(0, price.max=1e3),
-      OptimCategory(10, price.max=1e3),
-      OptimState(10, price.max=1e3)) %>%
+rbind(OptimCategory(0, alpha),
+      OptimState(0, alpha),
+      OptimCategory(10, alpha),
+      OptimState(10, alpha)) %>%
   mutate(segment=factor(segment)) -> optim.all
 
 # Summarize and Plot ------------------------------------------------------
@@ -181,23 +190,22 @@ optim.all %>%
   filter(is.na(profit)) %>%
   select(segment, n) -> optim.na
 
-# Summarize the profits forming upper/lower bounds.
+# Summarize the profits and standard errors.
 optim.all %>% 
   group_by(type, mc) %>%
   na.omit() %>% 
   filter(series=="optim") %>%
   select(-series) %>%
   summarize(profit=sum(profit), 
-            lower=sum(lower), 
-            upper=sum(upper)) -> optim.summary
+            profit.se=sqrt(sum(profit.se^2))) -> optim.summary.tmp
 
 # Now add the no segementation value as well.
-optim.summary <- rbind(
-  optim.summary, 
-  cbind(type="none", optim.simple) %>% 
-    filter(series=="optim", mc %in% c(0, 10)) %>% 
-    select(-prc, -series))
-
+optim.summary.tmp %>%
+  bind_rows(filter(optim.simple, series=="optim", mc %in% c(0, 10)) %>%
+              mutate(type="none") %>% select(-prc, -series)) %>%
+  mutate(profit.upper=profit + qnorm(1-alpha/2, sd=profit.se),
+         profit.lower=profit + qnorm(alpha/2, sd=profit.se)) %>%
+  select(-profit.se) -> optim.summary
 
 g <- ggplot(optim.summary, 
             aes(y=profit, x=relevel(factor(type), ref="none"))) + 
@@ -208,6 +216,6 @@ g <- ggplot(optim.summary,
   scale_x_discrete(labels=c("none"="None", 
                             "state"="Job Location (State)",
                             "category"="Job Category")) +
-  geom_errorbar(aes(ymin=lower, ymax=upper), width=0.25) +
+  geom_errorbar(aes(ymin=profit.lower, ymax=profit.upper), width=0.25) +
   labs(x="Segmentation Type", y="Profit [$]")
 GGPlotSave(g, "q3_profits_summary")

@@ -39,21 +39,37 @@ g <- ggplot(data=to.plot, aes(x=prc, y=r_sub, color=series)) +
 GGPlotSave(g, "q1_fit")
 
 # Find and Plot the Optimums ----------------------------------------------
-WithinPercentage <- function(v, l, u, pcnt) {
-  (abs((v-u)/u) < pcnt) | (abs((v-l)/l) < pcnt)
-}
-
-IsElasticityNegative <- function(mdl, var.prefix, var.name, alpha) {
+IsElasticityPositive <- function(mdl, var.prefix, var.name, alpha) {
+  # Form the path for the interaction term
   var.path <- sprintf('prc:%s%s', var.prefix, var.name)
-  se.price <- summary(mdl)$coef['prc','Std. Error']
-  se.price.int <- summary(mdl)$coef[var.path,'Std. Error']
+  
+  coefs <- summary(mdl)$coef
+
+  if (!(var.path %in% rownames(coefs))) {
+    if (!(var.path %in% names(coef(mdl)))) {
+      warning(sprintf(
+        "could not find coefficient: %s, assumming base-level", var.path))
+    }
+    return(FALSE)
+  }
+  
+  # Get the coefficients' standard errors
+  se.price <- coefs['prc','Std. Error']
+  se.price.int <- coefs[var.path,'Std. Error']
+  
+  # Form the overall coefficient standard error
   se.both <- sqrt(se.price^2 + se.price.int^2)
-  unname((coef(mdl)['prc'] + coef(mdl)[var.path] + qnorm(1-(alpha/2))*se.both) < 0)
+  
+  elasticity <- unname(
+    coefs['prc','Estimate'] + coefs[var.path, 'Estimate'] +
+      qnorm(1-(alpha/2), sd=se.both))
+  return(elasticity > 0)
 }
 
 FindOptimalProfit <- function(mdl, mc, lower, upper, N, 
                               length.out=100, fixed.params=NULL, 
-                              bounds.tolerance=0.001) {
+                              alpha.elasticity=0.50,
+                              optim.non.target.mdl = NULL) {
   # Adds the extra params needed to make a prediction (job_state, etc)
   AddExtraParams <- function(dat) {
     if (!is.null(fixed.params)) {
@@ -64,7 +80,7 @@ FindOptimalProfit <- function(mdl, mc, lower, upper, N,
   
   # Returns a function to use when predicting profits
   # if se.fit is true then the upper/lower bounds of the fit are returned.
-  PredictProfitFn <- function(se.fit) {
+  PredictProfitFn <- function(mdl, se.fit) {
     function(prc) {
       newdata <- AddExtraParams(data.frame(prc=prc))
       
@@ -85,23 +101,31 @@ FindOptimalProfit <- function(mdl, mc, lower, upper, N,
                         profit.se=(prc-mc)*subs.rate[["se.fit"]] * N))
     }
   }
-  
-  # Find the optimum value.
-  opt <- optim(lower, PredictProfitFn(F), lower=lower, upper=upper,
-               method = "Brent", control=list(fnscale=-1))
-  
-  if(is.null(fixed.params) | 
-     IsElasticityNegative(mdl, colnames(fixed.params)[1], fixed.params[1,1], 0.5)) {
-    # Calculate the optimum with upper/lower bounds.
-    opt.df <- data.frame(prc=opt$par[1], PredictProfitFn(T)(opt$par[1]))
+
+  if (is.null(optim.non.target.mdl)) {
+    # Find the optimum value.
+    opt <- optim(lower, PredictProfitFn(mdl, F), lower=lower, upper=upper,
+                 method = "Brent", control=list(fnscale=-1))
+    opt.df <- data.frame(prc=opt$par[1], PredictProfitFn(mdl, T)(opt$par[1]))
   } else {
-    # Was within tolerance of upper/lower bound, toss the result out.
-    opt.df <- data.frame(prc=NA, profit=NA, profit.se=NA)
+    prefix <- colnames(fixed.params)[1]
+    varname <- as.character(fixed.params[1,1])
+
+    # Find the optimum value.
+    use.mdl <- mdl
+    if (IsElasticityPositive(mdl, prefix, varname, alpha.elasticity)) {
+      use.mdl <- optim.non.target.mdl
+    }
+    opt <- optim(lower, PredictProfitFn(use.mdl, F),
+                 lower=lower, upper=upper, 
+                 method = "Brent", control=list(fnscale=-1))
+    opt.df <- data.frame(
+      prc=opt$par[1], PredictProfitFn(use.mdl, T)(opt$par[1]))
   }
-  
+
   # Now get some data to plot.
   plot.df <- data.frame(prc=seq(lower, upper, length.out = length.out))
-  plot.df <- cbind(plot.df, PredictProfitFn(T)(plot.df$prc))
+  plot.df <- cbind(plot.df, PredictProfitFn(mdl, T)(plot.df$prc))
   
   # Bind the two data-series together and return them.
   rbind(mutate(opt.df, series="optim"),
@@ -141,7 +165,8 @@ OptimCategory <- function(mc, price.min=0.1, price.max=1000) {
         fixed.params=data.frame(
           "job_category_classified_by_ai"=
             param$job_category_classified_by_ai
-        )
+        ),
+        optim.non.target.mdl = mdl.simple
       )
     }, .progress = "text") %>% 
     rename(segment=job_category_classified_by_ai) %>%
@@ -161,7 +186,8 @@ OptimState <- function(mc, price.min=0.1, price.max=1000) {
         param$n,
         fixed.params=data.frame(
           "job_state"=param$job_state
-        )
+        ),
+        optim.non.target.mdl = mdl.simple
       )
     }, .progress = "text") %>%
     rename(segment=job_state) %>%
@@ -227,3 +253,14 @@ g <- ggplot(optim.summary,
   geom_errorbar(aes(ymin=profit.lower, ymax=profit.upper), width=0.25) +
   labs(x="Segmentation Type", y="Profit [$]")
 GGPlotSave(g, "q3_profits_summary")
+
+# Source: local data frame [6 x 5]
+# 
+# type    mc   profit profit.upper profit.lower
+# (chr) (dbl)    (dbl)        (dbl)        (dbl)
+# 1 category     0 518223.9     577892.9     458554.8
+# 2 category    10 501230.7     561153.6     441307.8
+# 3    state     0 462444.4     491844.5     433044.4
+# 4    state    10 444697.6     474271.0     415124.3
+# 5     none     0 481084.9     515457.7     446712.2
+# 6     none    10 464962.1     499593.6     430330.6

@@ -30,15 +30,15 @@ reg <- glm(rate ~ prices, weights = total, data = sub.rate, family = 'binomial')
 sub.rate$pred <- predict(reg, type = 'response')
 sub.rate$pred.se <- predict(reg, type = 'response', se.fit = T)$se.fit
 
-arrow.se <- arrow(angle = 90, length = unit(0.05, 'inches'), ends = 'both')
-g <- ggplot(sub.rate) + geom_point(aes(x = prices, y = rate), size = 3) + 
-  geom_segment(aes(x = prices, xend = prices, 
-                   y = sub.rate$rate.lo, yend = sub.rate$rate.hi),
-               arrow = arrow.se) + 
-  geom_line(aes(x = prices, y = pred)) + 
-  geom_ribbon(aes(x = prices, ymin = pred - qnorm(0.975)*pred.se,
-                  ymax = pred + qnorm(0.975)*pred.se), alpha = 0.2)
-plot(g)
+# arrow.se <- arrow(angle = 90, length = unit(0.05, 'inches'), ends = 'both')
+# g <- ggplot(sub.rate) + geom_point(aes(x = prices, y = rate), size = 3) + 
+#   geom_segment(aes(x = prices, xend = prices, 
+#                    y = sub.rate$rate.lo, yend = sub.rate$rate.hi),
+#                arrow = arrow.se) + 
+#   geom_line(aes(x = prices, y = pred)) + 
+#   geom_ribbon(aes(x = prices, ymin = pred - qnorm(0.975)*pred.se,
+#                   ymax = pred + qnorm(0.975)*pred.se), alpha = 0.2)
+# plot(g)
 
 # Simulate demand and revenue under various cost assumptions
 sim <- data.frame(prices = 0:500,
@@ -47,9 +47,9 @@ sim <- data.frame(prices = 0:500,
 sim$profit0 <- sim$rate * sim$prices
 sim$profit10 <- sim$rate * (sim$prices - 10)
 
-pdat <- melt(sim[,c('prices', 'profit0', 'profit10')], id.vars = 'prices')
-g <- ggplot(pdat) + geom_line(aes(x = prices, y = value, color = variable))
-plot(g)
+# pdat <- melt(sim[,c('prices', 'profit0', 'profit10')], id.vars = 'prices')
+# g <- ggplot(pdat) + geom_line(aes(x = prices, y = value, color = variable))
+# plot(g)
 
 # Optimal prices: 294; 303
 # These are probably not statistically distinguishable! 
@@ -129,8 +129,7 @@ revenue.by.state$xmin <- cumsum(revenue.by.state$N) - revenue.by.state$N
 g1 <- ggplot(revenue.by.state) + 
   geom_rect(aes(xmin=xmin, xmax=xmax, ymin=0, ymax=price, fill=base.model), 
             color = '#000000') +
-  labs(x = '# of Paying Customers', y = 'Optimal Price ($)') + 
-  theme_bw()
+  labs(x = '# of Paying Customers', y = 'Optimal Price ($)')
 plot(g1)
 
 # BY JOB CATEGORY
@@ -151,8 +150,7 @@ revenue.by.jcat$xmin <- cumsum(revenue.by.jcat$N) - revenue.by.jcat$N
 g2 <- ggplot(revenue.by.jcat) + 
   geom_rect(aes(xmin=xmin, xmax=xmax, ymin=0, ymax=price, fill=base.model), 
             color = '#000000') +
-  labs(x = '# of Paying Customers', y = 'Optimal Price ($)') + 
-  theme_bw()
+  labs(x = '# of Paying Customers', y = 'Optimal Price ($)')
 plot(g2)
 
 # Compare
@@ -182,8 +180,7 @@ profit.by.state$xmin <- cumsum(profit.by.state$N) - profit.by.state$N
 g3 <- ggplot(profit.by.state) + 
   geom_rect(aes(xmin=xmin, xmax=xmax, ymin=0, ymax=price, fill=base.model), 
             color = '#000000') +
-  labs(x = '# of Paying Customers', y = 'Optimal Price ($)') + 
-  theme_bw()
+  labs(x = '# of Paying Customers', y = 'Optimal Price ($)')
 plot(g3)
 
 # BY JOB CATEGORY
@@ -195,15 +192,14 @@ profit.by.jcat <- data.frame(state = unique(zipdat$job_category_classified_by_ai
                               base.model = unlist(by.jcat[4,]))
 
 # sort by revenue for plotting purposes
-profit.by.jcat <- revenue.by.jcat[order(profit.by.jcat$revenue, decreasing = T),]
+profit.by.jcat <- profit.by.jcat[order(profit.by.jcat$revenue, decreasing = T),]
 profit.by.jcat$xmax <- cumsum(profit.by.jcat$N)
 profit.by.jcat$xmin <- cumsum(profit.by.jcat$N) - profit.by.jcat$N
 
 g4 <- ggplot(profit.by.jcat) + 
   geom_rect(aes(xmin=xmin, xmax=xmax, ymin=0, ymax=price, fill=base.model), 
             color = '#000000') +
-  labs(x = '# of Paying Customers', y = 'Optimal Price ($)') + 
-  theme_bw()
+  labs(x = '# of Paying Customers', y = 'Optimal Price ($)')
 plot(g4)
 
 # Compare
@@ -212,3 +208,37 @@ sum(profit.by.jcat$revenue)
 
 # With my crazy assumptions it is better to price on job category
 sum(profit.by.jcat$revenue) > sum(profit.by.state$revenue)
+
+# Try facet_wrap ----
+
+# MakeLabels <- function(df, topN) {
+#   df <- df[order(df$revenue, decreasing = T),]
+#   c(as.character(df$state[1:topN]), rep('', nrow(df)-topN))
+# }
+# revenue.by.state$label <- MakeLabels(revenue.by.state, 5)
+# revenue.by.jcat$label <- MakeLabels(revenue.by.jcat, 5)
+# profit.by.state$label <- MakeLabels(profit.by.state, 5)
+# profit.by.jcat$label <- MakeLabels(profit.by.jcat, 5)
+
+fdat <- rbind(revenue.by.state, revenue.by.jcat, profit.by.state, profit.by.jcat)
+fdat$mcost <- c(rep(0, nrow(revenue.by.state) + nrow(revenue.by.jcat)),
+                rep(10, nrow(profit.by.state) + nrow(profit.by.jcat)))
+fdat$type <- c(rep('Segment by State', nrow(revenue.by.state)), 
+               rep('Segment by Job Category', nrow(revenue.by.jcat)), 
+               rep('Segment by State', nrow(revenue.by.state)), 
+               rep('Segment by Job Category', nrow(revenue.by.jcat)))
+# fdat$label.x <- 0.5*(fdat$xmax+fdat$xmin)
+
+g5 <- ggplot(fdat[fdat$mcost==0,]) + 
+  geom_rect(aes(xmin=xmin, xmax=xmax, ymin=0, ymax=price, fill=base.model), 
+            color = '#000000') +
+  labs(x = '# of Paying Customers', y = 'Optimal Price ($)') + 
+  scale_fill_discrete('Model Type', labels = c('Segment-Specific', 'General')) +
+  facet_wrap(~ type)
+g5
+
+g6 <- ggplot(fdat[fdat$mcost==10,]) + 
+  geom_rect(aes(xmin=xmin, xmax=xmax, ymin=0, ymax=price, fill=base.model), 
+            color = '#000000') +
+  labs(x = '# of Paying Customers', y = 'Optimal Price ($)') + 
+  facet_wrap(~ type)

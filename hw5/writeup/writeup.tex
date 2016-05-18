@@ -10,25 +10,34 @@ University of Chicago Booth School of Business}
 
 \maketitle
 
-\section{} % Question 1
-%%%%% NOTE TO WHOEVER WRITES UP Q1, THE FOLLOWING 2 "\vref{...}"'s ARE REFERENCES TO THE PLOTS:
-
-To identify the optimal uniform price that Ziprecruiter should charge, we first examined the Subscription rates of customers for different subscription price levels offered.   
-\vref{fig:q1_fit} \vref{fig:q1_profits} 
-
-%%%%% OR as one reference (no spaces)
-\vref{fig:q1_fit,fig:q1_profits}
-
+\section{} \label{sec:q1} % Question 1
+To identify the optimal uniform price that ZipRecruiter should charge, we estimated the following regression:
+\[ s_i = \alpha + P_i \beta + \varepsilon_i \]
+where $s_i$ is a binary indicator for whether or not customer $i$ subscribed and $P_i$ is the price in dollars that the customer was charged. This regression is our estimated demand function for ZipRecruiter's services across the range of tested prices. We show the results of this regression in \vref{fig:q1_fit}---the blue line is the estimated demand curve, which is plotted against the empirically observed demand schedule in red.
 
 \singlefig{q1_fit}{Actual/Fitted Subscription Rate}
+
+We can then use this estimated demand function to compute the company's profit as a function of the price charged:
+\[ \Pi_i = s_i \left( P_i - c \right) \]
+where $c$ is the cost of servicing a customer (assumed to be constant across all customers). We show the profit function for varying levels of cost per customer in \vref{fig:q1_profits}. The optimal price is the price at which the profit function is maximized. For a cost per customer of \$10, the optimal price is \$303 (shown in the dark yellow line in \cref{fig:q1_profits}). We can observe in this plot as well that the optimal price must be raised as the cost to service a customer increases.
+
 \singlefig{q1_profits}{Profits Under Uniform Pricing (with Varying Marginal Costs)}
 
-
 \section{} % Question 2
+To begin our consideration on how to optimally segment the market we fit two regressions to the data:
+\begin{align}
+s_i = \alpha +  P_i \beta_P + L_i \beta_L + P_i L_i \beta_{P,L} + \varepsilon_i \label{eq:regr_state} \\
+s_i = \alpha +  P_i \beta_P + JC_i \beta_L + P_i JC_i \beta_{P,JC} + \varepsilon_i \label{eq:regr_cat}
+\end{align}
+In the first regression (\vref{eq:regr_state}), we fit the subscription rate ($s_i$) on price ($P_i$) interacted with job location ($L_i$). This allows us to compute a state-specific price elasticity. We immediately find that two states do not have enough data to even estimate an elasticity: GU (Guam) and NT (the Northern Territories in Canada).  Additionally, we found that for another 25 states, we could not reject the null hypothesis of positive price elasticity at even a 50\% confidence level. For all 27 of these states, we apply the optimum pricing strategy calculated in \cref{sec:q1} instead of trying to predict an optimal price with flawed data.\footnote{We believed that in no case is elasticity actually positive, so if the data tell us it is, we do not believe the data.} Note that we incorporate the size of the segment into the total profits calculation.  For the remaining 34 states that have significant and negative elasticities we use the optimization function in R to compute a price that optimizes the profit -- or, in this case with no marginal cost, revenue.
+
+The same exercise is performed using job category instead of location as a segmentation approach \vref{eq:regr_cat}.  In this case there are far fewer cases, only 13, where we do not have good elasticity measurements.
+
+Using both models we calculate optimal price and the per-segment profits.  \Vref{sec_mc_0} shows the breakdown of price vs segment size (and also indicates whether or not a segment-specific price could be computed).  Additionally \vref{q3_predicted} shows the breakdown of profits by segment and, more generally, showes there are some advantages of charging 
+optimal customers by the segment and
 
 \singlefig{seg_mc_0}{Segment-Specific Revenue with Cost/Customer = \$0}
 \singlefig{q3_predicted}{Profit Curves by Segment and Marginal Cost}
-
 
 
 \section{} % Question 3

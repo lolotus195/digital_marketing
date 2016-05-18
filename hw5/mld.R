@@ -272,6 +272,7 @@ g <- ggplot(optim.all %>% filter(series=="optim", simple==F) %>%
     type=c("category"="Segemented by Job Category",
            "state"="Segemented by Job Location (State)"))) +
   labs(x="Optimal Price [$]", y="Count")
+GGPlotSave(g, "q2_hist")
 
 
 # Source: local data frame [6 x 5]

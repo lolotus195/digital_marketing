@@ -23,27 +23,34 @@ where $c$ is the cost of servicing a customer (assumed to be constant across all
 
 \singlefig{q1_profits}{Profits Under Uniform Pricing (with Varying Marginal Costs)}
 
-\section{} % Question 2
+\section{} \label{sec:q2} % Question 2
 To begin our consideration on how to optimally segment the market we fit two regressions to the data:
 \begin{align}
-s_i = \alpha +  P_i \beta_P + L_i \beta_L + P_i L_i \beta_{P,L} + \varepsilon_i \label{eq:regr_state} \\
-s_i = \alpha +  P_i \beta_P + JC_i \beta_L + P_i JC_i \beta_{P,JC} + \varepsilon_i \label{eq:regr_cat}
+s_i &= \alpha +  P_i \beta_P + L_i \beta_L + P_i L_i \beta_{P,L} + \varepsilon_i \label{eq:regr_state} \\
+s_i &= \alpha +  P_i \beta_P + JC_i \beta_L + P_i JC_i \beta_{P,JC} + \varepsilon_i \label{eq:regr_cat}
 \end{align}
 In the first regression (\vref{eq:regr_state}), we fit the subscription rate ($s_i$) on price ($P_i$) interacted with job location ($L_i$). This allows us to compute a state-specific price elasticity. We immediately find that two states do not have enough data to even estimate an elasticity: GU (Guam) and NT (the Northern Territories in Canada).  Additionally, we found that for another 25 states, we could not reject the null hypothesis of positive price elasticity at even a 50\% confidence level. For all 27 of these states, we apply the optimum pricing strategy calculated in \cref{sec:q1} instead of trying to predict an optimal price with flawed data.\footnote{We believed that in no case is elasticity actually positive, so if the data tell us it is, we do not believe the data.} Note that we incorporate the size of the segment into the total profits calculation.  For the remaining 34 states that have significant and negative elasticities we use the optimization function in R to compute a price that optimizes the profit -- or, in this case with no marginal cost, revenue.
 
 The same exercise is performed using job category instead of location as a segmentation approach \vref{eq:regr_cat}.  In this case there are far fewer cases, only 13, where we do not have good elasticity measurements.
 
-Using both models we calculate optimal price and the per-segment profits.  \Vref{fig:sec_mc_0} shows the breakdown of price vs segment size (and also indicates whether or not a segment-specific price could be computed).  Additionally \vref{fig:q3_predicted} shows the breakdown of profits by segment and, more generally, shows there are some advantages of charging customers different prices by segment.  Finally \vref{fig:q2_hist} shows the distribution of prices where we were able to find a segment-specific price.
+Using both models we calculate optimal price and the per-segment profits.  \Vref{fig:seg_mc_0} shows the breakdown of price vs. segment size (and also indicates whether or not a segment-specific price could be computed).  Additionally \vref{fig:q3_predicted} shows the breakdown of profits by segment and, more generally, it shows there are some advantages of charging customers different prices by segment.  The optimal distribution of prices (where we were able to find a segment-specific price) is shown in \vref{fig:q2_hist}.  Finally, \vref{tab:summary_mc_0} summarize the top-10 segments (by revenue) for each segmentation type with the optimal price charged in each.
+
+Finally to recommend which segment-type to use, we sum the profits from each segmentation type to form the expected profits (along with a 95\% confidence interval).  \Vref{fig:q3_profits_summary} shows the optimized profit by segmentation type.  Here we find that for a marginal cost of \$0, that segmenting by \textbf{Job Category} is more optimal than segmenting by Job Location or not segmenting at all.  This yields \$517,825 in revenue/profits vs \$461,564 and \$481,084 for location and not segmenting.\footnote{Note that the confidence intervals for the segmentation types indicate that Job Category is not significantly different from Job Location and not segmenting.}
 
 \singlefig{seg_mc_0}{Segment-Specific Revenue with Cost/Customer = \$0}
 \singlefig{q3_predicted}{Profit Curves by Segment and Marginal Cost}
 \singlefig{q2_hist}{Histogram of Optimal Prices by Segment and Marginal Cost}
 
+\input{summary_mc_0}
+
 \section{} % Question 3
+For this question, we perform the same exercise as was performed in \cref{sec:q2} except that we added a marginal cost of \$10 to the profit maximization function.  As before we find the segment-specific revenue (\vref{fig:seg_mc_10}), the profit curves (\vref{fig:q3_predicted}), histogram of optimal prices (\vref{fig:q2_hist}), and top-10 profit contributions by segment (\vref{tab:summary_mc_10}).  One thing to note from the histogram, is that it shows the expected increase in the optimal prices with increasing marginal cost (note: this is a subtle effect).
+
+As before, we summarize our findings by examining the overall profits.  As before we turn to \vref{fig:q3_profits_summary} and note that \textbf{Job Category} again appears to have better profits than Job Location and not segmenting, but, again, the confidence intervals do not show much, if any, differentiation between the three schemes.
+
 \singlefig{seg_mc_10}{Segment-Specific Revenue with Cost/Customer = \$10}
-\singlefig{q3_profits_summary}{Overall Profits by Segmentation Type and Marginal Cost}
-
-
+\singlefigscale{q3_profits_summary}{Overall Profits by Segmentation Type and Marginal Cost}{0.8}
+\input{summary_mc_10}
 
 \end{document}
 

@@ -233,12 +233,19 @@ g5 <- ggplot(fdat[fdat$mcost==0,]) +
   geom_rect(aes(xmin=xmin, xmax=xmax, ymin=0, ymax=price, fill=base.model), 
             color = '#000000') +
   labs(x = '# of Paying Customers', y = 'Optimal Price ($)') + 
-  scale_fill_discrete('Model Type', labels = c('Segment-Specific', 'General')) +
+  scale_fill_discrete('Model Type:', labels = c('Segment-Specific', 'General')) +
+  theme(legend.position = 'bottom') +
   facet_wrap(~ type)
-g5
+plot(g5)
 
 g6 <- ggplot(fdat[fdat$mcost==10,]) + 
   geom_rect(aes(xmin=xmin, xmax=xmax, ymin=0, ymax=price, fill=base.model), 
             color = '#000000') +
   labs(x = '# of Paying Customers', y = 'Optimal Price ($)') + 
+  scale_fill_discrete('Model Type:', labels = c('Segment-Specific', 'General')) +
+  theme(legend.position = 'bottom') +
   facet_wrap(~ type)
+plot(g6)
+
+ggsave('./writeup/seg_mc_0.pdf', g5)
+ggsave('./writeup/seg_mc_10.pdf', g6)

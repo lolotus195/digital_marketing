@@ -49,8 +49,9 @@ IsElasticityPositive <- function(mdl, var.prefix, var.name, alpha) {
     if (!(var.path %in% names(coef(mdl)))) {
       warning(sprintf(
         "could not find coefficient: %s, assumming base-level", var.path))
+      return(FALSE)
     }
-    return(FALSE)
+    return(TRUE)
   }
   
   # Get the coefficients' standard errors
@@ -106,21 +107,25 @@ FindOptimalProfit <- function(mdl, mc, lower, upper, N,
     # Find the optimum value.
     opt <- optim(lower, PredictProfitFn(mdl, F), lower=lower, upper=upper,
                  method = "Brent", control=list(fnscale=-1))
-    opt.df <- data.frame(prc=opt$par[1], PredictProfitFn(mdl, T)(opt$par[1]))
+    opt.df <- data.frame(prc=opt$par[1], PredictProfitFn(mdl, T)(opt$par[1]),
+                         simple=F)
   } else {
     prefix <- colnames(fixed.params)[1]
     varname <- as.character(fixed.params[1,1])
 
     # Find the optimum value.
     use.mdl <- mdl
+    simple <- F
     if (IsElasticityPositive(mdl, prefix, varname, alpha.elasticity)) {
       use.mdl <- optim.non.target.mdl
+      simple <- T
     }
     opt <- optim(lower, PredictProfitFn(use.mdl, F),
                  lower=lower, upper=upper, 
                  method = "Brent", control=list(fnscale=-1))
     opt.df <- data.frame(
-      prc=opt$par[1], PredictProfitFn(use.mdl, T)(opt$par[1]))
+      prc=opt$par[1], PredictProfitFn(use.mdl, T)(opt$par[1]),
+      simple=simple)
   }
 
   # Now get some data to plot.
@@ -129,7 +134,7 @@ FindOptimalProfit <- function(mdl, mc, lower, upper, N,
   
   # Bind the two data-series together and return them.
   rbind(mutate(opt.df, series="optim"),
-        mutate(plot.df, series="pred"))
+        mutate(plot.df, series="pred", simple=F))
 }
 
 N=nrow(dat)
@@ -253,6 +258,21 @@ g <- ggplot(optim.summary,
   geom_errorbar(aes(ymin=profit.lower, ymax=profit.upper), width=0.25) +
   labs(x="Segmentation Type", y="Profit [$]")
 GGPlotSave(g, "q3_profits_summary")
+
+optim.all %>% 
+  group_by(type) %>% 
+  filter(series=="optim", simple==T, mc==0) %>% 
+  select(segment, n) -> optim.simple
+
+g <- ggplot(optim.all %>% filter(series=="optim", simple==F) %>% 
+         select(prc, type, mc)) +
+  geom_histogram(aes(x=prc), bins=30) + 
+  facet_wrap(mc ~ type, labeller=labeller(
+    mc=function(x) sprintf("Marginal Cost: $%s", x),
+    type=c("category"="Segemented by Job Category",
+           "state"="Segemented by Job Location (State)"))) +
+  labs(x="Optimal Price [$]", y="Count")
+
 
 # Source: local data frame [6 x 5]
 # 

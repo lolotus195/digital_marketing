@@ -75,7 +75,7 @@ Modeling objectives:
 \begin{frame}
 
 The model:
-\[ \frac{\textsf{Pr}(\text{click}=1)}{1-\textsf{Pr}(\text{click}=1)} = \beta_0 + \underbrace{\sum_{j=1}^{p} x_j \beta_j}_{\text{main effects}} + \underbrace{\sum_{j=1}^p \sum_{k=1}^{j} x_j x_k \beta_{jk}}_{\text{interaction effects}} + \varepsilon \]
+\[ \frac{\textsf{Pr}(\text{click}=1)}{1-\textsf{Pr}(\text{click}=1)} = \beta_0 + \underbrace{\sum_{j=1}^{p} x_j \beta_j}_{\text{main effects}} + \underbrace{\sum_{j=1}^p \sum_{k=1}^{j-1} x_j x_k \beta_{jk}}_{\text{interaction effects}} + \varepsilon \]
 
 The lasso:
 \[ \min_{\bm{\beta}} \left(-\frac{2}{n}\log{\textsf{LHD}(\bm{\beta})} + \underbrace{\lambda \sum_{i} \vert \beta_i \vert}_{\text{main + int. effects}} \right) \]
@@ -89,7 +89,7 @@ We can vary the weight on $\lambda$ to impose different shrinkage for different 
 \begin{frame}
 
 The lasso with a twist:
-\[ \min_{\bm{\beta}} \left(-\frac{2}{n}\log{\textsf{LHD}(\bm{\beta})} + \underbrace{\omega_1 \lambda \sum_{j=1}^{p} \vert \beta_j \vert}_{\text{main effects}} + \underbrace{\omega_2 \lambda \sum_{j=1}^p \sum_{k=1}^{j} \vert \beta_{jk} \vert}_{\text{interaction effects}} \right) \]
+\[ \min_{\bm{\beta}} \left(-\frac{2}{n}\log{\textsf{LHD}(\bm{\beta})} + \underbrace{\omega_1 \lambda \sum_{j=1}^{p} \vert \beta_j \vert}_{\text{main effects}} + \underbrace{\omega_2 \lambda \sum_{j=1}^p \sum_{k=1}^{j-1} \vert \beta_{jk} \vert}_{\text{interaction effects}} \right) \]
 
 \vskip 0.5cm 
 $\omega_1 < \omega_2$: the lasso will penalize interaction effect parameters more than main effect parameters (\textit{\fg impose a bias toward main effects})
@@ -107,7 +107,24 @@ Trade-off between accuracy (\textit{\fg select variables via cross validation}) 
 \end{frame}
 
 \begin{frame}
-
+What kind of model do we end up with?
+\includegraphics[width=\textwidth]{coefs_base.pdf}
 \end{frame}
+
+\begin{frame}
+More main effects than interaction effects
+\includegraphics[width=\textwidth]{coefs_int.pdf}
+\end{frame}
+
+\begin{frame}
+At least one (and maybe two) variables with no predictive power
+\includegraphics[width=\textwidth]{coefs_missing.pdf}
+\end{frame}
+
+\begin{frame}
+We can then calibrate a model and make predictions about all possible messages
+\includegraphics[width=\textwidth]{barplot.pdf}
+\end{frame}
+
 
 \end{document}

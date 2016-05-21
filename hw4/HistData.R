@@ -146,7 +146,6 @@ plot(mdl.net.cv.it2)
 sum(abs(coef(mdl.net.cv.it2, s = "lambda.1se")) > 0)
 sum(abs(coef(mdl.net.cv.it2, s = "lambda.min")) > 0)
 
-
 ####
 # Predict Using the Models ------------------------------------------------
 ####

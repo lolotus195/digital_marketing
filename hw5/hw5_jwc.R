@@ -69,7 +69,7 @@ max.price <- 1e4
 
 GetRevenue <- function(int.var, int.reg, cost.per.customer) {
   rev <- sapply(unique(zipdat[,int.var]), function(s) {
-
+    
     alpha <- coef(int.reg)['(Intercept)']
     beta_int <- coef(int.reg)[paste(int.var, s, sep = '')]
     beta_price <- coef(int.reg)['prc']
@@ -137,10 +137,10 @@ reg.jcat <- glm(SUB ~ prc*job_category_classified_by_ai,
                 data = zipdat, family = 'binomial')
 by.jcat <- GetRevenue('job_category_classified_by_ai', reg.jcat, 0)
 revenue.by.jcat <- data.frame(state = unique(zipdat$job_category_classified_by_ai),
-                               revenue = unlist(by.jcat[1,]),
-                               price = unlist(by.jcat[2,]),
-                               N = unlist(by.jcat[3,]),
-                               base.model = unlist(by.jcat[4,]))
+                              revenue = unlist(by.jcat[1,]),
+                              price = unlist(by.jcat[2,]),
+                              N = unlist(by.jcat[3,]),
+                              base.model = unlist(by.jcat[4,]))
 
 # sort by revenue for plotting purposes
 revenue.by.jcat <- revenue.by.jcat[order(revenue.by.jcat$revenue, decreasing = T),]
@@ -167,10 +167,10 @@ sum(revenue.by.jcat$revenue) > sum(revenue.by.state$revenue)
 # BY STATE
 by.state <- GetRevenue('job_state', reg.state, 10)
 profit.by.state <- data.frame(state = unique(zipdat$job_state),
-                               revenue = unlist(by.state[1,]),
-                               price = unlist(by.state[2,]),
-                               N = unlist(by.state[3,]),
-                               base.model = unlist(by.state[4,]))
+                              revenue = unlist(by.state[1,]),
+                              price = unlist(by.state[2,]),
+                              N = unlist(by.state[3,]),
+                              base.model = unlist(by.state[4,]))
 
 # sort by revenue for plotting purposes
 profit.by.state <- profit.by.state[order(profit.by.state$revenue, decreasing = T),]
@@ -186,10 +186,10 @@ plot(g3)
 # BY JOB CATEGORY
 by.jcat <- GetRevenue('job_category_classified_by_ai', reg.jcat, 10)
 profit.by.jcat <- data.frame(state = unique(zipdat$job_category_classified_by_ai),
-                              revenue = unlist(by.jcat[1,]),
-                              price = unlist(by.jcat[2,]),
-                              N = unlist(by.jcat[3,]),
-                              base.model = unlist(by.jcat[4,]))
+                             revenue = unlist(by.jcat[1,]),
+                             price = unlist(by.jcat[2,]),
+                             N = unlist(by.jcat[3,]),
+                             base.model = unlist(by.jcat[4,]))
 
 # sort by revenue for plotting purposes
 profit.by.jcat <- profit.by.jcat[order(profit.by.jcat$revenue, decreasing = T),]
@@ -249,3 +249,59 @@ plot(g6)
 
 ggsave('./writeup/seg_mc_0.pdf', g5)
 ggsave('./writeup/seg_mc_10.pdf', g6)
+
+# Make some summary tables ----
+
+# Revenue
+sum.mc0 <- cbind(revenue.by.state[1:10, c('state', 'revenue', 'price')],
+                 revenue.by.jcat[1:10, c('state', 'revenue', 'price')])
+sum.mc0[,2] <- prettyNum(sum.mc0[,2], big.mark = ',', format = 'g', digits = 2)
+sum.mc0[,5] <- prettyNum(sum.mc0[,5], big.mark = ',', format = 'g', digits = 2)
+sum.mc0[,4] <- gsub('&', '+', sum.mc0[,4])
+ExportTable(table = sum.mc0, file = 'summary_mc_0', 
+            caption = 'Top 10 Segments for Cost = \\$0',
+            colnames = c('State', 'Revenue', 'Price', 
+                         'Job Category', 'Revenue', 'Price'), 
+            include.rownames = F, align = 'lllr|llr')
+
+# Profit
+sum.mc10 <- cbind(profit.by.state[1:10, c('state', 'revenue', 'price')],
+                  profit.by.jcat[1:10, c('state', 'revenue', 'price')])
+sum.mc10[,2] <- prettyNum(sum.mc10[,2], big.mark = ',', format = 'g', digits = 2)
+sum.mc10[,5] <- prettyNum(sum.mc10[,5], big.mark = ',', format = 'g', digits = 2)
+sum.mc10[,4] <- gsub('&', '+', sum.mc10[,4])
+ExportTable(table = sum.mc10, file = 'summary_mc_10', 
+            caption = 'Top 10 Segments for Cost = \\$0',
+            colnames = c('State', 'Revenue', 'Price', 
+                         'Job Category', 'Revenue', 'Price'), 
+            include.rownames = F, align = 'lllr|llr')
+
+
+# Explore fits ----
+
+GetR2 <- function(res) {
+  r2 <- 1 - res$deviance / res$null.deviance
+  
+  n <- length(res$y)
+  p <- length(res$coefficients)-1
+  adj.r2 <- r2 - (1-r2)*(p/(n-p-1))
+  
+  return(list(r2, adj.r2))
+}
+
+fit1 <- glm(SUB ~ prc, data = zipdat, family = 'binomial')
+fit2 <- glm(SUB ~ log(prc), data = zipdat, family = 'binomial')
+
+GetR2(fit1)
+GetR2(fit2)
+
+compare <- data.frame(prc = 0:500,
+                      rate1 = predict(fit1, newdata = data.frame(prc = 0:500), 
+                                      type = 'response'),
+                      rate2 = predict(fit2, newdata = data.frame(prc = 0:500), 
+                                      type = 'response'))
+
+pdat <- melt(compare, id.vars = 'prc')
+
+g <- ggplot(pdat) + geom_line(aes(x = prc, y = value, color = variable))
+plot(g)

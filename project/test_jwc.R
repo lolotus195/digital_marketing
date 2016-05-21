@@ -60,3 +60,7 @@ mm.all <- mm.all[,-1]
 
 pred <- predict(mdl, newdata = as.data.frame(mm.all), type = 'response', se.fit=T)
 max(pred$fit + pred$se.fit*qnorm(.975)) # best case is 13.5 percent
+
+r2 <- 1-mdl$deviance/mdl$null.deviance
+
+# r2 <- 1 - res$deviance / res$null.deviance

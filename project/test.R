@@ -65,7 +65,11 @@ dat.test <- RelevelData(expand.grid(V1=c(4,5,6),
 mdl <- glm(cbind(Clicks, N-Clicks) ~ V1 + V2 + I(V4 == 1) + V5 + V6 + V7 + 
              I(V8 == 4) + V9 + V1:V2, 
            dat, family="binomial")
+
 summary(mdl)
+r2 <- 1-mdl$deviance/mdl$null.deviance
+
+
 pred.click <- predict(mdl, dat.test, type="response", se.fit = T)
 dat.test$p_click_rate <- pred.click$fit
 dat.test$p_click_rate.stderr <- pred.click$se.fit

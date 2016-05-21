@@ -150,3 +150,14 @@ plot(g.comb)
 # ggsave('slides/coefs_int.pdf', g.int)
 # ggsave('slides/coefs_missing.pdf', g.var3)
 ggsave('slides/coef_all.eps', g.comb)
+
+# Appendix plots -----
+
+load('../hw4/Historical_Data.rdat')
+
+# Gut check -- do we observe all vars about equally in the historical data?
+# Yes, thankfully
+inc.vars <- sapply(histdat, function(df) {
+  return(1:9 %in% as.numeric(gsub('V','', grep('V',colnames(df),value=T))))
+})
+barplot(rowMeans(inc.vars))

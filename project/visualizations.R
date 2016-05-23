@@ -160,4 +160,8 @@ load('../hw4/Historical_Data.rdat')
 inc.vars <- sapply(histdat, function(df) {
   return(1:9 %in% as.numeric(gsub('V','', grep('V',colnames(df),value=T))))
 })
-barplot(rowMeans(inc.vars))
+inc.vars <- data.frame(var = paste('V', 1:9, sep = ''),
+                       obs = rowMeans(inc.vars),
+                       lab = sprintf('%.1f', rowMeans(inc.vars)))
+g <- ggplot(inc.vars) + geom_bar(aes(x = var, y = obs), stat = 'identity')
+plot(g)

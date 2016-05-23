@@ -6,6 +6,12 @@ require(stringr)
 
 source("../utils/source_me.R", chdir = T)
 CreateDefaultPlotOpts()
+Global.PlotOpts$Prefix="slides/"
+
+theme_set(theme_gray())
+theme_update(
+  plot.background=element_rect(fill=rgb(1, 1, 1, 0))
+)
 
 # load data
 load(file = "../hw4/Historical_Data.rdat")
@@ -45,7 +51,6 @@ g <- g +
 g <- g + 
   labs(x = 'log(Lambda)', y = 'Binomial Deviance (Out-of-Sample Accuracy)') +
   expand_limits(y = 0.249) +
-  theme_bw() + 
   theme(axis.title.x = element_text(size = 15, margin = margin(10,0,0,0)),
         axis.text.x = element_text(size = 12),
         axis.title.y = element_text(size = 15, margin = margin(0,15,0,0)),
@@ -109,7 +114,7 @@ pdat$cat <- sapply(pdat$name, function(n) {
 g.base <- ggplot(pdat) + geom_bar(aes(y=coef,x=name,fill=cat), stat = 'identity') +
   labs(x = 'Variable Name', y = 'Coefficient') +
   scale_fill_discrete('Variable') +
-  theme_bw() + theme(axis.text.x=element_text(angle=90))
+  theme(axis.text.x=element_text(angle=90))
 plot(g.base)
 
 # Annotate interaction terms
@@ -149,7 +154,7 @@ plot(g.comb)
 # ggsave('slides/coefs_base.pdf', g.base)
 # ggsave('slides/coefs_int.pdf', g.int)
 # ggsave('slides/coefs_missing.pdf', g.var3)
-ggsave('slides/coef_all.eps', g.comb)
+ggsave('slides/coef_all.pdf', g.comb)
 
 # Appendix plots -----
 
@@ -166,7 +171,7 @@ inc.vars <- data.frame(var = paste('V', 1:9, sep = ''),
 
 g <- ggplot(inc.vars) + geom_bar(aes(x = var, y = obs - .03), stat = 'identity') + 
   geom_text(aes(x = var, y = obs, label = lab)) + 
-  labs(x = 'Variable', y = '% of Historical Experiments with Variable') + 
-  theme_bw()
+  labs(x = 'Variable', y = '% of Historical Experiments with Variable')
 plot(g)
 ggsave('./slides/hist_freq.pdf', g)
+

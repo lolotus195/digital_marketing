@@ -4,6 +4,12 @@ CreateDefaultPlotOpts()
 Global.PlotOpts$Prefix <- "slides/"
 require(plyr)
 require(dplyr)
+require(ggplot2)
+
+theme_set(theme_gray())
+theme_update(
+  plot.background=element_rect(fill=rgb(1, 1, 1, 0))
+)
 
 ####
 # Level Info --------------------------------------------------------------

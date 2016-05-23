@@ -3,6 +3,7 @@
 \usepackage{amssymb}
 \usepackage{amsfonts}
 \usepackage{dsfont,natbib,setspace,changepage,multirow}
+\usepackage{tikz}
 \mode<presentation>
 
 % replaces beamer foot with simple page number
@@ -59,7 +60,10 @@
 \endgroup
 
 % Didn't want on title page because we'd duplicate the phoenix
-{\usebackgroundtemplate{\includegraphics[height=\paperheight]{phoenix}}
+\usebackgroundtemplate{%
+\tikz\node[opacity=0.75] {
+	\includegraphics[height=\paperheight]{phoenix}};
+}
 
 \begin{frame}
 

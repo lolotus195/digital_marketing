@@ -164,7 +164,7 @@ WriteDesign <- function(filename, design) {
   }
   # This is really dumb, I hate R.
   mtx <- matrix(as.numeric(as.matrix(design)), ncol=10)
-  write.table(mtx, file=sprintf("experiments/%s", filename), 
+  write.table(mtx, file=sprintf("exp.designs/%s", filename), 
               row.names = F, sep = ",")
 }
-WriteDesign("experiment2.csv", dat.exp2)
+WriteDesign("exp2.csv", dat.exp2)

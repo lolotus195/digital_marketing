@@ -162,6 +162,11 @@ inc.vars <- sapply(histdat, function(df) {
 })
 inc.vars <- data.frame(var = paste('V', 1:9, sep = ''),
                        obs = rowMeans(inc.vars),
-                       lab = sprintf('%.1f', rowMeans(inc.vars)))
-g <- ggplot(inc.vars) + geom_bar(aes(x = var, y = obs), stat = 'identity')
+                       lab = sprintf('%.1f', 100*rowMeans(inc.vars)))
+
+g <- ggplot(inc.vars) + geom_bar(aes(x = var, y = obs - .03), stat = 'identity') + 
+  geom_text(aes(x = var, y = obs, label = lab)) + 
+  labs(x = 'Variable', y = '% of Historical Experiments with Variable') + 
+  theme_bw()
 plot(g)
+ggsave('./slides/hist_freq.pdf', g)

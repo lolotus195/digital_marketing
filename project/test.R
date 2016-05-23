@@ -33,7 +33,7 @@ RelevelData <- function(df, level.list) {
 ####
 # Load Data ----
 ####
-dat <- RelevelData(read.csv('experiment_results.csv'), exp.levels)
+dat <- RelevelData(read.csv('experiment1.csv'), exp.levels)
 dat$X <- NULL
 
 

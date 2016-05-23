@@ -45,12 +45,12 @@ dat.both <- rbind(dat1 %>% mutate(series="Exp 1"),
 # Formula We Submitted ----------------------------------------------------
 ####
 base.formula <- formula(~ I(V1 == 4) + I(V2 == 6) + I(V4 == 1) + 
-                          I(V4 == 3) + I(V5 == 5) + I(V6 == 3) + I(V7 == 1) + I(V7 == 2) + 
-                          I(V8 == 2) + I(V8 == 3) + I(V8 == 4) + I(V8 == 5) + I(V9 == 2) + 
-                          I(V9 == 4) + I(V9 == 6) + I(V1 == 5):I(V2 == 3) + I(V2 == 3):I(V1 == 6))
+                          I(V5 == 5) + I(V6 == 3) + I(V7 == 2) + 
+                          I(V8 == 4) + I(V9 == 4) + 
+                          I(V1 == 5):I(V2 == 3) + I(V2 == 3):I(V1 == 6))
 form <- update(base.formula, cbind(Clicks, N - Clicks) ~ .)
 reg <- glm(form, dat1, family = 'binomial')
-
+summary(reg)
 ####
 # Formula w/No Singularities ----
 ####
@@ -82,8 +82,7 @@ dat.permute %>%
          pred1.ci = qnorm(1-alpha/2, sd=pred1.se),
          pred2 = prd2$fit,
          pred2.se = prd2$se.fit,
-         pred2.ci = qnorm(1-alpha/2, sd=pred2.se)) %>%
-  select(-pred1.se, -pred2.se) -> dat.results
+         pred2.ci = qnorm(1-alpha/2, sd=pred2.se)) -> dat.results
 
 dat.results[order(dat.results$pred2, decreasing = T)[1:10],] -> dat.topN
 dat.topN$msg.id <- rownames(dat.topN)
@@ -138,3 +137,46 @@ g <- ggplot(dat.results, aes(x=pred2)) +
   scale_color_discrete("Series") +
   labs(x="Pr(Click)", y="Count")
 GGPlotSave(g, "hist")
+
+
+mdl.small <- glm(cbind(Clicks, N-Clicks) ~ V9, 
+           dat1, family="binomial")
+summary(mdl.small)
+
+# Run 575 against 569 (vary level 2 and level 6)
+
+dat.test <- dat.results[order(dat.results$pred1, decreasing = T),]
+head(dat.test)
+
+require(bandit)
+power.prop.test(p1 = dat.test$pred1[1], 
+                p2 = dat.test$pred1[3], 
+                sig.level = 0.05, power = 0.95)
+
+# Would this be helpful? ----
+dat.test[c(2,3),] %>%
+  mutate(N=7713) %>%
+  select(-pred1, -pred1.se) -> dat.exp2
+as.data.frame(dat.exp2)
+WriteDesign <- function(filename, design) {
+  if (ncol(design) != 10) {
+    stop("need 10 columns")
+  }
+  # This is really dumb, I hate R.
+  mtx <- matrix(as.numeric(as.matrix(design)), ncol=10)
+  write.table(mtx, file=sprintf("experiments/%s", filename), 
+              row.names = F, sep = ",")
+}
+WriteDesign("experiment2.csv", dat.exp2)
+
+as.character(dat.exp2)
+write.csv(dat.exp2, "experiment2.csv")
+# mdl.new <- glm(cbind(Clicks, N-Clicks) ~ V1 + V2 + I(V4 == 1) + V5 + V6 + V7 + 
+#              I(V8 == 4) + V9 + V1:V2, 
+#            dat.new, family="binomial")
+
+mdl.new <- glm(cbind(Clicks, N-Clicks) ~ . + V1*V2, 
+               select(dat, -V3), family="binomial") # select(dat.new, -V3)
+
+
+cbind(summary(mdl)$coef, summary(mdl.new)$coef)

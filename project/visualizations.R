@@ -28,14 +28,12 @@ g <- g +
                    xend = log(data$lambda[length(data$lambda)*0.8]), 
                    y = 0.2495, yend = 0.2495),
                size = 0.3, color = '#000000', 
-               arrow = arrow(angle = 20, length = unit(0.2, 'inches'), 
-                             type = 'closed', ends = 'first')) + 
+               arrow = arrow(ends = 'first')) + 
   geom_segment(aes(x = log(data$lambda[length(data$lambda)*0.2]), 
                    xend = max(log(data$lambda)), 
                    y = 0.2495, yend = 0.2495),
                size = 0.3, color = '#000000', 
-               arrow = arrow(angle = 20, length = unit(0.2, 'inches'), 
-                             type = 'closed', ends = 'last')) +
+               arrow = arrow(ends = 'last')) +
   annotate('text', x = min(log(data$lambda)), y = 0.25,
            hjust = 0, vjust = 0,
            label = 'more complex', size = 5) + 
@@ -136,6 +134,39 @@ g.var3 <- g.base +
            label = 'Variables 3 and 6 have\nlittle to no predictive power')
 plot(g.var3)
 
-ggsave('slides/coefs_base.pdf', g.base)
-ggsave('slides/coefs_int.pdf', g.int)
-ggsave('slides/coefs_missing.pdf', g.var3)
+g.comb <- g.int + 
+  geom_segment(aes(x = 4.5, xend = 4.5,
+                                   y = 0, yend = -0.3),
+                               arrow = arrow(ends='first')) + 
+  geom_segment(aes(x = 8, xend = 8,
+                   y = 0, yend = -0.3),
+               arrow = arrow(ends='first')) + 
+  annotate('text', x = 6.1, y = -0.32, 
+           hjust = 0.5, vjust = 1, 
+           label = 'Variables 3 and 6 have\nlittle to no predictive power')
+plot(g.comb)
+
+# ggsave('slides/coefs_base.pdf', g.base)
+# ggsave('slides/coefs_int.pdf', g.int)
+# ggsave('slides/coefs_missing.pdf', g.var3)
+ggsave('slides/coef_all.eps', g.comb)
+
+# Appendix plots -----
+
+load('../hw4/Historical_Data.rdat')
+
+# Gut check -- do we observe all vars about equally in the historical data?
+# Yes, thankfully
+inc.vars <- sapply(histdat, function(df) {
+  return(1:9 %in% as.numeric(gsub('V','', grep('V',colnames(df),value=T))))
+})
+inc.vars <- data.frame(var = paste('V', 1:9, sep = ''),
+                       obs = rowMeans(inc.vars),
+                       lab = sprintf('%.1f', 100*rowMeans(inc.vars)))
+
+g <- ggplot(inc.vars) + geom_bar(aes(x = var, y = obs - .03), stat = 'identity') + 
+  geom_text(aes(x = var, y = obs, label = lab)) + 
+  labs(x = 'Variable', y = '% of Historical Experiments with Variable') + 
+  theme_bw()
+plot(g)
+ggsave('./slides/hist_freq.pdf', g)

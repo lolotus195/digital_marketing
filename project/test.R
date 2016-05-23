@@ -1,6 +1,7 @@
 rm(list = ls())
 source("../utils/source_me.R", chdir = T)
 CreateDefaultPlotOpts()
+Global.PlotOpts$Prefix <- "slides/"
 require(plyr)
 require(dplyr)
 

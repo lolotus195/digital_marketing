@@ -36,8 +36,8 @@ RelevelData <- function(df, level.list) {
 ####
 # Load Data ----
 ####
-dat1 <- RelevelData(read.csv('experiment1.csv'), exp.levels)
-dat2 <- RelevelData(read.csv('experiment2.csv'), exp.levels)
+dat1 <- RelevelData(read.csv('results/experiment1.csv'), exp.levels)
+dat2 <- RelevelData(read.csv('results/experiment2.csv'), exp.levels)
 dat.both <- rbind(dat1 %>% mutate(series="Exp 1"), 
                   dat2 %>% mutate(series="Exp 1+2"))
 
@@ -144,7 +144,6 @@ mdl.small <- glm(cbind(Clicks, N-Clicks) ~ V9,
 summary(mdl.small)
 
 # Run 575 against 569 (vary level 2 and level 6)
-
 dat.test <- dat.results[order(dat.results$pred1, decreasing = T),]
 head(dat.test)
 
@@ -156,7 +155,8 @@ power.prop.test(p1 = dat.test$pred1[1],
 # Would this be helpful? ----
 dat.test[c(2,3),] %>%
   mutate(N=7713) %>%
-  select(-pred1, -pred1.se) -> dat.exp2
+  select(-pred1, -pred1.se, -pred1.ci,
+         -pred2, -pred2.se, -pred2.ci) -> dat.exp2
 as.data.frame(dat.exp2)
 WriteDesign <- function(filename, design) {
   if (ncol(design) != 10) {
@@ -168,15 +168,3 @@ WriteDesign <- function(filename, design) {
               row.names = F, sep = ",")
 }
 WriteDesign("experiment2.csv", dat.exp2)
-
-as.character(dat.exp2)
-write.csv(dat.exp2, "experiment2.csv")
-# mdl.new <- glm(cbind(Clicks, N-Clicks) ~ V1 + V2 + I(V4 == 1) + V5 + V6 + V7 + 
-#              I(V8 == 4) + V9 + V1:V2, 
-#            dat.new, family="binomial")
-
-mdl.new <- glm(cbind(Clicks, N-Clicks) ~ . + V1*V2, 
-               select(dat, -V3), family="binomial") # select(dat.new, -V3)
-
-
-cbind(summary(mdl)$coef, summary(mdl.new)$coef)

@@ -33,5 +33,10 @@ cached/
 *.fdb_latexmk
 *.fls
 *.log
+*.nav
+*.out
+*.snm
+*.toc
+coef_all-eps-converted-to.pdf
 writeup.pdf
 *.synctex.gz

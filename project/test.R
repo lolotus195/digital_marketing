@@ -140,7 +140,8 @@ GGPlotSave(g, "barplot")
 
 g <- ggplot(dat.results, aes(x=pred2)) +
   geom_histogram(bins=30) +
-  geom_vline(data=dat.both, aes(xintercept=Clicks/N, color=series), lty=2) +
+  geom_vline(data=dat.both, aes(xintercept=Clicks/N, color=series), 
+             alpha=0.75) +
   scale_color_discrete("Series") +
   labs(x="Pr(Click)", y="Count")
 GGPlotSave(g, "hist")

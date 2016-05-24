@@ -61,9 +61,11 @@
 
 % Didn't want on title page because we'd duplicate the phoenix
 \usebackgroundtemplate{%
-\tikz\node[opacity=0.6] {
+\tikz\node[opacity=0.5] {
 	\includegraphics[height=\paperheight]{phoenix}};
 }
+% \usebackgroundtemplate{\includegraphics[height=\paperheight]{phoenix}}
+
 
 \begin{frame}
 
@@ -113,7 +115,7 @@ Trade-off between accuracy (\textit{\fg select variables via cross validation}) 
 \begin{frame}
 What kind of model do we end up with?
 \includegraphics[width=\textwidth]{coef_all.pdf}
-\end{\textbf{}frame}
+\end{frame}
 
 \begin{frame}
 We can then calibrate a model and make predictions about all possible messages

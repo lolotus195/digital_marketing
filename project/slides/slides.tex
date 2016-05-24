@@ -42,7 +42,8 @@
 % spacing and style shorthand
 \setstretch{1.1}
 
-\title{Persado Email Subject Lines}
+\title{\\\includegraphics[width=0.5\textwidth]{persado_logo.png}
+Email Subject Lines}
 \subtitle{Digital and Algorithmic Marketing (37304-01)}
 \author{Brian Chingono, Will Clark, Matthew DeLio, Jonathan Stevens}
 % \institute{University of Chicago Booth School of Business}
@@ -81,7 +82,7 @@ Modeling objectives:
 \begin{frame}
 
 The model:
-\[ \frac{\textsf{Pr}(\text{click}=1)}{1-\textsf{Pr}(\text{click}=1)} = \beta_0 + \underbrace{\sum_{j=1}^{p} x_j \beta_j}_{\text{main effects}} + \underbrace{\sum_{j=1}^p \sum_{k=1}^{j-1} x_j x_k \beta_{jk}}_{\text{interaction effects}} + \varepsilon \]
+\[ \log\left[\frac{\textsf{Pr}(\text{click}=1)}{1-\textsf{Pr}(\text{click}=1)}\right] = \beta_0 + \underbrace{\sum_{j=1}^{p} x_j \beta_j}_{\text{main effects}} + \underbrace{\sum_{j=1}^p \sum_{k=1}^{j-1} x_j x_k \beta_{jk}}_{\text{interaction effects}} + \varepsilon \]
 
 The lasso:
 \[ \min_{\bm{\beta}} \left(-\frac{2}{n}\log{\textsf{LHD}(\bm{\beta})} + \underbrace{\lambda \sum_{i} \vert \beta_i \vert}_{\text{main + int. effects}} \right) \]
@@ -134,11 +135,11 @@ Final message\\
 (V1, ..., V9) = (5, 6, 1, 1, 5, 1, 2, 4, 2)\\
 \vspace{0.15in}
 Predicted click rate: 14.68052 percent\\
-{\sg Predicted profit: \$65,886.13}\\
+{\fg Predicted profit: \$65,886.13}\\
 \vspace{0.15in}
 95 percent confidence interval\\
-(13.97122, 15.38983)\\
-{\sg(\$66,634.04, \$73,394.00)}
+(13.98531, 15.40410)\\
+{\fg (\$62,573.74, \$69,333.70)}
 \end{frame}
 
 \begin{frame}[c]{ }

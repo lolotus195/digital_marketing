@@ -47,28 +47,33 @@ mdl2 <- glm(cbind(Clicks, N-Clicks) ~ V1 + V2 + V4 + V5 + V6 + V7 + I(V8 == 4) +
             dat.both, family="binomial")
 summary(mdl1)
 
-prd1 <- predict(mdl1, dat.permute, type="response", se.fit = T)
-prd2 <- predict(mdl2, dat.permute, type="response", se.fit = T)
+prd1 <- predict(mdl1, dat.permute, type="link", se.fit = T)
+prd2 <- predict(mdl2, dat.permute, type="link", se.fit = T)
+
+LogitLink <- function(ll) {
+  1/(1+exp(-ll))
+}
 
 alpha=0.05
 dat.permute %>%
-  mutate(pred1 = prd1$fit,
-         pred1.se = prd1$se.fit,
-         pred1.ci = qnorm(1-alpha/2, sd=pred1.se),
-         pred2 = prd2$fit,
-         pred2.se = prd2$se.fit,
-         pred2.ci = qnorm(1-alpha/2, sd=pred2.se)) -> dat.results
+  mutate(pred1 = LogitLink(prd1$fit),
+         pred1.lower = LogitLink(prd1$fit + qnorm(alpha/2, sd=prd1$se.fit)),
+         pred1.upper = LogitLink(prd1$fit + qnorm(1-alpha/2, sd=prd1$se.fit)),
+         pred2 = LogitLink(prd2$fit),
+         pred2.lower = LogitLink(prd2$fit + qnorm(alpha/2, sd=prd2$se.fit)),
+         pred2.upper = LogitLink(prd2$fit + qnorm(1-alpha/2, sd=prd2$se.fit))
+         ) -> dat.results
 
 dat.results[order(dat.results$pred2, decreasing = T)[1:10],] -> dat.topN
 dat.topN$msg.id <- rownames(dat.topN)
 dat.topN$index <- 1:nrow(dat.topN)
 rbind(
   dat.topN %>% mutate(series="#1 & #2") %>%
-    rename(pred=pred2, pred.ci=pred2.ci) %>%
-    select(-pred1, -pred1.ci),
+    rename(pred=pred2, pred.lower=pred2.lower, pred.upper=pred2.upper) %>%
+    select(-pred1, -pred1.lower, -pred1.upper),
   dat.topN %>% mutate(series="#1") %>%
-    rename(pred=pred1, pred.ci=pred1.ci) %>%
-    select(-pred2, -pred2.ci)
+    rename(pred=pred1, pred.lower=pred1.lower, pred.upper=pred1.upper) %>%
+    select(-pred2, -pred2.lower, -pred2.upper)
 ) -> dat.topN
 
 GetMessageLabel <- function(df) {
@@ -93,7 +98,7 @@ plot.breaks <- AxisLabels(dat.topN)
 
 g <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
   geom_bar(stat="identity", position="dodge") +
-  geom_errorbar(aes(ymin=pred - pred.ci, ymax=pred + pred.ci),
+  geom_errorbar(aes(ymin=pred.lower, ymax=pred.upper),
                 width=0.4, position=position_dodge(.9),
                 color="gray48") +
   geom_text(data=filter(dat.topN, series=="#1"), 
@@ -132,8 +137,8 @@ power.prop.test(p1 = dat.test$pred1[1],
 # Would this be helpful? ----
 dat.test[c(2,3),] %>%
   mutate(N=7713) %>%
-  select(-pred1, -pred1.se, -pred1.ci,
-         -pred2, -pred2.se, -pred2.ci) -> dat.exp2
+  select(-pred1, -pred1.lower, -pred1.upper,
+         -pred2, -pred2.lower, -pred2.upper) -> dat.exp2
 as.data.frame(dat.exp2)
 WriteDesign <- function(filename, design) {
   if (ncol(design) != 10) {

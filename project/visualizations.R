@@ -8,6 +8,7 @@ source("../utils/source_me.R", chdir = T)
 CreateDefaultPlotOpts()
 SlidesTheme()
 Global.PlotOpts$Prefix="slides/"
+source("model.R")
 
 # load data
 load(file = "../hw4/Historical_Data.rdat")
@@ -97,7 +98,7 @@ mdl.coefs <- mdl.coefs[mdl.coefs!=0]
 
 pdat <- data.frame(coef=mdl.coefs,
                    name=names(mdl.coefs))
-pdat$cat <- sapply(pdat$name, function(n) {
+CategoryName <- Vectorize(function(n) {
   if(grepl(':',n)) { # interaction  
     v1 <- str_split(n,':')[[1]][1]
     v2 <- str_split(n,':')[[1]][2]
@@ -105,6 +106,7 @@ pdat$cat <- sapply(pdat$name, function(n) {
   }
   else(return(substr(n,1,2)))
 })
+pdat$cat <- CategoryName(pdat$name)
 
 # Base plot
 g.base <- ggplot(pdat) + geom_bar(aes(y=coef,x=name,fill=cat), stat = 'identity') +
@@ -151,6 +153,34 @@ plot(g.comb)
 # ggsave('slides/coefs_int.pdf', g.int)
 # ggsave('slides/coefs_missing.pdf', g.var3)
 ggsave('slides/coef_all.pdf', g.comb)
+
+
+# New Coefficients --------------------------------------------------------
+dat.exp <- RelevelData(rbind(
+  read.csv("results/experiment1.csv"),
+  read.csv("results/experiment2.csv")), exp.levels)
+mdl.final <- FinalModel(dat.exp)
+summary(mdl.final)
+
+data.frame(
+  name=names(coef(mdl.final)[-1]),
+  value=coef(mdl.final)[-1], 
+  row.names = NULL) %>%
+  mutate(name=gsub("I\\(V(\\d+)\\s+==\\s+(\\d+)\\).+", "V\\1\\2", name),
+         category=CategoryName(name)) %>%
+  arrange(category, name) -> mdl.final.coefs
+mdl.final.coefs$idx <- (1:nrow(mdl.final.coefs))-1
+
+g <- ggplot(mdl.final.coefs, aes(x=idx, y=value, fill=category)) +
+  geom_bar(stat="identity") +
+  scale_x_continuous(breaks=mdl.final.coefs$idx,
+                     labels=mdl.final.coefs$name,
+                     expand=c(0.01, 0)) +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  scale_fill_discrete("Variable") +
+  labs(x="Variable Name", y="Coefficient")
+ggsave('slides/final_model_coefs.pdf', g)
+plot(g)
 
 # Appendix plots -----
 

@@ -6,35 +6,7 @@ Global.PlotOpts$Prefix <- "slides/"
 require(plyr)
 require(dplyr)
 require(ggplot2)
-
-####
-# Level Info --------------------------------------------------------------
-####
-all.levels <- list(V1=1:6,
-                   V2=1:6,
-                   V3=1:3,
-                   V4=1:3,
-                   V5=1:5,
-                   V6=1:4,
-                   V7=1:2,
-                   V8=1:5,
-                   V9=1:6)
-exp.levels <- list(V1=c(4, 5, 6),
-                   V2=c(1, 3, 6),
-                   V3=1,
-                   V4=c(1, 2, 3),
-                   V5=c(1, 5),
-                   V6=c(1, 3),
-                   V7=c(1, 2),
-                   V8=c(2, 3, 4, 5),
-                   V9=c(2, 4, 6))
-
-RelevelData <- function(df, level.list) {
-  for (colname in names(level.list)) {
-    df[,colname] <- factor(df[,colname], levels=level.list[[colname]])
-  }
-  return(df)
-}
+source("model.R")
 
 ####
 # Load Data ----
@@ -132,7 +104,8 @@ g <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
                      labels=plot.breaks$labels) +
   scale_fill_discrete("Experiment") +
   ylab("Pr(Click)")
-GGPlotSave(g, "barplot")
+ggsave("slides/barplot.pdf", g)
+plot(g)
 
 g <- ggplot(dat.results, aes(x=pred2)) +
   geom_histogram(bins=30) +
@@ -140,8 +113,8 @@ g <- ggplot(dat.results, aes(x=pred2)) +
              alpha=0.75) +
   scale_color_discrete("Experiment") +
   labs(x="Pr(Click)", y="Count")
-GGPlotSave(g, "hist")
-
+ggsave("slides/hist.pdf", g)
+plot(g)
 
 mdl.small <- glm(cbind(Clicks, N-Clicks) ~ V9, 
            dat1, family="binomial")

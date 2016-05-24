@@ -140,12 +140,18 @@ dat.test[c(2,3),] %>%
   select(-pred1, -pred1.lower, -pred1.upper,
          -pred2, -pred2.lower, -pred2.upper) -> dat.exp2
 as.data.frame(dat.exp2)
-WriteDesign <- function(filename, design) {
-  if (ncol(design) != 10) {
-    stop("need 10 columns")
+WriteDesign <- function(filename, design, final=F) {
+  if (final) {
+    if (ncol(design) != 9) {
+      stop("need 9 columns")
+    }
+  } else {
+    if (ncol(design) != 10) {
+      stop("need 10 columns")
+    }
   }
   # This is really dumb, I hate R.
-  mtx <- matrix(as.numeric(as.matrix(design)), ncol=10)
+  mtx <- matrix(as.numeric(as.matrix(design)), ncol=ifelse(final, 9, 10))
   write.table(mtx, file=sprintf("exp.designs/%s", filename), 
               row.names = F, sep = ",")
 }
@@ -153,8 +159,10 @@ WriteDesign("exp2.csv", dat.exp2)
 
 # Final prediction ----
 
-final <- slice(dat.topN, 1) %>% select(pred, pred.upper, pred.lower)
-
+dat.topN %>%
+  filter(series=="#1 & #2") %>%
+  arrange(desc(pred)) %>%
+  slice(1) -> final
 final$label
 
 sprintf('Predicted click rate: %.5f', 100*final$pred)
@@ -163,7 +171,6 @@ sprintf('95 percent confidence interval: (%.5f, %.5f)',
         100*final$pred.lower, 100*final$pred.upper)
 
 # Cost prediction ----
-
 experiment.cost <- (nrow(dat.both) + 1) * 200
 experiment.revenue <- sum(dat.both$Clicks * 0.10)
 
@@ -177,3 +184,4 @@ sprintf('Revenue prediction: $%.2f',
 sprintf('95 percent confidence interval: ($%.2f, $%.2f)', 
         final.revenue_lo, final.revenue_hi)
 
+WriteDesign("final_message.csv", final[,names(all.levels)], final=T)

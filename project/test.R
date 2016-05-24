@@ -6,9 +6,11 @@ require(plyr)
 require(dplyr)
 require(ggplot2)
 
-theme_set(theme_gray())
+theme_set(theme_bw())
 theme_update(
-  plot.background=element_rect(fill=rgb(1, 1, 1, 0))
+  plot.background=element_rect(fill=rgb(1, 1, 1, 0)),
+  panel.background=element_rect(fill=rgb(1, 1, 1, 0)),
+  legend.background=element_rect(fill=rgb(1, 1, 1, 0))
 )
 
 ####

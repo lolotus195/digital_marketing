@@ -94,7 +94,8 @@ plot.breaks <- AxisLabels(dat.topN)
 g <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
   geom_bar(stat="identity", position="dodge") +
   geom_errorbar(aes(ymin=pred - pred.ci, ymax=pred + pred.ci),
-                width=0.4, position=position_dodge(.9)) +
+                width=0.4, position=position_dodge(.9),
+                color="gray48") +
   geom_text(data=filter(dat.topN, series=="#1"), 
             aes(x=index, y=0, label=label), 
             angle=90, hjust=0, nudge_y=0.005, nudge_x=0.20,

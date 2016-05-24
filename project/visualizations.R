@@ -160,27 +160,68 @@ dat.exp <- RelevelData(rbind(
   read.csv("results/experiment1.csv"),
   read.csv("results/experiment2.csv")), exp.levels)
 mdl.final <- FinalModel(dat.exp)
+mdl.final1 <- FinalModel(RelevelData(read.csv("results/experiment1.csv"), 
+                                    exp.levels))
 summary(mdl.final)
+summary(mdl.final1)
 
-data.frame(
-  name=names(coef(mdl.final)[-1]),
-  value=coef(mdl.final)[-1], 
-  row.names = NULL) %>%
+ExtractNameValueSe <- function(mdl) {
+  coef.mtx <- summary(mdl)$coefficients[-1,]
+  data.frame(
+    name=rownames(coef.mtx),
+    value=coef.mtx[,'Estimate'], 
+    value.se=coef.mtx[,'Std. Error'],
+    row.names = NULL)
+}
+alpha.ci <- 0.05
+rbind(
+  cbind(ExtractNameValueSe(mdl.final1), series="#1"),
+  cbind(ExtractNameValueSe(mdl.final), series="#1 & #2")) %>%
   mutate(name=gsub("I\\(V(\\d+)\\s+==\\s+(\\d+)\\).+", "V\\1\\2", name),
-         category=CategoryName(name)) %>%
-  arrange(category, name) -> mdl.final.coefs
-mdl.final.coefs$idx <- (1:nrow(mdl.final.coefs))-1
+         category=CategoryName(name),
+         value.upper=value + qnorm(1-alpha.ci/2, sd=value.se),
+         value.lower=value + qnorm(alpha.ci/2, sd=value.se)) %>%
+  group_by(series) %>%
+  arrange(category, name) -> mdl.final.coefs.unordered
 
-g <- ggplot(mdl.final.coefs, aes(x=idx, y=value, fill=category)) +
-  geom_bar(stat="identity") +
-  scale_x_continuous(breaks=mdl.final.coefs$idx,
-                     labels=mdl.final.coefs$name,
+sort.series <- "#1 & #2"
+indices <- (1:nrow(filter(mdl.final.coefs.unordered, series==sort.series)))-1
+filter(mdl.final.coefs.unordered, series==sort.series) %>% 
+  ungroup() %>%
+  mutate(index=indices) %>%
+  select(name, index) %>%
+  left_join(mdl.final.coefs.unordered, by=c("name")) -> mdl.final.coefs
+
+g <- ggplot(mdl.final.coefs, aes(x=index, y=value, fill=category, alpha=series)) +
+  geom_bar(stat="identity", position="dodge") +
+  geom_errorbar(aes(ymin=value.lower, ymax=value.upper), 
+                width=0.5, position=position_dodge(0.9), 
+                color="gray48", show.legend=F) +
+  scale_x_continuous(breaks=unique(mdl.final.coefs$index),
+                     labels=unique(mdl.final.coefs$name),
                      expand=c(0.01, 0)) +
+  scale_alpha_discrete("Experiment", range=c(0.5, 1)) +
   theme(axis.text.x=element_text(angle=90, hjust=1)) +
   scale_fill_discrete("Variable") +
   labs(x="Variable Name", y="Coefficient")
-ggsave('slides/final_model_coefs.pdf', g)
 plot(g)
+ggsave('slides/final_model_coefs_crazy.pdf', g)
+
+g <- ggplot(filter(mdl.final.coefs, series=="#1 & #2"), 
+            aes(x=index, y=value, fill=category)) +
+  geom_bar(stat="identity", position="dodge") +
+  geom_errorbar(aes(ymin=value.lower, ymax=value.upper), 
+                width=0.4, position=position_dodge(0.9), 
+                color="gray48", show.legend=F) +
+  scale_x_continuous(breaks=unique(mdl.final.coefs$index),
+                     labels=unique(mdl.final.coefs$name),
+                     expand=c(0.01, 0)) +
+  scale_alpha_discrete("Experiment", range=c(0.5, 1)) +
+  theme(axis.text.x=element_text(angle=90, hjust=1)) +
+  scale_fill_discrete("Variable") +
+  labs(x="Variable Name", y="Coefficient")
+plot(g)
+ggsave('slides/final_model_coefs.pdf', g)
 
 # Appendix plots -----
 

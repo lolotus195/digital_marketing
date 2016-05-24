@@ -45,8 +45,8 @@ RelevelData <- function(df, level.list) {
 ####
 dat1 <- RelevelData(read.csv('results/experiment1.csv'), exp.levels)
 dat2 <- RelevelData(read.csv('results/experiment2.csv'), exp.levels)
-dat.both <- rbind(dat1 %>% mutate(series="Exp 1"), 
-                  dat2 %>% mutate(series="Exp 1+2"))
+dat.both <- rbind(dat1 %>% mutate(series="#1"), 
+                  dat2 %>% mutate(series="#2"))
 
 ####
 # Formula We Submitted ----------------------------------------------------
@@ -95,10 +95,10 @@ dat.results[order(dat.results$pred2, decreasing = T)[1:10],] -> dat.topN
 dat.topN$msg.id <- rownames(dat.topN)
 dat.topN$index <- 1:nrow(dat.topN)
 rbind(
-  dat.topN %>% mutate(series="Exp 1+2") %>%
+  dat.topN %>% mutate(series="#1 & #2") %>%
     rename(pred=pred2, pred.ci=pred2.ci) %>%
     select(-pred1, -pred1.ci),
-  dat.topN %>% mutate(series="Exp 1") %>%
+  dat.topN %>% mutate(series="#1") %>%
     rename(pred=pred1, pred.ci=pred1.ci) %>%
     select(-pred2, -pred2.ci)
 ) -> dat.topN
@@ -127,14 +127,14 @@ g <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
   geom_bar(stat="identity", position="dodge") +
   geom_errorbar(aes(ymin=pred - pred.ci, ymax=pred + pred.ci),
                 width=0.4, position=position_dodge(.9)) +
-  geom_text(data=filter(dat.topN, series=="Exp 1"), 
+  geom_text(data=filter(dat.topN, series=="#1"), 
             aes(x=index, y=0, label=label), 
-            angle=90, hjust=0, nudge_y=0.005,
+            angle=90, hjust=0, nudge_y=0.005, nudge_x=0.20,
             fontface="bold") +
   scale_x_continuous("Message ID", 
                      breaks=plot.breaks$breaks,
                      labels=plot.breaks$labels) +
-  scale_fill_discrete("Series") +
+  scale_fill_discrete("Experiment") +
   ylab("Pr(Click)")
 GGPlotSave(g, "barplot")
 
@@ -142,7 +142,7 @@ g <- ggplot(dat.results, aes(x=pred2)) +
   geom_histogram(bins=30) +
   geom_vline(data=dat.both, aes(xintercept=Clicks/N, color=series), 
              alpha=0.75) +
-  scale_color_discrete("Series") +
+  scale_color_discrete("Experiment") +
   labs(x="Pr(Click)", y="Count")
 GGPlotSave(g, "hist")
 

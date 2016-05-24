@@ -110,8 +110,7 @@ plot(g)
 
 g <- ggplot(dat.results, aes(x=pred2)) +
   geom_histogram(bins=30) +
-  geom_vline(data=dat.both, aes(xintercept=Clicks/N, color=series), 
-             alpha=0.75) +
+  geom_vline(data=dat.both, aes(xintercept=Clicks/N, color=series)) +
   scale_color_discrete("Experiment") +
   labs(x="Pr(Click)", y="Count")
 ggsave("slides/hist.pdf", g)

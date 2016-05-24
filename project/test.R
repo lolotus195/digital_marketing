@@ -145,3 +145,30 @@ WriteDesign <- function(filename, design) {
               row.names = F, sep = ",")
 }
 WriteDesign("exp2.csv", dat.exp2)
+
+# Final prediction ----
+
+final <- slice(dat.topN, 1) %>% select(pred, pred.ci, label) %>%
+  mutate(upper = pred + pred.ci, lower = pred - pred.ci)
+
+final$label
+
+sprintf('Predicted click rate: %.5f', 100*final$pred)
+
+sprintf('95 percent confidence interval: (%.5f, %.5f)', 
+        100*final$lower, 100*final$upper)
+
+# Cost prediction ----
+
+experiment.cost <- (nrow(dat.both) + 1) * 200
+experiment.revenue <- sum(dat.both$Clicks * 0.10)
+
+final.revenue <- final$pred * (5e6 - sum(dat.both$N)) * 0.10
+final.revenue_hi <- final$upper * (5e6 - sum(dat.both$N)) * 0.10
+final.revenue_lo <- final$lower * (5e6 - sum(dat.both$N)) * 0.10
+
+sprintf('Revenue prediction: $%.2f', 
+        final.revenue + experiment.revenue - experiment.cost)
+
+sprintf('95 percent confidence interval: ($%.2f, $%.2f)', 
+        final.revenue_lo, final.revenue_lo)

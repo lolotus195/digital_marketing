@@ -52,3 +52,7 @@ sprintf('Predicted profit: $%.2f', final.profit)
 
 sprintf('95 percent confidence interval: ($%.2f, $%.2f)', 
         final.profit_lo, final.profit_hi)
+
+# Some stuff ----
+
+reg6 <- glm(Clicks/N ~ V6, weights = N, data = dat.both, family = 'binomial')

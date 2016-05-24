@@ -6,14 +6,8 @@ require(stringr)
 
 source("../utils/source_me.R", chdir = T)
 CreateDefaultPlotOpts()
+SlidesTheme()
 Global.PlotOpts$Prefix="slides/"
-
-theme_set(theme_bw())
-theme_update(
-  plot.background=element_rect(fill=rgb(1, 1, 1, 0)),
-  panel.background=element_rect(fill=rgb(1, 1, 1, 0)),
-  legend.background=element_rect(fill=rgb(1, 1, 1, 0))
-)
 
 # load data
 load(file = "../hw4/Historical_Data.rdat")

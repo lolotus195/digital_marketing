@@ -65,6 +65,15 @@ PlotDone <- function(plotOpts. = Global.PlotOpts) {
   dev.off()
 }
 
+SlidesTheme <- function() {
+  theme_set(theme_bw())
+  theme_update(
+    plot.background=element_rect(fill=rgb(1, 1, 1, 0)),
+    panel.background=element_rect(fill=rgb(1, 1, 1, 0.5)),
+    legend.background=element_rect(fill=rgb(1, 1, 1, 0))
+  )
+}
+
 GGPlotSave <- function(g, filename, plotOpts. = Global.PlotOpts) {
   plot(g)
   if (plotOpts.$WriteToFile == F) return()

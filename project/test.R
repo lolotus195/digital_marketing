@@ -228,7 +228,7 @@ g3 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
   scale_x_continuous("Message ID", 
                      breaks=plot.breaks$breaks,
                      labels=plot.breaks$labels) +
-  scale_fill_discrete("Experiment") +
+  scale_fill_discrete("Experiment", l=c(95,65), c=c(40,100)) +
   ylab("Pr(Click)")
 plot(g3)
 
@@ -244,7 +244,7 @@ g4 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
   scale_x_continuous("Message ID", 
                      breaks=plot.breaks$breaks,
                      labels=plot.breaks$labels) +
-  scale_fill_discrete("Experiment") +
+  scale_fill_discrete("Experiment", l=c(95,65), c=c(40,100)) +
   ylab("Pr(Click)") + 
   annotate('rect', xmin = 0.5, xmax = 1.5, ymin = -0.005, 
            ymax = as.numeric(dat.topN %>% 

@@ -112,32 +112,32 @@ Trade-off between accuracy (\textit{\fg select variables via cross validation}) 
 \end{frame}
 
 \begin{frame}
-What kind of model do we end up with?
+The LASSO selects the following coefficients which align with our modeling goals ({\fg small model} \& {\fg main effects})
 \includegraphics[width=\textwidth]{coef_all.pdf}
 \end{frame}
 
 \begin{frame}
-What kind of model do we get after running experiments?
+We can then estimate this model on our sample of 5 million customers to build predictive capability
 \includegraphics[width=\textwidth]{final_model_coefs.pdf}
 \end{frame}
 
 \begin{frame}
-We can then make predictions about all possible messages
+The estimated model can find the messages with the best predicted click rate (even among those we have not tested)
 \includegraphics[width=\textwidth]{barplot1.pdf}
 \end{frame}
 
 \begin{frame}
-We can then make predictions about all possible messages
+To validate model performance (and maybe learn more about V6), we can run a small experiment with two of the top messages
 \includegraphics[width=\textwidth]{barplot2.pdf}
 \end{frame}
 
 \begin{frame}
-We can then make predictions about all possible messages
+With the results of the second experiment, we can re-estimate our model and update our predictions
 \includegraphics[width=\textwidth]{barplot3.pdf}
 \end{frame}
 
 \begin{frame}
-We can then make predictions about all possible messages
+Our re-estimated model suggests Message 575 will have the highest click rate (but not by much!)
 \includegraphics[width=\textwidth]{barplot4.pdf}
 \end{frame}
 

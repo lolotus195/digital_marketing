@@ -96,10 +96,12 @@ AxisLabels <- function(df) {
 }
 plot.breaks <- AxisLabels(dat.topN)
 
+fill.values <- c("#1"=gg_color_hue(3)[1], "#2"=gg_color_hue(3)[3])
+
 g <- ggplot(dat.results, aes(x=pred2)) +
   geom_histogram(bins=30) +
   geom_vline(data=dat.both, aes(xintercept=Clicks/N, color=series)) +
-  scale_color_discrete("Experiment") +
+  scale_color_manual("Experiment", values=fill.values) +
   labs(x="Pr(Click)", y="Count")
 ggsave("slides/hist.pdf", g)
 plot(g)
@@ -172,8 +174,11 @@ sprintf('95 percent confidence interval: ($%.2f, $%.2f)',
 # default: l=65, c=100
 # faded: l=95, c=40
 
+alpha.background <- 0.25
+fill.values <- c("#1"=gg_color_hue(3)[1], "#1 & #2"=gg_color_hue(3)[3])
+
 # 1 - red is in focus, blue is faded (lower intensity)
-g1 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
+g1 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series, alpha=series)) +
   geom_bar(stat="identity", position="dodge") +
   geom_errorbar(aes(ymin=pred.lower, ymax=pred.upper),
                 width=0.4, position=position_dodge(.9),
@@ -184,12 +189,13 @@ g1 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
   scale_x_continuous("Message ID", 
                      breaks=plot.breaks$breaks,
                      labels=plot.breaks$labels) +
-  scale_fill_discrete("Experiment", l=c(65,95), c=c(100,40)) +
+  scale_fill_manual("Experiment", values=fill.values) +
+  scale_alpha_manual(values=c("#1"=1, "#1 & #2"=alpha.background), guide=F) +
   ylab("Pr(Click)")
 plot(g1)
 
 # 2 - highlight reds that we tested
-g2 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
+g2 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series, alpha=series)) +
   geom_bar(stat="identity", position="dodge") +
   geom_errorbar(aes(ymin=pred.lower, ymax=pred.upper),
                 width=0.4, position=position_dodge(.9),
@@ -202,7 +208,8 @@ g2 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
   scale_x_continuous("Message ID", 
                      breaks=plot.breaks$breaks,
                      labels=plot.breaks$labels) +
-  scale_fill_discrete("Experiment", l=c(65,95), c=c(100,40)) +
+  scale_fill_manual("Experiment", values=fill.values) +
+  scale_alpha_manual(values=c("#1"=1, "#1 & #2"=alpha.background), guide=F) +
   ylab("Pr(Click)") +
   annotate('rect', xmin = 1.5, xmax = 2.5, ymin = -0.005, 
            ymax = as.numeric(dat.topN %>% 
@@ -217,23 +224,24 @@ g2 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
 plot(g2)
 
 # 3 - add blues
-g3 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
+g3 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series, alpha=series)) +
   geom_bar(stat="identity", position="dodge") +
   geom_errorbar(aes(ymin=pred.lower, ymax=pred.upper),
                 width=0.4, position=position_dodge(.9),
                 color="gray48") +
-  geom_text(data=filter(dat.topN, series=="#1"), 
+  geom_text(data=filter(dat.topN, series=="#1 & #2"), 
             aes(x=index, y=0, label=label), 
             angle=90, hjust=0, nudge_y=0.005, nudge_x=0.2) +
   scale_x_continuous("Message ID", 
                      breaks=plot.breaks$breaks,
                      labels=plot.breaks$labels) +
-  scale_fill_discrete("Experiment", l=c(95,65), c=c(40,100)) +
+  scale_fill_manual("Experiment", values=fill.values) +
+  scale_alpha_manual(values=c("#1"=alpha.background, "#1 & #2"=1), guide=F) +
   ylab("Pr(Click)")
 plot(g3)
 
 # 4 - highlight message that we submitted
-g4 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
+g4 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series, alpha=series)) +
   geom_bar(stat="identity", position="dodge") +
   geom_errorbar(aes(ymin=pred.lower, ymax=pred.upper),
                 width=0.4, position=position_dodge(.9),
@@ -244,7 +252,8 @@ g4 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
   scale_x_continuous("Message ID", 
                      breaks=plot.breaks$breaks,
                      labels=plot.breaks$labels) +
-  scale_fill_discrete("Experiment", l=c(95,65), c=c(40,100)) +
+  scale_fill_manual("Experiment", values=fill.values) +
+  scale_alpha_manual(values=c("#1"=alpha.background, "#1 & #2"=1), guide=F) +
   ylab("Pr(Click)") + 
   annotate('rect', xmin = 0.5, xmax = 1.5, ymin = -0.005, 
            ymax = as.numeric(dat.topN %>% 

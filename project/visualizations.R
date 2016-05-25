@@ -224,23 +224,26 @@ g <- ggplot(filter(mdl.final.coefs, series=="#1 & #2"),
 # Annotate final_model_coefs.pdf
 g <- g +   
   annotate('rect', xmin = 1.5, xmax = 5.5, 
-           ymin = min(select(filter(mdl.final.coefs, series=="#1 & #2"), value)) - 0.01, 
-           ymax = 0.01, 
+           ymin = as.numeric(mdl.final.coefs %>% 
+                               filter(name=='V15:V23', series=='#1 & #2') %>% 
+                               select(value.lower)) - 0.05, 
+           ymax = as.numeric(mdl.final.coefs %>% 
+                               filter(name=='V15:V26', series=='#1 & #2') %>% 
+                               select(value.upper)) + 0.05, 
            alpha = 0, color = '#000000') +
   annotate('text', x = 3.5, 
            y = as.numeric(mdl.final.coefs %>% 
                             filter(name=='V15:V26', series=='#1 & #2') %>% 
-                            select(value.upper)) + 0.05,
+                            select(value.upper)) + 0.15,
            hjust = 0.5, vjust = 0, label = 'Interact V1 and V2\nlevels (5,6) with (2,6)') +
   annotate('text', x = 11, 
            y = as.numeric(mdl.final.coefs %>% 
                             filter(name=='V63', series=='#1 & #2') %>% 
-                            select(value.lower)) - 0.05,
+                            select(value.lower)) - 0.1,
            hjust = 0.5, vjust = 1,
            label = 'V6 is probably\njust noise')
 plot(g)
 ggsave('slides/final_model_coefs.pdf', g)
-# TODO: add some margin
 
 # Appendix plots -----
 

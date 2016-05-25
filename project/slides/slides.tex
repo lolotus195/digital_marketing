@@ -82,7 +82,7 @@ Modeling objectives:
 The model:
 \[ \log\left[\frac{\textsf{Pr}(\text{click}=1)}{1-\textsf{Pr}(\text{click}=1)}\right] = \beta_0 + \underbrace{\sum_{j=1}^{p} x_j \beta_j}_{\text{main effects}} + \underbrace{\sum_{j=1}^p \sum_{k=1}^{j-1} x_j x_k \beta_{jk}}_{\text{interaction effects}} + \varepsilon \]
 
-The lasso:
+The LASSO:
 \[ \min_{\bm{\beta}} \left(-\frac{2}{n}\log{\textsf{LHD}(\bm{\beta})} + \underbrace{\lambda \sum_{i} \vert \beta_i \vert}_{\text{main + int. effects}} \right) \]
 % Note: strictly speaking the first term is *proportional* to the deviance and the second term is *proportional* to the absolute value
 
@@ -93,7 +93,7 @@ We can vary the weight on $\lambda$ to impose different shrinkage for different 
 
 \begin{frame}
 
-The lasso with a twist:
+The LASSO with a twist:
 \[ \min_{\bm{\beta}} \left(-\frac{2}{n}\log{\textsf{LHD}(\bm{\beta})} + \underbrace{\omega_1 \lambda \sum_{j=1}^{p} \vert \beta_j \vert}_{\text{main effects}} + \underbrace{\omega_2 \lambda \sum_{j=1}^p \sum_{k=1}^{j-1} \vert \beta_{jk} \vert}_{\text{interaction effects}} \right) \]
 
 \vskip 0.5cm 

@@ -62,7 +62,7 @@ dat.permute %>%
          pred2 = LogitLink(prd2$fit),
          pred2.lower = LogitLink(prd2$fit + qnorm(alpha/2, sd=prd2$se.fit)),
          pred2.upper = LogitLink(prd2$fit + qnorm(1-alpha/2, sd=prd2$se.fit))
-         ) -> dat.results
+  ) -> dat.results
 
 dat.results[order(dat.results$pred2, decreasing = T)[1:10],] -> dat.topN
 dat.topN$msg.id <- rownames(dat.topN)
@@ -96,23 +96,6 @@ AxisLabels <- function(df) {
 }
 plot.breaks <- AxisLabels(dat.topN)
 
-g <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
-  geom_bar(stat="identity", position="dodge") +
-  geom_errorbar(aes(ymin=pred.lower, ymax=pred.upper),
-                width=0.4, position=position_dodge(.9),
-                color="gray48") +
-  geom_text(data=filter(dat.topN, series=="#1"), 
-            aes(x=index, y=0, label=label), 
-            angle=90, hjust=0, nudge_y=0.005, nudge_x=0.20,
-            fontface="bold") +
-  scale_x_continuous("Message ID", 
-                     breaks=plot.breaks$breaks,
-                     labels=plot.breaks$labels) +
-  scale_fill_discrete("Experiment") +
-  ylab("Pr(Click)")
-ggsave("slides/barplot.pdf", g)
-plot(g)
-
 g <- ggplot(dat.results, aes(x=pred2)) +
   geom_histogram(bins=30) +
   geom_vline(data=dat.both, aes(xintercept=Clicks/N, color=series)) +
@@ -122,7 +105,7 @@ ggsave("slides/hist.pdf", g)
 plot(g)
 
 mdl.small <- glm(cbind(Clicks, N-Clicks) ~ V9, 
-           dat1, family="binomial")
+                 dat1, family="binomial")
 summary(mdl.small)
 
 # Run 575 against 569 (vary level 2 and level 6)
@@ -177,3 +160,101 @@ sprintf('Revenue prediction: $%.2f',
 sprintf('95 percent confidence interval: ($%.2f, $%.2f)', 
         final.revenue_lo, final.revenue_hi)
 
+# Fancy plots ----
+
+# default: l=65, c=100
+# faded: l=95, c=40
+
+# 1 - red is in focus, blue is faded (lower intensity)
+g1 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
+  geom_bar(stat="identity", position="dodge") +
+  geom_errorbar(aes(ymin=pred.lower, ymax=pred.upper),
+                width=0.4, position=position_dodge(.9),
+                color="gray48") +
+  geom_text(data=filter(dat.topN, series=="#1"), 
+            aes(x=index-0.25, y=0, label=label), 
+            angle=90, hjust=0, nudge_y=0.005) +
+  scale_x_continuous("Message ID", 
+                     breaks=plot.breaks$breaks,
+                     labels=plot.breaks$labels) +
+  scale_fill_discrete("Experiment", l=c(65,95), c=c(100,40)) +
+  ylab("Pr(Click)")
+plot(g1)
+
+# 2 - highlight reds that we tested
+g2 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
+  geom_bar(stat="identity", position="dodge") +
+  geom_errorbar(aes(ymin=pred.lower, ymax=pred.upper),
+                width=0.4, position=position_dodge(.9),
+                color="gray48") +
+  geom_text(data=dat.topN %>% 
+              mutate(label = ifelse(msg.id=='629'|msg.id=='569',label,'')) %>% 
+              filter(series=="#1"), 
+            aes(x=index-0.25, y=0, label=label), 
+            angle=90, hjust=0, nudge_y=0.005) +
+  scale_x_continuous("Message ID", 
+                     breaks=plot.breaks$breaks,
+                     labels=plot.breaks$labels) +
+  scale_fill_discrete("Experiment", l=c(65,95), c=c(100,40)) +
+  ylab("Pr(Click)") +
+  annotate('rect', xmin = 1.5, xmax = 2.5, ymin = -0.005, 
+           ymax = as.numeric(dat.topN %>% 
+                               filter(series == '#1', msg.id == '629') %>% 
+                               select(pred.upper)) + 0.005,
+           alpha = 0, color = '#000000', size = 1) + 
+  annotate('rect', xmin = 4.5, xmax = 5.5, ymin = -0.005, 
+           ymax = as.numeric(dat.topN %>% 
+                               filter(series == '#1', msg.id == '569') %>% 
+                               select(pred.upper)) + 0.005,
+           alpha = 0, color = '#000000', size = 1)
+plot(g2)
+
+# 3 - add blues
+g3 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
+  geom_bar(stat="identity", position="dodge") +
+  geom_errorbar(aes(ymin=pred.lower, ymax=pred.upper),
+                width=0.4, position=position_dodge(.9),
+                color="gray48") +
+  geom_text(data=filter(dat.topN, series=="#1"), 
+            aes(x=index, y=0, label=label), 
+            angle=90, hjust=0, nudge_y=0.005, nudge_x=0.2) +
+  scale_x_continuous("Message ID", 
+                     breaks=plot.breaks$breaks,
+                     labels=plot.breaks$labels) +
+  scale_fill_discrete("Experiment") +
+  ylab("Pr(Click)")
+plot(g3)
+
+# 4 - highlight message that we submitted
+g4 <- ggplot(dat.topN, aes(x=index, y=pred, fill=series)) +
+  geom_bar(stat="identity", position="dodge") +
+  geom_errorbar(aes(ymin=pred.lower, ymax=pred.upper),
+                width=0.4, position=position_dodge(.9),
+                color="gray48") +
+  geom_text(data=filter(dat.topN, series == '#1 & #2', msg.id == '575'), 
+            aes(x=index, y=0, label=label), 
+            angle=90, hjust=0, nudge_y=0.005, nudge_x=0.2) +
+  scale_x_continuous("Message ID", 
+                     breaks=plot.breaks$breaks,
+                     labels=plot.breaks$labels) +
+  scale_fill_discrete("Experiment") +
+  ylab("Pr(Click)") + 
+  annotate('rect', xmin = 0.5, xmax = 1.5, ymin = -0.005, 
+           ymax = as.numeric(dat.topN %>% 
+                               filter(series == '#1', msg.id == '575') %>% 
+                               select(pred.upper)) + 0.005,
+           alpha = 0, color = '#000000', size = 1)
+plot(g4)
+
+# Re-scale so they are all on the same y-axis
+# Should not be hard coded...
+# Comes from ggplot_build(g1)$panel$y_scales[[1]]
+g1 <- g1 + ylim(c(-0.005, 0.164))
+g2 <- g2 + ylim(c(-0.005, 0.164))
+g3 <- g3 + ylim(c(-0.005, 0.164))
+g4 <- g4 + ylim(c(-0.005, 0.164))
+
+ggsave("slides/barplot1.pdf", g1)
+ggsave("slides/barplot2.pdf", g2)
+ggsave("slides/barplot3.pdf", g3)
+ggsave("slides/barplot4.pdf", g4)
